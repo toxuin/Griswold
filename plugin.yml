@@ -1,0 +1,9 @@
+name: RepairMan
+main: com.github.toxuin.RepairMan
+version: 0.01
+author: toxuin
+description: Creates a man, who repairs stuff.
+
+commands:
+  repairman:
+    description: does all the work
