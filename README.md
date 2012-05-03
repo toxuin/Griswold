@@ -1,7 +1,9 @@
-RepairMan
+Griswold
 =========
 
 Bukkit Plugin: Those useless before squidwards now can repair your stuff!
+
+![Griswold: handsome man from Diablo I](http://s019.radikal.ru/i616/1205/32/5969e5ac378e.gif)
 
 Just show your stuff to blacksmith and he'll tell you how much he wants for the job. If you agree – just pass him the item. Users have no commands (because they don't need them)!
 
