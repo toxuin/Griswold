@@ -41,16 +41,20 @@ public class RepairMan extends JavaPlugin implements Listener{
 	
 	public static Set<Repairer> repairmen = new HashSet<Repairer>();
 	
+    private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
+    private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
+ 
 	public void onEnable(){
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
-		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
 		
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
 		readConfig();
+		
+		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
 		
 		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
 	}
@@ -262,9 +266,6 @@ public class RepairMan extends JavaPlugin implements Listener{
 		
 	}
 
-    private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
-    private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
- 
 	private class Frosttouch_freezeController extends TimerTask
     {
         //Make sure all frozen mobs are stuck in place

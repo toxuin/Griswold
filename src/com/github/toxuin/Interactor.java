@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -29,36 +28,36 @@ public class Interactor {
 	
 	public static void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
-		Interaction interaction = new Interaction(player, repairman.entity.getEntityId(), item, System.currentTimeMillis());
 		
-		boolean hasIt = false;
+		double price = getPrice(item);
+		
 		if (item != null && repairableIDs.contains((item.getTypeId()))) {
+			Interaction interaction = new Interaction(player, repairman.entity, item, System.currentTimeMillis());
 
 			for (Interaction inter : interactions) {
-				if (interaction.equals(inter)) {
+				if (interaction.equals(inter) && item.getDurability() != 0) {
 					item.setDurability((short) 0);
-					hasIt = true;
-				}
-
-				boolean valid = ((interaction.time < inter.time+RepairMan.timeout) ? true : false);
-				
-				if (!valid) {
-					Logger.getLogger("Minecraft").info("Просроченый интеракшон детектед. " + interaction.time + " >< "+ interactions.size());
-				} else {
-					Logger.getLogger("Minecraft").info("Твой интеракшон классненький!  " + interaction.time + " >< " + interactions.size());
+					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Отлично! Снова как новое!");
+					return;
 				}
 			}
-
-			if (!hasIt) {
-				interactions.add(interaction);
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я починю эту вещь для тебя за 500 коинов.");
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Если согласен - давай ее сюда.");
+			
+			if (interactions.size() > 10) interactions.clear();
+			if (item.getDurability() == 0) {
+				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Хм, похоже тут все в порядке - ремонт не нужен.");
 			} else {
-				interactions.clear();
+				interactions.add(interaction);
+				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я починю эту вещь для тебя за "+price+" коинов.");
+				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Если согласен - давай ее сюда.");
 			}
 		} else {
 			player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я не могу чинить такие вещи.");
 		}
 		
+	}
+
+	private static double getPrice(ItemStack item) {
+		// TODO Auto-generated method stub
+		return 100500;
 	}
 }
