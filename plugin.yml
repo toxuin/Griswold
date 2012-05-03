@@ -12,9 +12,9 @@ permissions:
     griswold.*:
         description: Gives FULL ACCESS, be careful!
         children:
-            doorman.admin: true
-            doorman.tools: true
-            doorman.armor: true
+            griswold.admin: true
+            griswold.tools: true
+            griswold.armor: true
     griswold.admin:
         description: Allows you to manage the blacksmiths
         default: op
