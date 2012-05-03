@@ -22,6 +22,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Entity;
@@ -32,11 +33,13 @@ public class RepairMan extends JavaPlugin implements Listener{
 	
 	public static boolean debug = false;
 	
+	public static int timeout = 3000;
+	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
 	private Logger log = Logger.getLogger("Minecraft");
 	
-	private Set<Repairer> repairmen = new HashSet<Repairer>();
+	public static Set<Repairer> repairmen = new HashSet<Repairer>();
 	
 	public void onEnable(){
 		directory = this.getDataFolder();
@@ -61,12 +64,22 @@ public class RepairMan extends JavaPlugin implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
 		for (Repairer rep : repairmen) {
-			if (!rep.entity.equals(event.getEntity())) return;
+			if (event.getEntity().equals(rep.entity)) {
+				event.setDamage(0);
+				event.setCancelled(true);
+			}
 		}
 	}
-	
-	
+
 	// MAKE INTERACTION
+	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+		for (Repairer rep : repairmen) {
+			if (event.getRightClicked().equals(rep.entity)) {
+				Interactor.interact(event.getPlayer(), rep);
+			}
+		}
+	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		
@@ -227,6 +240,7 @@ public class RepairMan extends JavaPlugin implements Listener{
 	        	}
         	}
         	debug = config.getBoolean("Debug");
+        	timeout = config.getInt("Timeout");
         	
         	if(debug) {
         		log.info(prefix+"DEBUG: loaded total "+repairmen.size() + " repairmen.");
@@ -234,9 +248,9 @@ public class RepairMan extends JavaPlugin implements Listener{
         	
         	log.info(prefix+"Config loaded!");
         } else {
-        	config.set("Version", this.getDescription().getVersion());
+        	config.set("Timeout", 3000);
         	config.set("Debug", false);
-        	
+        	config.set("Version", this.getDescription().getVersion());
         	try {
         		config.save(configFile);
         		log.info(prefix+"CREATED DEFAULT CONFIG");
