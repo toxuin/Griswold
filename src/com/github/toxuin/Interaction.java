@@ -23,11 +23,11 @@ public class Interaction {
 		if ((inter.item.equals(item)) &&
 			(inter.player.equals(player)) &&
 			(inter.repairman.equals(repairman)) &&
-			(delta < RepairMan.timeout)) {
-			Logger.getLogger("Minecraft").info(RepairMan.prefix+" TRUE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " < " + RepairMan.timeout);
+			(delta < Griswold.timeout)) {
+			Logger.getLogger("Minecraft").info(Griswold.prefix+" TRUE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " < " + Griswold.timeout);
 			return true;
 		} else {
-			Logger.getLogger("Minecraft").info(RepairMan.prefix+" FALSE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " > " + RepairMan.timeout);
+			Logger.getLogger("Minecraft").info(Griswold.prefix+" FALSE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " > " + Griswold.timeout);
 			return false;
 		}
 	}

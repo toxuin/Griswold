@@ -27,13 +27,13 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Entity;
 
-public class RepairMan extends JavaPlugin implements Listener{
+public class Griswold extends JavaPlugin implements Listener{
 	public static File directory;
 	public static String prefix = null;
 	
 	public static boolean debug = false;
 	
-	public static int timeout = 3000;
+	public static int timeout = 5000;
 	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
@@ -78,6 +78,7 @@ public class RepairMan extends JavaPlugin implements Listener{
 	// MAKE INTERACTION
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+		if (!event.getPlayer().hasPermission("griswold.tools") || !event.getPlayer().hasPermission("griswold.armor")) return;
 		for (Repairer rep : repairmen) {
 			if (event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
@@ -87,17 +88,17 @@ public class RepairMan extends JavaPlugin implements Listener{
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		
-		if(cmd.getName().equalsIgnoreCase("repairman")) {
+		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
-					if (sender instanceof ConsoleCommandSender) {
+					if (sender instanceof ConsoleCommandSender || sender.hasPermission("griswold.admin")) {
 						despawnAll();
 						readConfig();
 					}
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("create")) {
-					if (sender instanceof Player) {
+					if (sender instanceof Player && sender.hasPermission("griswold.admin")) {
 						if (args.length >= 2) {
 							Player player = (Player) sender;
 							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
@@ -113,16 +114,16 @@ public class RepairMan extends JavaPlugin implements Listener{
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("remove")) {
-					if (args.length>1) removeRepairman(args[2]);
+					if (args.length>1 && sender.hasPermission("griswold.admin")) removeRepairman(args[2]);
 				}
 				if (args[0].equalsIgnoreCase("list")) {
-					listRepairmen(sender);
+					if (sender.hasPermission("griswold.admin")) listRepairmen(sender);
 				}
 				if (args[0].equalsIgnoreCase("despawn")) {
-					despawnAll();
+					if (sender.hasPermission("griswold.admin")) despawnAll();
 				}
 				if (args[0].equalsIgnoreCase("respawn")) {
-					respawnAll();
+					if (sender.hasPermission("griswold.admin")) respawnAll();
 				}
 			}
 		}
@@ -194,6 +195,8 @@ public class RepairMan extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			rep.entity.remove();
 		}
+		FrozenTicks.clear();
+		FrozenPos.clear();
 		repairmen.clear();
 	}
 	
@@ -252,7 +255,7 @@ public class RepairMan extends JavaPlugin implements Listener{
         	
         	log.info(prefix+"Config loaded!");
         } else {
-        	config.set("Timeout", 3000);
+        	config.set("Timeout", 5000);
         	config.set("Debug", false);
         	config.set("Version", this.getDescription().getVersion());
         	try {
