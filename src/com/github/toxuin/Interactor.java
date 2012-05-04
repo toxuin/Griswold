@@ -58,14 +58,19 @@ public class Interactor {
 
 			for (Interaction inter : interactions) {
 				if (interaction.equals(inter) && item.getDurability() != 0) {
-					EconomyResponse r = Griswold.economy.depositPlayer(player.getName(), 1.05);
-		            if(r.transactionSuccess()) {
-						item.setDurability((short) 0);
-						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Отлично! Снова как новое!");
-		            } else {
-		            	
-		            }
-					return;
+					
+					if (Griswold.economy.getBalance(player.getName()) >= price) {
+						EconomyResponse r = Griswold.economy.withdrawPlayer(player.getName(), price);
+			            if(r.transactionSuccess()) {
+							item.setDurability((short) 0);
+							player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Отлично! Снова как новое!");
+			            } else {
+			            	player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.RED+" Кажется, что-то пошло не так!");
+			            }
+						return;
+					} else {
+						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Тебе нечем мне платить, дружище!");
+					}
 				}
 			}
 			
