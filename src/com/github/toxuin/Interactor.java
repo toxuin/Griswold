@@ -89,6 +89,7 @@ public class Interactor {
 	}
 
 	private static double getPrice(Repairer repairman, ItemStack item) {
+		if (Griswold.economy == null) return 0.0;
 		double price = 0;
 		
 		if (repairableTools.contains(item.getTypeId())) price = basicToolsPrice;

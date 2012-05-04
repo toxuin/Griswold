@@ -8,7 +8,6 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
-import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
@@ -51,7 +50,8 @@ public class Griswold extends JavaPlugin implements Listener{
     
 	public static Permission permission = null;
     public static Economy economy = null;
-    public static Chat chat = null;
+    
+    private String lang = "ru_RU";
  
 	public void onEnable(){
 		directory = this.getDataFolder();
@@ -62,14 +62,12 @@ public class Griswold extends JavaPlugin implements Listener{
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
 		readConfig();
+		Lang.init(lang);
 		
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
 		
-		if (!setupEconomy() ) {
-            log.info(prefix+"Warning: economy system not found: all repairs are free!");
-        }
+		if (!setupEconomy()) log.info(prefix+"Warning: economy system not found: all repairs are free!");
         setupPermissions();
-        setupChat();
 		
 		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
 	}
@@ -109,6 +107,7 @@ public class Griswold extends JavaPlugin implements Listener{
 					if (sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) {
 						despawnAll();
 						readConfig();
+						Lang.init(lang);
 					}
 					return true;
 				}
@@ -192,7 +191,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			}
 		}
 		
-		if (squidward.entity != null) repairmen.remove(squidward); else log.info(prefix+" Could not remove repairman: not found!");
+		if (squidward.entity != null) repairmen.remove(squidward); else log.info(prefix+"Could not remove repairman: not found!");
 	}
 	
 	private void listRepairmen(CommandSender sender){
@@ -263,6 +262,7 @@ public class Griswold extends JavaPlugin implements Listener{
         	}
         	debug = config.getBoolean("Debug");
         	timeout = config.getInt("Timeout");
+        	lang = config.getString("Language");
 
         	Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
         	Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
@@ -275,6 +275,7 @@ public class Griswold extends JavaPlugin implements Listener{
         	log.info(prefix+"Config loaded!");
         } else {
         	config.set("Timeout", 5000);
+        	config.set("Language", "ru_RU");
         	config.set("BasicArmorPrice", 10.0);
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
@@ -291,7 +292,8 @@ public class Griswold extends JavaPlugin implements Listener{
 		
 	}
 	
-	// PERMISSIONS, CHAT, ECONOMY
+	// NOT MY CODE BELOW THIS LINE
+	// ---------------------------
 
 
     private boolean setupPermissions()
@@ -301,16 +303,6 @@ public class Griswold extends JavaPlugin implements Listener{
             permission = permissionProvider.getProvider();
         }
         return (permission != null);
-    }
-
-    private boolean setupChat()
-    {
-        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
-        if (chatProvider != null) {
-            chat = chatProvider.getProvider();
-        }
-
-        return (chat != null);
     }
 
     private boolean setupEconomy()
