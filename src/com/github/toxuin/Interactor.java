@@ -63,27 +63,27 @@ public class Interactor {
 						EconomyResponse r = Griswold.economy.withdrawPlayer(player.getName(), price);
 			            if(r.transactionSuccess()) {
 							item.setDurability((short) 0);
-							player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Отлично! Снова как новое!");
+							player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_done);
 			            } else {
-			            	player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.RED+" Кажется, что-то пошло не так!");
+			            	player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.RED+" "+Lang.chat_error);
 			            }
 						return;
 					} else {
-						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Тебе нечем мне платить, дружище!");
+						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_poor);
 					}
 				}
 			}
 			
 			if (interactions.size() > 10) interactions.clear();
 			if (item.getDurability() == 0) {
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Хм, похоже тут все в порядке - ремонт не нужен.");
+				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair);
 			} else {
 				interactions.add(interaction);
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я починю эту вещь для тебя за "+price+" коинов.");
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Если согласен - давай ее сюда.");
+				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
 			}
 		} else {
-			player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я не умею чинить такие вещи.");
+			player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_cannot);
 		}
 		
 	}

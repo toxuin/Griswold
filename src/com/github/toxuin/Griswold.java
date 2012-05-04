@@ -66,7 +66,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
 		
-		if (!setupEconomy()) log.info(prefix+"Warning: economy system not found: all repairs are free!");
+		if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
         setupPermissions();
 		
 		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
@@ -123,7 +123,7 @@ public class Griswold extends JavaPlugin implements Listener{
 								String cost = args[3];
 								createRepairman(name, location, type, cost);
 							}
-						} else sender.sendMessage("Please add more parameters! Usage: "+ChatColor.BLUE+"/repairman create "+ChatColor.GREEN+"name "+ChatColor.GRAY+"type cost");
+						} else sender.sendMessage(Lang.insufficient_params);
 					} else return false;
 					return true;
 				}
@@ -168,7 +168,7 @@ public class Griswold extends JavaPlugin implements Listener{
     	try {
     		config.save(configFile);
     	} catch (Exception e) {
-    		log.info(prefix+"ERROR when writing to config.yml");
+    		log.info(prefix+Lang.error_config);
     		e.printStackTrace();
     	}
 		
@@ -191,7 +191,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			}
 		}
 		
-		if (squidward.entity != null) repairmen.remove(squidward); else log.info(prefix+"Could not remove repairman: not found!");
+		if (squidward.entity != null) repairmen.remove(squidward); else log.info(prefix+Lang.error_remove);
 	}
 	
 	private void listRepairmen(CommandSender sender){
@@ -200,7 +200,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			result = result + rep.name + ", ";
 		}
 		if (result != "") {
-			sender.sendMessage(ChatColor.GREEN+"Here are all the repairmen:");
+			sender.sendMessage(ChatColor.GREEN+Lang.repairman_list);
 			sender.sendMessage(result);
 		}
 	}
@@ -283,12 +283,14 @@ public class Griswold extends JavaPlugin implements Listener{
         	config.set("Version", this.getDescription().getVersion());
         	try {
         		config.save(configFile);
-        		log.info(prefix+"CREATED DEFAULT CONFIG");
+        		log.info(prefix+Lang.default_config);
         	} catch (Exception e) {
-        		log.info(prefix+"ERROR when creating config.yml");
+        		log.info(prefix+Lang.error_create_config);
         		e.printStackTrace();
         	}
         }
+
+    	Lang.createLangFile();
 		
 	}
 	
