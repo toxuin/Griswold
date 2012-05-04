@@ -15,6 +15,8 @@ Simple!
 
 * Multiworld support.
 
+* Fully multilingual. There are english and russian out-of-the-box, but you can add more!
+
 * All major economy systems supported. If Vault supports something - than it'll work with Griswold.
 
 * Simple.
@@ -43,7 +45,13 @@ All commands require griswold.admin permission and fallbacks to OP if something 
 
 ##Config:##
 
-The only parameters you might need to change in config are "**Debug**" and "**Timeout**". The first one is for debugging stuff and not usually useful if you don't know why you need it, and the second one is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default if "**false**" and "**5000**" (5 sec).
+All parameters are stored in config.yml and are reloadable without restarting the server (**/repairman reload**). 
+
+**Debug** is for debugging stuff and not usually useful if you don't know why you need it. Default if "**false**".
+
+**Timaout** is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default is "**5000**" (5 sec).
+
+**Language** is a name of language file (without .yml at the end) stored next to config.yml and containing all the text in preferred language. Default is "**ru_RU**".
 
 You also can alternate price calculation by changing basic armor and tool prices and enchantment cost. Modify parameters **BasicArmorPrice**, **BasicToolPrice** and **BasicEnchantmentPrice**.
 
