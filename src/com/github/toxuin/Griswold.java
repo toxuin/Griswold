@@ -8,6 +8,10 @@ import java.util.Set;
 import java.util.TimerTask;
 import java.util.logging.Logger;
 
+import net.milkbowl.vault.chat.Chat;
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.permission.Permission;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -24,6 +28,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.entity.Entity;
 
@@ -43,6 +48,10 @@ public class Griswold extends JavaPlugin implements Listener{
 	
     private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
     private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
+    
+	public static Permission permission = null;
+    public static Economy economy = null;
+    public static Chat chat = null;
  
 	public void onEnable(){
 		directory = this.getDataFolder();
@@ -55,6 +64,12 @@ public class Griswold extends JavaPlugin implements Listener{
 		readConfig();
 		
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
+		
+		if (!setupEconomy() ) {
+            log.info(prefix+"Warning: economy system not found: all repairs are free!");
+        }
+        setupPermissions();
+        setupChat();
 		
 		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
 	}
@@ -91,14 +106,14 @@ public class Griswold extends JavaPlugin implements Listener{
 		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
-					if (sender instanceof ConsoleCommandSender || sender.hasPermission("griswold.admin")) {
+					if (sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) {
 						despawnAll();
 						readConfig();
 					}
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("create")) {
-					if (sender instanceof Player && sender.hasPermission("griswold.admin")) {
+					if (sender instanceof Player && permission.has(sender, "griswold.admin")) {
 						if (args.length >= 2) {
 							Player player = (Player) sender;
 							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
@@ -114,16 +129,16 @@ public class Griswold extends JavaPlugin implements Listener{
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("remove")) {
-					if (args.length>1 && sender.hasPermission("griswold.admin")) removeRepairman(args[2]);
+					if (args.length>1 && permission.has(sender, "griswold.admin")) removeRepairman(args[2]);
 				}
 				if (args[0].equalsIgnoreCase("list")) {
-					if (sender.hasPermission("griswold.admin")) listRepairmen(sender);
+					if (permission.has(sender, "griswold.admin")) listRepairmen(sender);
 				}
 				if (args[0].equalsIgnoreCase("despawn")) {
-					if (sender.hasPermission("griswold.admin")) despawnAll();
+					if (permission.has(sender, "griswold.admin")) despawnAll();
 				}
 				if (args[0].equalsIgnoreCase("respawn")) {
-					if (sender.hasPermission("griswold.admin")) respawnAll();
+					if (permission.has(sender, "griswold.admin")) respawnAll();
 				}
 			}
 		}
@@ -248,6 +263,10 @@ public class Griswold extends JavaPlugin implements Listener{
         	}
         	debug = config.getBoolean("Debug");
         	timeout = config.getInt("Timeout");
+
+        	Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
+        	Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
+        	Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
         	
         	if(debug) {
         		log.info(prefix+"DEBUG: loaded total "+repairmen.size() + " repairmen.");
@@ -256,6 +275,9 @@ public class Griswold extends JavaPlugin implements Listener{
         	log.info(prefix+"Config loaded!");
         } else {
         	config.set("Timeout", 5000);
+        	config.set("BasicArmorPrice", 10.0);
+        	config.set("BasicToolPrice", 10.0);
+        	config.set("BasicEnchantmentPrice", 30.0);
         	config.set("Debug", false);
         	config.set("Version", this.getDescription().getVersion());
         	try {
@@ -268,6 +290,41 @@ public class Griswold extends JavaPlugin implements Listener{
         }
 		
 	}
+	
+	// PERMISSIONS, CHAT, ECONOMY
+
+
+    private boolean setupPermissions()
+    {
+        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
+        if (permissionProvider != null) {
+            permission = permissionProvider.getProvider();
+        }
+        return (permission != null);
+    }
+
+    private boolean setupChat()
+    {
+        RegisteredServiceProvider<Chat> chatProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+        if (chatProvider != null) {
+            chat = chatProvider.getProvider();
+        }
+
+        return (chat != null);
+    }
+
+    private boolean setupEconomy()
+    {
+    	if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        if (economyProvider != null) {
+            economy = economyProvider.getProvider();
+        }
+
+        return (economy != null);
+    }
 
 	private class Frosttouch_freezeController extends TimerTask
     {

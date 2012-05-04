@@ -3,11 +3,11 @@ Griswold
 
 Bukkit Plugin: Those useless before squidwards now can repair your stuff!
 
-![Griswold: handsome man from Diablo I](http://s019.radikal.ru/i616/1205/32/5969e5ac378e.gif)
-
 Just show your stuff to blacksmith and he'll tell you how much he wants for the job. If you agree – just pass him the item. Users have no commands (because they don't need them)!
 
 Simple!
+
+![Griswold: handsome man from Diablo I](http://s019.radikal.ru/i616/1205/32/5969e5ac378e.gif)
 
 ##Features:##
 
@@ -45,4 +45,10 @@ All commands require griswold.admin permission and fallbacks to OP if something 
 
 The only parameters you might need to change in config are "**Debug**" and "**Timeout**". The first one is for debugging stuff and not usually useful if you don't know why you need it, and the second one is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default if "**false**" and "**5000**" (5 sec).
 
-All other parameters are configurable in-game, so you don't have to bother about them. But if you want – they are quite self-explanatory.
+You also can alternate price calculation by changing basic armor and tool prices and enchantment cost. Modify parameters **BasicArmorPrice**, **BasicToolPrice** and **BasicEnchantmentPrice**.
+
+Prices are calculated like this: repairman cost parameter \* (basic item type cost + (basic enchantment price \* number of enchantments \* sum'd enchantment levels)).
+
+This formula makes repairment of simple non-enchanted items quite cheap, items with 1-2 enchantments are at moderate cost and uber-enchanted items repairment cost a fortune.
+
+All other config parameters are configurable in-game, so you don't have to bother about them. But if you want – they are quite self-explanatory.

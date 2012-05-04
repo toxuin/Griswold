@@ -24,3 +24,5 @@ permissions:
     griswold.armor:
         description: Allows you to repair armor
         default: op
+
+softdepend: [Vault]
