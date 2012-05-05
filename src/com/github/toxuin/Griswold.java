@@ -51,23 +51,23 @@ public class Griswold extends JavaPlugin implements Listener{
 	public static Permission permission = null;
     public static Economy economy = null;
     
-    private String lang = "ru_RU";
+    static String lang = "ru_RU";
  
 	public void onEnable(){
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
+		Lang.init();
 		
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
-		readConfig();
-		Lang.init(lang);
-		
-		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new  Frosttouch_freezeController(), 0, 1);
+		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
+
+		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 		
 		if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
-        setupPermissions();
+		if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
 		
 		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
 	}
@@ -91,7 +91,9 @@ public class Griswold extends JavaPlugin implements Listener{
 	// MAKE INTERACTION
 	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-		if (!event.getPlayer().hasPermission("griswold.tools") || !event.getPlayer().hasPermission("griswold.armor")) return;
+		if (permission != null) {
+			if (!permission.has(event.getPlayer(), "griswold.tools") || !permission.has(event.getPlayer(), "griswold.armor")) return;
+		}
 		for (Repairer rep : repairmen) {
 			if (event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
@@ -104,40 +106,58 @@ public class Griswold extends JavaPlugin implements Listener{
 		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
-					if (sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) {
+					if (sender.isOp() || sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) { 
 						despawnAll();
+						Lang.init();
 						readConfig();
-						Lang.init(lang);
 					}
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("create")) {
-					if (sender instanceof Player && permission.has(sender, "griswold.admin")) {
-						if (args.length >= 2) {
-							Player player = (Player) sender;
-							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
-							location.setY(Math.round(player.getLocation().getY()));
-							String name = args[1];
-							if (args.length < 4) createRepairman(name, location); else {
-								String type = args[2];
-								String cost = args[3];
-								createRepairman(name, location, type, cost);
-							}
-						} else sender.sendMessage(Lang.insufficient_params);
-					} else return false;
-					return true;
+					if (permission != null) {
+						if (sender instanceof Player && (permission.has(sender, "griswold.admin") || sender.isOp())) {
+							if (args.length >= 2) {
+								Player player = (Player) sender;
+								Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
+								location.setY(Math.round(player.getLocation().getY()));
+								String name = args[1];
+								if (args.length < 4) createRepairman(name, location); else {
+									String type = args[2];
+									String cost = args[3];
+									createRepairman(name, location, type, cost);
+								}
+							} else sender.sendMessage(Lang.insufficient_params);
+						} else return false;
+						return true;
+					}
 				}
 				if (args[0].equalsIgnoreCase("remove")) {
-					if (args.length>1 && permission.has(sender, "griswold.admin")) removeRepairman(args[2]);
+					if (permission != null) {
+						if (args.length>1 && permission.has(sender, "griswold.admin")) removeRepairman(args[2]);
+					} else {
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) removeRepairman(args[2]);
+					}
 				}
 				if (args[0].equalsIgnoreCase("list")) {
-					if (permission.has(sender, "griswold.admin")) listRepairmen(sender);
+					if (permission != null) {
+						if (permission.has(sender, "griswold.admin")) listRepairmen(sender);
+					} else {
+						if (sender instanceof ConsoleCommandSender || sender.isOp())  listRepairmen(sender);
+					}
 				}
 				if (args[0].equalsIgnoreCase("despawn")) {
-					if (permission.has(sender, "griswold.admin")) despawnAll();
+					if (permission != null) {
+						if (permission.has(sender, "griswold.admin")) despawnAll();
+					} else {
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) despawnAll();
+					}
 				}
 				if (args[0].equalsIgnoreCase("respawn")) {
-					if (permission.has(sender, "griswold.admin")) respawnAll();
+					if (permission != null) {
+						if (permission.has(sender, "griswold.admin")) respawnAll();
+					} else {
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) respawnAll();
+					}
 				}
 			}
 		}
@@ -239,6 +259,9 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 	
 	private void readConfig() {
+
+    	Lang.createLangFile();
+		
 		configFile = new File(directory,"config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
         
@@ -272,7 +295,7 @@ public class Griswold extends JavaPlugin implements Listener{
         		log.info(prefix+"DEBUG: loaded total "+repairmen.size() + " repairmen.");
         	}
         	
-        	log.info(prefix+"Config loaded!");
+        	log.info(prefix+Lang.config_loaded);
         } else {
         	config.set("Timeout", 5000);
         	config.set("Language", "ru_RU");
@@ -289,17 +312,28 @@ public class Griswold extends JavaPlugin implements Listener{
         		e.printStackTrace();
         	}
         }
+	}
+	
+	private class Starter implements Runnable {
+		@Override
+		public void run() {
 
-    	Lang.createLangFile();
+			despawnAll();
+			readConfig();
+			
+		}
 		
 	}
 	
-	// NOT MY CODE BELOW THIS LINE
-	// ---------------------------
+	// NONE OF MY CODE BELOW THIS LINE
+	// -------------------------------
 
 
     private boolean setupPermissions()
     {
+    	if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
         RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
         if (permissionProvider != null) {
             permission = permissionProvider.getProvider();

@@ -58,10 +58,10 @@ public class Interactor {
 
 			for (Interaction inter : interactions) {
 				if (interaction.equals(inter) && item.getDurability() != 0) {
-					
-					if (Griswold.economy.getBalance(player.getName()) >= price) {
-						EconomyResponse r = Griswold.economy.withdrawPlayer(player.getName(), price);
-			            if(r.transactionSuccess()) {
+					 EconomyResponse r = null;
+					if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
+						if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
+			            if(Griswold.economy == null || r.transactionSuccess()) {
 							item.setDurability((short) 0);
 							player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_done);
 			            } else {
@@ -79,7 +79,9 @@ public class Interactor {
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair);
 			} else {
 				interactions.add(interaction);
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" Я починю эту вещь для тебя за "+price+" коинов.");
+				if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
+						Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
+				else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_free);
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
 			}
 		} else {

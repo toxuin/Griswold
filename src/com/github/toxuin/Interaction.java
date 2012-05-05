@@ -1,7 +1,5 @@
 package com.github.toxuin;
 
-import java.util.logging.Logger;
-
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -24,10 +22,8 @@ public class Interaction {
 			(inter.player.equals(player)) &&
 			(inter.repairman.equals(repairman)) &&
 			(delta < Griswold.timeout)) {
-			Logger.getLogger("Minecraft").info(Griswold.prefix+" TRUE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " < " + Griswold.timeout);
 			return true;
 		} else {
-			Logger.getLogger("Minecraft").info(Griswold.prefix+" FALSE,  "+time+" - "+inter.time+" = " + (time-inter.time) + " > " + Griswold.timeout);
 			return false;
 		}
 	}
