@@ -70,6 +70,7 @@ public class Interactor {
 						return;
 					} else {
 						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_poor);
+						return;
 					}
 				}
 			}

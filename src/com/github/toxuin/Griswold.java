@@ -278,7 +278,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	        									config.getDouble("repairmen."+repairman+".Y"),
 	        									config.getDouble("repairmen."+repairman+".Z"));
 	        		squidward.type = config.getString("repairmen."+repairman+".type");
-	        		squidward.cost = config.getDouble("repairmen."+repairman+".type");
+	        		squidward.cost = config.getDouble("repairmen."+repairman+".cost");
 	        		
 	        		spawnRepairman(squidward);
 	        	}
