@@ -12,6 +12,7 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -26,6 +27,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -44,6 +46,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	private Logger log = Logger.getLogger("Minecraft");
 	
 	public static Set<Repairer> repairmen = new HashSet<Repairer>();
+	private Set<Chunk> chunks = new HashSet<Chunk>();
 	
     private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
     private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
@@ -65,7 +68,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
-		
+
 		if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
 		if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
 		
@@ -97,6 +100,17 @@ public class Griswold extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			if (event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
+			}
+		}
+	}
+	
+	// PREVENT DESPAWN
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	public void onChunkUnload(ChunkUnloadEvent event) {
+		for (Chunk chunk : chunks){
+			if (event.getChunk().equals(chunk)) {
+				chunk.getWorld().loadChunk(chunk);
+				event.setCancelled(true);
 			}
 		}
 	}
@@ -252,6 +266,10 @@ public class Griswold extends JavaPlugin implements Listener{
 		squidward.entity = repairman;
 		
 		repairmen.add(squidward);
+		
+		chunks.add(loc.getChunk());
+
+		loc.getWorld().loadChunk(loc.getChunk());
 
 		if (debug) {
 			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
@@ -317,10 +335,8 @@ public class Griswold extends JavaPlugin implements Listener{
 	private class Starter implements Runnable {
 		@Override
 		public void run() {
-
 			despawnAll();
 			readConfig();
-			
 		}
 		
 	}
