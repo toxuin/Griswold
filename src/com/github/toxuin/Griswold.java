@@ -174,7 +174,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			if (rep.name == name) found = true;
 		}
 		if (found) {
-			log.info(prefix+"ERROR: repairman " + name +" already exists!");
+			log.info(prefix+String.format(Lang.repairman_exists, name));
 			return;
 		}
 			
@@ -254,7 +254,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		repairmen.add(squidward);
 
 		if (debug) {
-			log.info(prefix+"SPAWNED REPAIRMAN ID:" + squidward.entity.getEntityId() + " AT X:"+ loc.getX() + " Y:" + loc.getY() + " Z:" + loc.getZ());
+			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
 	}
 	
@@ -292,7 +292,7 @@ public class Griswold extends JavaPlugin implements Listener{
         	Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
         	
         	if(debug) {
-        		log.info(prefix+"DEBUG: loaded total "+repairmen.size() + " repairmen.");
+        		log.info(prefix+String.format(Lang.debug_loaded, repairmen.size()));
         	}
         	
         	log.info(prefix+Lang.config_loaded);
