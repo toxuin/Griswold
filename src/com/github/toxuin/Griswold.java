@@ -83,6 +83,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	// MAKE THEM INVINCIBLE
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
+		if (repairmen.isEmpty()) return;
 		for (Repairer rep : repairmen) {
 			if (event.getEntity().equals(rep.entity)) {
 				event.setDamage(0);
@@ -107,6 +108,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	// PREVENT DESPAWN
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onChunkUnload(ChunkUnloadEvent event) {
+		if (chunks.isEmpty()) return;
 		for (Chunk chunk : chunks){
 			if (event.getChunk().equals(chunk)) {
 				chunk.getWorld().loadChunk(chunk);

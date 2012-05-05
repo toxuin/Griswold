@@ -59,7 +59,7 @@ public class Interactor {
 			for (Interaction inter : interactions) {
 				if (interaction.equals(inter) && item.getDurability() != 0) {
 					 EconomyResponse r = null;
-					if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) <= price) {
+					if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
 						if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
 			            if(Griswold.economy == null || r.transactionSuccess()) {
 							item.setDurability((short) 0);
@@ -97,6 +97,8 @@ public class Interactor {
 		
 		if (repairableTools.contains(item.getTypeId())) price = basicToolsPrice;
 		else if (repairableTools.contains(item.getTypeId())) price = basicArmorPrice;
+		
+		price += item.getDurability();
 		
 		Map<Enchantment, Integer> enchantments = item.getEnchantments();
 		
