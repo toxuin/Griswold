@@ -262,6 +262,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		Location loc = squidward.loc;
 		if (loc == null) return;
 		LivingEntity repairman = loc.getWorld().spawnCreature(loc, EntityType.VILLAGER);
+		loc.getWorld().sp
 		FrozenTicks.put(repairman, 5);
 		FrozenPos.put(repairman, loc);
 		

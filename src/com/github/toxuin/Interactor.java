@@ -42,7 +42,7 @@ public class Interactor {
 	public static void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
 		
-		double price = getPrice(repairman, item);
+		double price = Math.round(getPrice(repairman, item));
 		
 		boolean canRepair = false;
 		if (repairman.type.equalsIgnoreCase("all")) {
