@@ -67,11 +67,11 @@ public class Lang {
         chat_agreed = language.getString("chat_agreed");
         chat_cannot = language.getString("chat_cannot");
         
-        Logger.getLogger("Minecraft").info(Griswold.prefix+lang_loaded);
+        Logger.getLogger("Minecraft").info(String.format(Griswold.prefix+lang_loaded, Griswold.lang+".yml"));
 	}
 	
 	public static void createLangFile() {
-		File langFile = new File(Griswold.directory,"en_US.yml");
+		File langFile = new File(Griswold.directory, "en_US.yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (!langFile.exists()) {
@@ -87,7 +87,7 @@ public class Lang {
         	language.set("debug_loaded", "DEBUG: loaded total %s repairmen.");
         	language.set("default_config", "CREATED DEFAULT CONFIG");
         	language.set("error_create_config", "ERROR when creating config.yml");
-        	language.set("lang_loaded", "Language file loaded!");
+        	language.set("lang_loaded", "Language file %s loaded!");
         	language.set("error_accesslevel", "You do not have enough permissions to do that.");
         	language.set("new_created", "New blacksmith created!");
         	language.set("deleted", "Blacksmith %s deleted.");
@@ -103,11 +103,36 @@ public class Lang {
         	language.set("chat_agreed", "Agreed? Yes? Pass it to me if agreed.");
         	language.set("chat_cannot", "I can not repair this kind of things.");
         	
+        	language.set("version", Griswold.version);
+        	
         	try {
         		language.save(langFile); 
         	} catch (Exception e) {
         		e.printStackTrace();
         	}
         }
+	}
+	
+	public static void checkLangVersion(String locale) {
+		File langFile = new File(Griswold.directory, locale+".yml");
+        YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
+        
+		if (language.getDouble("version") != 0.04) {
+			language.set("lang_loaded", "Language file %s loaded!");
+			
+			language.set("error_accesslevel", "You do not have enough permissions to do that.");
+        	language.set("new_created", "New blacksmith created!");
+        	language.set("deleted", "Blacksmith %s deleted.");
+        	language.set("despawned", "All blacksmiths despawned");
+        	language.set("respawned", "All blacksmiths respawned");
+        	
+        	language.set("version", Griswold.version);
+        	
+    		try {
+        		language.save(langFile); 
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
+    	}
 	}
 }

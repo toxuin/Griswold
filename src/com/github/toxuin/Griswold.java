@@ -54,25 +54,22 @@ public class Griswold extends JavaPlugin implements Listener{
 	public static Permission permission = null;
     public static Economy economy = null;
     
-    static String lang = "ru_RU";
+    public static double version; 
+    static String lang = "en_US";
  
 	public void onEnable(){
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
+		version = Double.parseDouble(pdfFile.getVersion());
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
-		Lang.init();
-		
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
-
-		if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
-		if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
 		
-		log.info( prefix + "Enabled! Version: " + pdfFile.getVersion());
+		log.info( prefix + "Enabled! Version: " + version);
 	}
 
 	public void onDisable(){
@@ -123,9 +120,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
 					if (sender.isOp() || sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) { 
-						despawnAll();
-						Lang.init();
-						readConfig();
+						reloadPlugin();
 					} else {
 						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
 						return false;
@@ -155,15 +150,15 @@ public class Griswold extends JavaPlugin implements Listener{
 				if (args[0].equalsIgnoreCase("remove")) {
 					if (permission != null) {
 						if (args.length>1 && permission.has(sender, "griswold.admin")) {
-							removeRepairman(args[2]);
-							sender.sendMessage(String.format(Lang.deleted, args[2]));
+							removeRepairman(args[1]);
+							sender.sendMessage(String.format(Lang.deleted, args[1]));
 						} else {
 							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
 						}
 					} else {
 						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-							removeRepairman(args[2]);
-							sender.sendMessage(String.format(Lang.deleted, args[2]));
+							removeRepairman(args[1]);
+							sender.sendMessage(String.format(Lang.deleted, args[1]));
 						}
 					}
 				}
@@ -209,6 +204,11 @@ public class Griswold extends JavaPlugin implements Listener{
 		return false; 
 	}
 	
+	private void reloadPlugin() {
+		despawnAll();
+		readConfig();
+	}
+	
 	private void createRepairman(String name, Location loc) {
 		createRepairman(name, loc, "all", "1");
 	}
@@ -246,17 +246,18 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 	
 	private void removeRepairman(String name) {
-		config.set("repairmen."+name, null);
-		
-		Repairer squidward = new Repairer();
-		
-		for (Repairer rep : repairmen) {
-			if (rep.name == name) {
-				squidward = rep;
-			}
+		if (config.isConfigurationSection("repairmen."+name)){
+			config.set("repairmen."+name, null);
+			try {
+				config.save(configFile); 
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
+		} else {
+			log.info(prefix+Lang.error_remove);
+			return;
 		}
-		
-		if (squidward.entity != null) repairmen.remove(squidward); else log.info(prefix+Lang.error_remove);
+		reloadPlugin();
 	}
 	
 	private void listRepairmen(CommandSender sender){
@@ -317,6 +318,13 @@ public class Griswold extends JavaPlugin implements Listener{
         repairmen.clear();
         
         if (configFile.exists()) {
+        	debug = config.getBoolean("Debug");
+        	timeout = config.getInt("Timeout");
+        	lang = config.getString("Language");
+        	
+        	Lang.checkLangVersion(lang);
+			Lang.init();
+			
         	if (config.isConfigurationSection("repairmen")) {
         		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
 	        	for (String repairman : repairmen) {
@@ -332,10 +340,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	        		spawnRepairman(squidward);
 	        	}
         	}
-        	debug = config.getBoolean("Debug");
-        	timeout = config.getInt("Timeout");
-        	lang = config.getString("Language");
-
+        	
         	Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
         	Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
         	Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
@@ -368,6 +373,10 @@ public class Griswold extends JavaPlugin implements Listener{
 		public void run() {
 			despawnAll();
 			readConfig();
+
+			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
+			if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
+			
 		}
 		
 	}
