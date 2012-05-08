@@ -20,6 +20,11 @@ public class Lang {
 	public static String default_config = "ERROR: LANG NOT FOUND: default_config";
 	public static String error_create_config = "ERROR: LANG NOT FOUND: error_create_config";
 	public static String lang_loaded = "ERROR: LANG NOT FOUND: lang_loaded";
+	public static String error_accesslevel = "ERROR: LANG NOT FOUND: error_accesslevel";
+	public static String new_created = "ERROR: LANG NOT FOUND: new_created";
+	public static String deleted = "ERROR: LANG NOT FOUND: deleted";
+	public static String despawned = "ERROR: LANG NOT FOUND: despawned";
+	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
 	
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
@@ -47,6 +52,11 @@ public class Lang {
         default_config = language.getString("default_config");
         error_create_config = language.getString("error_create_config");
         lang_loaded = language.getString("lang_loaded");
+        error_accesslevel = language.getString("error_accesslevel");
+        new_created = language.getString("new_created");
+        deleted = language.getString("deleted");
+        despawned = language.getString("despawned");
+        respawned = language.getString("despawned");
         
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -61,7 +71,7 @@ public class Lang {
 	}
 	
 	public static void createLangFile() {
-		File langFile = new File(Griswold.directory,"ru_RU.yml");
+		File langFile = new File(Griswold.directory,"en_US.yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (!langFile.exists()) {
@@ -78,14 +88,20 @@ public class Lang {
         	language.set("default_config", "CREATED DEFAULT CONFIG");
         	language.set("error_create_config", "ERROR when creating config.yml");
         	language.set("lang_loaded", "Language file loaded!");
-        	language.set("chat_done", "Отлично! Снова как новое!");
-        	language.set("chat_error", "Кажется, что-то пошло не так!");
-        	language.set("chat_poor", "Тебе нечем мне платить, дружище!");
-        	language.set("chat_free", "Я починю эту вещь для тебя бесплатно!");
-        	language.set("chat_norepair", "Хм, похоже тут все в порядке - ремонт не нужен.");
-        	language.set("chat_cost", "Я починю эту вещь для тебя за %s %s");
-        	language.set("chat_agreed", "Если согласен - давай ее сюда.");
-        	language.set("chat_cannot", "Я не умею чинить такие вещи.");
+        	language.set("error_accesslevel", "You do not have enough permissions to do that.");
+        	language.set("new_created", "New blacksmith created!");
+        	language.set("deleted", "Blacksmith %s deleted.");
+        	language.set("despawned", "All blacksmiths despawned");
+        	language.set("respawned", "All blacksmiths respawned");
+        	
+        	language.set("chat_done", "Looks great! Good as new!");
+        	language.set("chat_error", "Whoops, something's gone wrong!");
+        	language.set("chat_poor", "You have no money, that's sad!");
+        	language.set("chat_free", "I will repair your item for free today!");
+        	language.set("chat_norepair", "Hmm, looks like it does not need any repair.");
+        	language.set("chat_cost", "Hmm! I will repair this for %s %s");
+        	language.set("chat_agreed", "Agreed? Yes? Pass it to me if agreed.");
+        	language.set("chat_cannot", "I can not repair this kind of things.");
         	
         	try {
         		language.save(langFile); 

@@ -126,32 +126,45 @@ public class Griswold extends JavaPlugin implements Listener{
 						despawnAll();
 						Lang.init();
 						readConfig();
+					} else {
+						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+						return false;
 					}
 					return true;
 				}
 				if (args[0].equalsIgnoreCase("create")) {
-					if (permission != null) {
-						if (sender instanceof Player && (permission.has(sender, "griswold.admin") || sender.isOp())) {
-							if (args.length >= 2) {
-								Player player = (Player) sender;
-								Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
-								location.setY(Math.round(player.getLocation().getY()));
-								String name = args[1];
-								if (args.length < 4) createRepairman(name, location); else {
-									String type = args[2];
-									String cost = args[3];
-									createRepairman(name, location, type, cost);
-								}
-							} else sender.sendMessage(Lang.insufficient_params);
-						} else return false;
-						return true;
+					if ((permission == null && sender.isOp()) || (sender instanceof Player && (permission.has(sender, "griswold.admin") || sender.isOp()))) {
+						if (args.length >= 2) {
+							Player player = (Player) sender;
+							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
+							location.setY(Math.round(player.getLocation().getY()));
+							String name = args[1];
+							if (args.length < 4) createRepairman(name, location); else {
+								String type = args[2];
+								String cost = args[3];
+								createRepairman(name, location, type, cost);
+								player.sendMessage(Lang.new_created);
+							}
+						} else sender.sendMessage(Lang.insufficient_params);
+					} else {
+						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+						return false;
 					}
+					return true;
 				}
 				if (args[0].equalsIgnoreCase("remove")) {
 					if (permission != null) {
-						if (args.length>1 && permission.has(sender, "griswold.admin")) removeRepairman(args[2]);
+						if (args.length>1 && permission.has(sender, "griswold.admin")) {
+							removeRepairman(args[2]);
+							sender.sendMessage(String.format(Lang.deleted, args[2]));
+						} else {
+							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+						}
 					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) removeRepairman(args[2]);
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+							removeRepairman(args[2]);
+							sender.sendMessage(String.format(Lang.deleted, args[2]));
+						}
 					}
 				}
 				if (args[0].equalsIgnoreCase("list")) {
@@ -163,16 +176,32 @@ public class Griswold extends JavaPlugin implements Listener{
 				}
 				if (args[0].equalsIgnoreCase("despawn")) {
 					if (permission != null) {
-						if (permission.has(sender, "griswold.admin")) despawnAll();
+						if (permission.has(sender, "griswold.admin")) {
+							despawnAll();
+							sender.sendMessage(Lang.despawned);
+						} else {
+							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+						}
 					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) despawnAll();
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+							despawnAll();
+							sender.sendMessage(Lang.despawned);
+						}
 					}
 				}
 				if (args[0].equalsIgnoreCase("respawn")) {
 					if (permission != null) {
-						if (permission.has(sender, "griswold.admin")) respawnAll();
+						if (permission.has(sender, "griswold.admin")) {
+							respawnAll();
+							sender.sendMessage(Lang.respawned);
+						} else {
+							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+						}
 					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) respawnAll();
+						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+							respawnAll();
+							sender.sendMessage(Lang.respawned);
+						}
 					}
 				}
 			}
@@ -187,7 +216,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	private void createRepairman(String name, Location loc, String type, String cost) {
 		boolean found = false;
 		for (Repairer rep : repairmen) {
-			if (rep.name == name) found = true;
+			if (rep.name.equalsIgnoreCase(name)) found = true;
 		}
 		if (found) {
 			log.info(prefix+String.format(Lang.repairman_exists, name));
@@ -262,7 +291,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		Location loc = squidward.loc;
 		if (loc == null) return;
 		LivingEntity repairman = loc.getWorld().spawnCreature(loc, EntityType.VILLAGER);
-		loc.getWorld().sp
 		FrozenTicks.put(repairman, 5);
 		FrozenPos.put(repairman, loc);
 		
@@ -319,7 +347,7 @@ public class Griswold extends JavaPlugin implements Listener{
         	log.info(prefix+Lang.config_loaded);
         } else {
         	config.set("Timeout", 5000);
-        	config.set("Language", "ru_RU");
+        	config.set("Language", "en_US");
         	config.set("BasicArmorPrice", 10.0);
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
