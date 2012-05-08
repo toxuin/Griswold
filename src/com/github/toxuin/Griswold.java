@@ -322,6 +322,11 @@ public class Griswold extends JavaPlugin implements Listener{
         	timeout = config.getInt("Timeout");
         	lang = config.getString("Language");
         	
+        	if (Double.parseDouble(config.getString("Version")) != version) {
+        		updateConfig(config.getString("Version"));
+        	}
+        	
+        	
         	Lang.checkLangVersion(lang);
 			Lang.init();
 			
@@ -368,6 +373,16 @@ public class Griswold extends JavaPlugin implements Listener{
         }
 	}
 	
+	private void updateConfig(String oldVersion) {
+		// ’“’ —…œ ‚€†›… ˜’“Šˆ, Š’›… „‹†› ‚‹Ÿ’œ Š”ˆƒ.
+        	config.set("Version", version); // ƒ€.
+        	try {
+        		config.save(configFile); 
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
+	}
+
 	private class Starter implements Runnable {
 		@Override
 		public void run() {
