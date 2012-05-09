@@ -56,7 +56,7 @@ public class Lang {
         new_created = language.getString("new_created");
         deleted = language.getString("deleted");
         despawned = language.getString("despawned");
-        respawned = language.getString("despawned");
+        respawned = language.getString("respawned");
         
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");

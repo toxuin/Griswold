@@ -134,7 +134,10 @@ public class Griswold extends JavaPlugin implements Listener{
 							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
 							location.setY(Math.round(player.getLocation().getY()));
 							String name = args[1];
-							if (args.length < 4) createRepairman(name, location); else {
+							if (args.length < 4) {
+								createRepairman(name, location);
+								player.sendMessage(Lang.new_created);
+							} else {
 								String type = args[2];
 								String cost = args[3];
 								createRepairman(name, location, type, cost);
@@ -181,21 +184,6 @@ public class Griswold extends JavaPlugin implements Listener{
 						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
 							despawnAll();
 							sender.sendMessage(Lang.despawned);
-						}
-					}
-				}
-				if (args[0].equalsIgnoreCase("respawn")) {
-					if (permission != null) {
-						if (permission.has(sender, "griswold.admin")) {
-							respawnAll();
-							sender.sendMessage(Lang.respawned);
-						} else {
-							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-						}
-					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-							respawnAll();
-							sender.sendMessage(Lang.respawned);
 						}
 					}
 				}
@@ -279,14 +267,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		FrozenPos.clear();
 		repairmen.clear();
 	}
-	
-	private void respawnAll() {
-		despawnAll();
-		for (Repairer rep : repairmen) {
-			spawnRepairman(rep);
-		}
-	}
-	
 	
 	private void spawnRepairman (Repairer squidward) {
 		Location loc = squidward.loc;
