@@ -1,0 +1,27 @@
+economy_not_found: 'Внимание: система экономики не найдена - все починки бесплатны!'
+permissions_not_found: 'Внимание: система разрешений не найдена: доступ разрешен всем!'
+insufficient_params: Недостаточно параметров! Введите §9/repairman create §aимя §7тип цена!
+repairman_exists: 'ОШИБКА: кузнец %s уже существует!'
+config_loaded: Файл конфигурации загружен!
+error_config: ОШИБКА записи в config.yml
+error_remove: Невозможно удалить кузнеца так как он не найден!
+repairman_list: 'Вот все кузнецы на сервере:'
+repairman_spawn: НОВЫЙ КУЗНЕЦ, ID:%s КООРД X:%s Y:%s Z:%s
+debug_loaded: 'DEBUG: Загружено %s кузнецов.'
+default_config: КОНФИГ ПО УМОЛЧАНИЮ СОЗДАН
+error_create_config: ОШИБКА создания config.yml
+lang_loaded: Языковой файл %s загружен!
+chat_done: Отлично! Снова как новое!
+chat_error: Кажется, что-то пошло не так!
+chat_poor: Тебе нечем мне платить, дружище!
+chat_free: Я починю эту вещь для тебя бесплатно!
+chat_norepair: Хм, похоже тут все в порядке - ремонт не нужен.
+chat_cost: Я починю эту вещь за %s %s.
+chat_agreed: Если согласен - давай ее сюда.
+chat_cannot: Я не умею чинить такие вещи.
+error_accesslevel: У вас не хватает прав на использование этой команды.
+new_created: Новый кузнец создан!
+deleted: Кузнец %s удален.
+despawned: Все кузнецы скрыты.
+respawned: Респаун кузнецов...
+version: 0.04

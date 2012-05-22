@@ -7,6 +7,7 @@ description: Creates a man, who repairs stuff.
 commands:
   blacksmith:
     description: does all the work
+    aliases: bsmith
 
 permissions:
     griswold.*:
