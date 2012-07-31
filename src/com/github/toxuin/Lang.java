@@ -25,6 +25,7 @@ public class Lang {
 	public static String deleted = "ERROR: LANG NOT FOUND: deleted";
 	public static String despawned = "ERROR: LANG NOT FOUND: despawned";
 	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
+	public static String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
 	
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
@@ -34,6 +35,12 @@ public class Lang {
 	public static String chat_cost = "ERROR: LANG NOT FOUND: chat_cost";
 	public static String chat_agreed = "ERROR: LANG NOT FOUND: chat_agreed";
 	public static String chat_cannot = "ERROR: LANG NOT FOUND: chat_cannot";
+	public static String chat_enchant_cost = "ERROR: LANG NOT FOUND: chat_enchant_cost";
+	public static String chat_enchant_free = "ERROR: LANG NOT FOUND: chat_enchant_free";
+	public static String chat_enchant_success = "ERROR: LANG NOT FOUND: chat_enchant_success";
+	public static String chat_noitem = "ERROR: LANG NOT FOUND: chat_noitem";
+	public static String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
+	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
 	
 	public static void init() {
 		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
@@ -57,6 +64,7 @@ public class Lang {
         deleted = language.getString("deleted");
         despawned = language.getString("despawned");
         respawned = language.getString("respawned");
+        error_few_arguments = language.getString("error_few_arguments");
         
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -66,6 +74,13 @@ public class Lang {
         chat_cost = language.getString("chat_cost");
         chat_agreed = language.getString("chat_agreed");
         chat_cannot = language.getString("chat_cannot");
+        
+        chat_enchant_cost = language.getString("chat_enchant_cost");
+        chat_enchant_free = language.getString("chat_enchant_free");
+        chat_enchant_success = language.getString("chat_enchant_success");
+        chat_noitem = language.getString("chat_noitem");
+        chat_enchant_failed = language.getString("chat_enchant_failed");
+        chat_needs_repair = language.getString("chat_needs_repair");
         
         Logger.getLogger("Minecraft").info(String.format(Griswold.prefix+lang_loaded, Griswold.lang+".yml"));
 	}
@@ -93,6 +108,7 @@ public class Lang {
         	language.set("deleted", "Blacksmith %s deleted.");
         	language.set("despawned", "All blacksmiths despawned");
         	language.set("respawned", "All blacksmiths respawned");
+        	language.set("error_few_arguments", "Too few arguments.");
         	
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
@@ -102,6 +118,13 @@ public class Lang {
         	language.set("chat_cost", "Hmm! I will repair this for %s %s");
         	language.set("chat_agreed", "Agreed? Yes? Pass it to me if agreed.");
         	language.set("chat_cannot", "I can not repair this kind of things.");
+        	
+        	language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it for %s %s.");
+        	language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it - for free of course.");
+        	language.set("chat_enchant_success", "Now it's shiny - hope that means it now does something special.");
+        	language.set("chat_noitem", ChatColor.AQUA+"*Shakes your hand*"+ChatColor.WHITE+" Hello! Glad to meet you!");
+        	language.set("chat_enchant_failed", "Ehm... Looks like nothing happened with your item.");
+        	language.set("chat_needs_repair", "This item needs a repair first. No, I can not repair it.");
         	
         	language.set("version", Griswold.version);
         	
@@ -117,7 +140,16 @@ public class Lang {
 		File langFile = new File(Griswold.directory, locale+".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
-		if (language.getDouble("version") != 0.04) {
+        if (language.getDouble("version") == 0) {
+        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	Griswold.log.info(Griswold.prefix+"ERROR: YOUR LANGUAGE FILE IS CORRUPTED!!! ERROR!");
+        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	return;
+        }
+        
+		if (language.getDouble("version") < 0.04) {
+			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
+			
 			language.set("lang_loaded", "Language file %s loaded!");
 			
 			language.set("error_accesslevel", "You do not have enough permissions to do that.");
@@ -126,8 +158,28 @@ public class Lang {
         	language.set("despawned", "All blacksmiths despawned");
         	language.set("respawned", "All blacksmiths respawned");
         	
-        	language.set("version", Griswold.version);
+        	language.set("version", 0.04d);
         	
+    		try {
+        		language.save(langFile); 
+        	} catch (Exception e) {
+        		e.printStackTrace();
+        	}
+    	}
+		
+		if (language.getDouble("version") == 0.04) {
+    		Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION 0.04");
+    		
+    		language.set("error_few_arguments", "Too few arguments.");
+    		language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
+    		language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it - for free of course.");
+    		language.set("chat_enchant_success", "Now it's shiny - hope that means it now does something special.");
+    		language.set("chat_noitem", ChatColor.AQUA+"*Shakes your hand*"+ChatColor.WHITE+" Hello! Glad to meet you!");
+    		language.set("chat_enchant_failed", "Ehm... Looks like nothing happened with your item.");
+        	language.set("chat_needs_repair", "This item needs a repair first. No, I can not repair it.");
+    		
+        	language.set("version", 0.05d);
+
     		try {
         		language.save(langFile); 
         	} catch (Exception e) {

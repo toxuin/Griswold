@@ -15,7 +15,7 @@ Simple!
 
 * Multiworld support.
 
-* Fully multilingual. There are english and russian out-of-the-box, but you can add more!
+* Fully multilingual. There are english, german and russian out-of-the-box, but you can add more!
 
 * All major economy systems supported. If Vault supports something - than it'll work with Griswold.
 
@@ -28,6 +28,8 @@ Simple!
 * **griswold.tools** - lets users talk to repairmen who repair their weapons and tools
 
 * **griswold.armor** - lets users talk to repairmen who repair armors
+
+* **griswold.enchant** - lets users to enchant their gear at repairmen
 
 ##Commands:##
 
@@ -45,13 +47,19 @@ All commands require griswold.admin permission and fallbacks to OP if something 
 
 ##Config:##
 
-All parameters are stored in config.yml and are reloadable without restarting the server (**/repairman reload**). 
+All parameters are stored in config.yml and are reloadable without restarting the server (**/blacksmith reload**). 
 
 **Debug** is for debugging stuff and not usually useful if you don't know why you need it. Default if "**false**".
 
 **Timaout** is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default is "**5000**" (5 sec).
 
 **Language** is a name of language file (without .yml at the end) stored next to config.yml and containing all the text in preferred language. Default is "**ru_RU**".
+
+**PriceToAddEnchantment** sets the price to add one random set of enchantments. Default - 50.
+
+**ClearOldEnchantments** says to repairmen whether they should blank the item before they enchant it or just add new enchantments to it. Default - true that means "yes, blank it".
+
+**EnchantmentBonus** is a number of "virtual bookshelves" around blacksmith. Greater the number - cooler are enchantments. Default - 5.
 
 You also can alternate price calculation by changing basic armor and tool prices and enchantment cost. Modify parameters **BasicArmorPrice**, **BasicToolPrice** and **BasicEnchantmentPrice**.
 

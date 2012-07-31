@@ -1,12 +1,12 @@
 name: Griswold
 main: com.github.toxuin.Griswold
-version: 0.04
+version: 0.05
 author: toxuin
 description: Creates a man, who repairs stuff.
 
 commands:
   blacksmith:
-    description: does all the work
+    description: does all the work for Griswold plugin
     aliases: bsmith
 
 permissions:
@@ -16,6 +16,7 @@ permissions:
             griswold.admin: true
             griswold.tools: true
             griswold.armor: true
+            griswold.enchant: true
     griswold.admin:
         description: Allows you to manage the blacksmiths
         default: op
@@ -24,6 +25,9 @@ permissions:
         default: op
     griswold.armor:
         description: Allows you to repair armor
+        default: op
+    griswold.enchant:
+        description: Allows you to add enchantments
         default: op
 
 softdepend: [Vault]
