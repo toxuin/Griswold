@@ -3,7 +3,9 @@ Griswold
 
 Bukkit Plugin: Those useless before squidwards now can repair your stuff!
 
-Just show your stuff to blacksmith and he'll tell you how much he wants for the job. If you agree – just pass him the item. Users have no commands (because they don't need them)!
+Just show your stuff to blacksmith and he'll tell you how much he wants for the job. If you agree – just pass him the item. If item is fully repaired then he can add random enchants to it.
+
+Users have no commands (because they don't need them)!
 
 Simple!
 
@@ -12,6 +14,8 @@ Simple!
 ##Features:##
 
 * Command-free native minecraft game experience.
+
+* Enchant your items for money!
 
 * Multiworld support.
 
@@ -33,7 +37,7 @@ Simple!
 
 ##Commands:##
 
-* **/blacksmith create name** - creates new repairman. You can also specify more parameters: **/blacksmith create name type cost**. Name can be anything and will be displayed in chat when user talks to repairman, type can be "all", "weapon" or "armor" - it specifies type of items this repairman can repair.
+* **/blacksmith create name** - creates new repairman. You can also specify more parameters: **/blacksmith create name type cost**. Name can be anything and will be displayed in chat when user talks to repairman, type can be "all", "weapon", "armor" or "enchant" - it specifies type of items this repairman can repair and his ability to add enchantments to items.
 
 * **/blacksmith list** - lists all the repairmen ever created
 
@@ -54,6 +58,8 @@ All parameters are stored in config.yml and are reloadable without restarting th
 **Timaout** is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default is "**5000**" (5 sec).
 
 **Language** is a name of language file (without .yml at the end) stored next to config.yml and containing all the text in preferred language. Default is "**ru_RU**".
+
+**UseEnchantmentSystem** tells the plugin if he should allow spawning of enchant-type repairmen and allow all-type ones to add enchantments.
 
 **PriceToAddEnchantment** sets the price to add one random set of enchantments. Default - 50.
 
