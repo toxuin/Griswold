@@ -6,3 +6,6 @@
 *.ear
 *.DS_Store
 .settings/*
+.idea
+*.iml
+*.eml

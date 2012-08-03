@@ -1,10 +1,10 @@
 package com.github.toxuin;
 
-import java.io.File;
-import java.util.logging.Logger;
-
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
+import java.util.logging.Logger;
 
 public class Lang {
 	public static String economy_not_found = "ERROR: LANG NOT FOUND: economy_not_found";
@@ -26,6 +26,7 @@ public class Lang {
 	public static String despawned = "ERROR: LANG NOT FOUND: despawned";
 	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
 	public static String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
+	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
 	
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
@@ -65,6 +66,7 @@ public class Lang {
         despawned = language.getString("despawned");
         respawned = language.getString("respawned");
         error_few_arguments = language.getString("error_few_arguments");
+		error_enchanter_not_spawned = language.getString("error_enchanter_not_spawned");
         
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -109,6 +111,7 @@ public class Lang {
         	language.set("despawned", "All blacksmiths despawned");
         	language.set("respawned", "All blacksmiths respawned");
         	language.set("error_few_arguments", "Too few arguments.");
+	        language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
         	
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
@@ -147,7 +150,7 @@ public class Lang {
         	return;
         }
         
-		if (language.getDouble("version") < 0.04) {
+		if (language.getDouble("version") < 0.04d) {
 			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
 			
 			language.set("lang_loaded", "Language file %s loaded!");
@@ -167,8 +170,8 @@ public class Lang {
         	}
     	}
 		
-		if (language.getDouble("version") == 0.04) {
-    		Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION 0.04");
+		if (language.getDouble("version") == 0.04d) {
+    		Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.04");
     		
     		language.set("error_few_arguments", "Too few arguments.");
     		language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
@@ -186,5 +189,17 @@ public class Lang {
         		e.printStackTrace();
         	}
     	}
+
+		if (language.getDouble("version") == 0.05d) {
+			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.05");
+			language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
+			language.set("version", 0.051d);
+
+			try {
+				language.save(langFile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }

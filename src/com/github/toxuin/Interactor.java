@@ -1,23 +1,17 @@
 package com.github.toxuin;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.Set;
-
 import net.milkbowl.vault.economy.EconomyResponse;
 import net.minecraft.server.EnchantmentInstance;
 import net.minecraft.server.EnchantmentManager;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-
 import org.bukkit.inventory.ItemStack;
+
+import java.util.*;
 
 public class Interactor {
 	
@@ -27,6 +21,8 @@ public class Interactor {
 	public static double addEnchantmentPrice = 50.0;
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
+	
+	public static boolean enableEnchants = true;
 	
 	private final static List<Integer> repairableTools;
 	private final static List<Integer> repairableArmor;
@@ -58,11 +54,11 @@ public class Interactor {
 				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor")) &&
 				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"))
 			)) {
-			canRepair = (repairableTools.contains((item.getTypeId()))) || repairableArmor.contains((item.getTypeId())) ? true : false;
+			canRepair = (repairableTools.contains((item.getTypeId()))) || repairableArmor.contains((item.getTypeId()));
 		} else if (repairman.type.equalsIgnoreCase("tools") && Griswold.permission.has(player, "griswold.tools")) {
-			canRepair = (repairableTools.contains((item.getTypeId()))) ? true : false;
+			canRepair = (repairableTools.contains((item.getTypeId())));
 		} else if (repairman.type.equalsIgnoreCase("armor") && Griswold.permission.has(player, "griswold.armor")) {
-			canRepair = repairableArmor.contains((item.getTypeId())) ? true : false;
+			canRepair = repairableArmor.contains((item.getTypeId()));
 		} else if (repairman.type.equalsIgnoreCase("enchant") && Griswold.permission.has(player, "griswold.enchant")) {
 			canRepair = true;
 		}
@@ -85,26 +81,25 @@ public class Interactor {
 							if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
 				            if(Griswold.economy == null || r.transactionSuccess()) {
 								item.setDurability((short) 0);
-								interactions.remove(inter);
+					            inter.valid = false; // INVALIDATE INTERACTION
 								player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_done);
 				            } else {
-				            	interactions.remove(inter);
+					            inter.valid = false; // INVALIDATE INTERACTION
 				            	player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.RED+" "+Lang.chat_error);
 				            }
 							return;
 						} else {
-							interactions.remove(inter);
+							inter.valid = false; // INVALIDATE INTERACTION
 							player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_poor);
 							return;
 						}
-					} else {
-						if (item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all"))) {
+					} else if (enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all"))) {
 							price = addEnchantmentPrice;
 							EconomyResponse r = null;
 							if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
 								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
 					            if(Griswold.economy == null || r.transactionSuccess()) {
-					            
+
 									net.minecraft.server.ItemStack vanillaItem = CraftItemStack.createNMSItemStack(item);
 									int bonus = (new Random()).nextInt(maxEnchantBonus);
 									List<?> list = EnchantmentManager.b(new Random(), vanillaItem, bonus);
@@ -118,21 +113,23 @@ public class Interactor {
 					                        }
 					                        item.addEnchantment(org.bukkit.enchantments.Enchantment.getById(instance.enchantment.id), instance.level);
 					                    }
-					                    interactions.remove(inter);
+										inter.valid = false; // INVALIDATE INTERACTION
 					                    player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_enchant_success);
 					                } else {
-										interactions.remove(inter);
+										inter.valid = false; // INVALIDATE INTERACTION
 										player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_enchant_failed);
 									}
 									return;
 							
 					            } else {
-									interactions.remove(inter);
+						            inter.valid = false; // INVALIDATE INTERACTION
 									player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_poor);
 									return;
 								}
 							}
-						}
+					} else {
+						inter.valid = false; // INVALIDATE INTERACTION
+		            	player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.RED+" "+Lang.chat_error);
 					}
 				}
 			}
@@ -140,28 +137,52 @@ public class Interactor {
 			// INTERACTS FIRST TIME
 			
 			if (interactions.size() > 10) interactions.clear(); // THIS SUCK, I KNOW
-			if (item.getDurability() == 0 && (!repairman.type.equalsIgnoreCase("enchant") && (!repairman.type.equalsIgnoreCase("all")))) {
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair);
-			} else if (item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || (repairman.type.equalsIgnoreCase("all")))) {
-				interactions.add(interaction);
-				if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
-						Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
-				else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_enchant_free);
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
-			} else if (!repairman.type.equalsIgnoreCase("enchant")) {
-				interactions.add(interaction);
-				if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
-						Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
-				else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_free);
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
+
+			if (item.getDurability() != 0) {
+				// NEEDS REPAIR
+				if (!repairman.type.equalsIgnoreCase("enchant")){
+					// CAN REPAIR
+					interactions.add(interaction);
+					if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
+							Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
+					else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_free);
+					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
+					return;
+				} else {
+					// CANNOT REPAIR
+					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_needs_repair);
+					return;
+				}
 			} else {
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_needs_repair);
+				// NEEDS ENCHANT
+				if (enableEnchants) {
+					// ENCHANTS ENABLED
+					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) {
+						// CAN ENCHANT
+						interactions.add(interaction);
+						if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
+								Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
+						else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_enchant_free);
+						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
+						return;
+					} else {
+						// CANNOT ENCHANT
+						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+						return;
+					}
+				} else {
+					// ENCHANTS DISABLED
+					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+					return;
+				}
 			}
 		} else {
 			if (item.getType() == Material.AIR) {
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_noitem);
+				return;
 			} else {
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_cannot);
+				return;
 			}
 		}
 	}
@@ -185,5 +206,29 @@ public class Interactor {
 		}
 		
 		return price * repairman.cost;
+	}
+}
+
+class Interaction {
+	Player player;
+	Entity repairman;
+	ItemStack item;
+	long time;
+	boolean valid;
+	public Interaction(Player player, Entity repairman, ItemStack item, long time) {
+		this.item = item;
+		this.player = player;
+		this.repairman = repairman;
+		this.time = time;
+		this.valid = true;
+	}
+
+	public boolean equals(Interaction inter) {
+		int delta = (int) (time-inter.time);
+		return ((inter.item.equals(item)) &&
+				(inter.valid) &&
+				(inter.player.equals(player)) &&
+				(inter.repairman.equals(repairman)) &&
+				(delta < Griswold.timeout));
 	}
 }

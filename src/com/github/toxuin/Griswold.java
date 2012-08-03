@@ -1,16 +1,7 @@
 package com.github.toxuin;
 
-import java.io.File;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TimerTask;
-import java.util.logging.Logger;
-
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -19,9 +10,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.EventHandler;
@@ -33,7 +25,10 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.entity.Entity;
+
+import java.io.File;
+import java.util.*;
+import java.util.logging.Logger;
 
 public class Griswold extends JavaPlugin implements Listener{
 	public static File directory;
@@ -70,7 +65,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
-		
+
 		log.info( prefix + "Enabled! Version: " + version);
 	}
 
@@ -78,7 +73,7 @@ public class Griswold extends JavaPlugin implements Listener{
         despawnAll();
 		log.info( prefix + "Disabled.");
 	}
-	
+
 	// MAKE THEM INVINCIBLE
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
@@ -92,7 +87,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 
 	// MAKE INTERACTION
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		if (permission != null) {
 			if (!permission.has(event.getPlayer(), "griswold.tools") || !permission.has(event.getPlayer(), "griswold.armor") || !permission.has(event.getPlayer(), "griswold.enchant")) return;
@@ -102,8 +97,9 @@ public class Griswold extends JavaPlugin implements Listener{
 				Interactor.interact(event.getPlayer(), rep);
 			}
 		}
+		event.setCancelled(true);
 	}
-	
+
 	// PREVENT DESPAWN
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onChunkUnload(ChunkUnloadEvent event) {
@@ -115,13 +111,13 @@ public class Griswold extends JavaPlugin implements Listener{
 			}
 		}
 	}
-	
+
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-		
+
 		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
-					if (sender.isOp() || sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) { 
+					if (sender.isOp() || sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) {
 						reloadPlugin();
 					} else {
 						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
@@ -194,7 +190,7 @@ public class Griswold extends JavaPlugin implements Listener{
 				return true;
 			}
 		}
-		return false; 
+		return false;
 	}
 	
 	private void reloadPlugin() {
@@ -258,7 +254,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			result = result + rep.name + ", ";
 		}
-		if (result != "") {
+		if (result.equals("")) {
 			sender.sendMessage(ChatColor.GREEN+Lang.repairman_list);
 			sender.sendMessage(result);
 		}
@@ -276,10 +272,13 @@ public class Griswold extends JavaPlugin implements Listener{
 	private void spawnRepairman (Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) return;
-		
-		LivingEntity repairman = loc.getWorld().spawnCreature(loc, EntityType.VILLAGER);
-		
-		if (squidward.type == "enchant") {
+		if (squidward.type.equals("enchant") && !Interactor.enableEnchants) {
+			log.info(prefix+String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
+			return;
+		}
+		LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
+
+		if (squidward.type.equals("enchant")) {
 			((Villager) repairman).setProfession(Profession.LIBRARIAN);
 		} else {
 			((Villager) repairman).setProfession(Profession.BLACKSMITH);
@@ -326,8 +325,18 @@ public class Griswold extends JavaPlugin implements Listener{
         	
         	Lang.checkLangVersion(lang);
 			Lang.init();
-			
-        	if (config.isConfigurationSection("repairmen")) {
+
+
+	        Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
+	        Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
+	        Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
+	        Interactor.addEnchantmentPrice = config.getDouble("PriceToAddEnchantment");
+	        Interactor.clearEnchantments = config.getBoolean("ClearOldEnchantments");
+	        Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
+
+	        Interactor.enableEnchants = config.getBoolean("UseEnchantmentSystem");
+
+	        if (config.isConfigurationSection("repairmen")) {
         		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
 	        	for (String repairman : repairmen) {
 	        		Repairer squidward = new Repairer();
@@ -342,25 +351,18 @@ public class Griswold extends JavaPlugin implements Listener{
 	        		spawnRepairman(squidward);
 	        	}
         	}
-        	
-        	Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
-        	Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
-        	Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
-        	Interactor.addEnchantmentPrice = config.getDouble("PriceToAddEnchantment");
-        	Interactor.clearEnchantments = config.getBoolean("ClearOldEnchantments");
-        	Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
-        	
+	        log.info(prefix+Lang.config_loaded);
+
         	if(debug) {
         		log.info(prefix+String.format(Lang.debug_loaded, repairmen.size()));
         	}
-        	
-        	log.info(prefix+Lang.config_loaded);
         } else {
         	config.set("Timeout", 5000);
         	config.set("Language", "en_US");
         	config.set("BasicArmorPrice", 10.0);
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
+	        config.set("UseEnchantmentSystem", true);
         	config.set("PriceToAddEnchantment", 50.0);
         	config.set("ClearOldEnchantments", true);
         	config.set("EnchantmentBonus", 5);
@@ -377,17 +379,32 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 	
 	private void updateConfig(String oldVersion) {
-		// ADDED IN 0.05
-		config.set("PriceToAddEnchantment", 50.0);
-    	config.set("ClearOldEnchantments", true);
-    	config.set("EnchantmentBonus", 5);
-		
-    	config.set("Version", version);
-    	try {
-    		config.save(configFile); 
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    	}
+		if (Double.parseDouble(oldVersion) < 0.05d) {
+			// ADDED IN 0.05
+			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION OLDER THAN 0.5");
+
+			config.set("PriceToAddEnchantment", 50.0);
+	        config.set("ClearOldEnchantments", true);
+	        config.set("EnchantmentBonus", 5);
+
+	        config.set("Version", 0.05d);
+	        try {
+	            config.save(configFile);
+	        } catch (Exception e) {
+	            e.printStackTrace();
+	        }
+		} else if (Double.parseDouble(oldVersion) == 0.05d) {
+			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
+			// ADDED IN 0.051
+			config.set("UseEnchantmentSystem", true);
+
+			config.set("Version", 0.051d);
+			try {
+				config.save(configFile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	private class Starter implements Runnable {
@@ -452,4 +469,12 @@ public class Griswold extends JavaPlugin implements Listener{
             }
         }
     }
+}
+
+class Repairer {
+	public Entity entity;
+	public String name = "Repairman";
+	public Location loc;
+	public String type = "all";
+	public double cost = 1;
 }
