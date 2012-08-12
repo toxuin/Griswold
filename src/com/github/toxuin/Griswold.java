@@ -95,9 +95,9 @@ public class Griswold extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			if (event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
+				event.setCancelled(true);
 			}
 		}
-		event.setCancelled(true);
 	}
 
 	// PREVENT DESPAWN
@@ -283,14 +283,14 @@ public class Griswold extends JavaPlugin implements Listener{
 		} else {
 			((Villager) repairman).setProfession(Profession.BLACKSMITH);
 		}
-	
+
 		FrozenTicks.put(repairman, 5);
 		FrozenPos.put(repairman, loc);
-		
+
 		squidward.entity = repairman;
-		
+
 		repairmen.add(squidward);
-		
+
 		chunks.add(loc.getChunk());
 
 		loc.getWorld().loadChunk(loc.getChunk());
@@ -393,7 +393,9 @@ public class Griswold extends JavaPlugin implements Listener{
 	        } catch (Exception e) {
 	            e.printStackTrace();
 	        }
-		} else if (Double.parseDouble(oldVersion) == 0.05d) {
+		}
+
+		if (Double.parseDouble(oldVersion) == 0.05d) {
 			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
 			// ADDED IN 0.051
 			config.set("UseEnchantmentSystem", true);
