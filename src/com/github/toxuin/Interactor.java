@@ -54,11 +54,14 @@ public class Interactor {
 				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor")) &&
 				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"))
 			)) {
-			canRepair = (repairableTools.contains((item.getTypeId()))) || repairableArmor.contains((item.getTypeId()));
+			canRepair = (repairableTools.contains(item.getTypeId())) || repairableArmor.contains(item.getTypeId());
 		} else if (repairman.type.equalsIgnoreCase("tools") && Griswold.permission.has(player, "griswold.tools")) {
-			canRepair = (repairableTools.contains((item.getTypeId())));
+			canRepair = (repairableTools.contains(item.getTypeId()));
 		} else if (repairman.type.equalsIgnoreCase("armor") && Griswold.permission.has(player, "griswold.armor")) {
-			canRepair = repairableArmor.contains((item.getTypeId()));
+			canRepair = repairableArmor.contains(item.getTypeId());
+		} else if (repairman.type.equalsIgnoreCase("both")) {
+			canRepair = ( (repairableArmor.contains(item.getTypeId()) && Griswold.permission.has(player, "griswold.armor"))
+						|| (repairableTools.contains(item.getTypeId()) && Griswold.permission.has(player, "griswold.tools")) );
 		} else if (repairman.type.equalsIgnoreCase("enchant") && Griswold.permission.has(player, "griswold.enchant")) {
 			canRepair = true;
 		}
@@ -73,7 +76,8 @@ public class Interactor {
 					
 					if (item.getDurability() != 0 && (
 							repairman.type.equalsIgnoreCase("armor") || 
-							repairman.type.equalsIgnoreCase("tools") || 
+							repairman.type.equalsIgnoreCase("tools") ||
+							repairman.type.equalsIgnoreCase("both") ||
 							repairman.type.equalsIgnoreCase("all")
 						)) {
 						 EconomyResponse r = null;
