@@ -2,6 +2,7 @@ package com.github.toxuin;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+import net.minecraft.server.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -10,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.craftbukkit.entity.CraftVillager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -21,12 +23,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Logger;
 
@@ -43,10 +46,10 @@ public class Griswold extends JavaPlugin implements Listener{
 	static Logger log = Logger.getLogger("Minecraft");
 	
 	public static Set<Repairer> repairmen = new HashSet<Repairer>();
-	private Set<Chunk> chunks = new HashSet<Chunk>();
+	//private Set<Chunk> chunks = new HashSet<Chunk>();
 	
-    private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
-    private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
+    //private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
+    //private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
     
 	public static Permission permission = null;
     public static Economy economy = null;
@@ -62,7 +65,7 @@ public class Griswold extends JavaPlugin implements Listener{
 
 		this.getServer().getPluginManager().registerEvents(this, this);
 		
-		this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
+		//this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
@@ -99,7 +102,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			}
 		}
 	}
-
+	/*
 	// PREVENT DESPAWN
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onChunkUnload(ChunkUnloadEvent event) {
@@ -110,6 +113,13 @@ public class Griswold extends JavaPlugin implements Listener{
 				event.setCancelled(true);
 			}
 		}
+	}
+	*/
+
+	// NEW DESPAWN PREVENTION
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+	public void onChunkLoad(ChunkLoadEvent event) {
+		loadRepairmenInChunk(event.getChunk());
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -197,6 +207,15 @@ public class Griswold extends JavaPlugin implements Listener{
 		despawnAll();
 		readConfig();
 	}
+
+	private void loadRepairmenInChunk(Chunk chunk) {
+		for (Repairer rep : repairmen) {
+			if (rep.loc.getChunk().equals(chunk)) {
+				spawnRepairman(rep);
+				if (debug) log.info(prefix+"DEBUG: LOADED REPAIRMAN "+rep.name+" AGAIN!");
+			}
+		}
+	}
 	
 	private void createRepairman(String name, Location loc) {
 		createRepairman(name, loc, "all", "1");
@@ -226,12 +245,12 @@ public class Griswold extends JavaPlugin implements Listener{
     		e.printStackTrace();
     	}
 		
-    	Repairer squidward = new Repairer();
-    	squidward.name = name;
-    	squidward.loc = loc;
-    	squidward.type = type;
-    	squidward.cost = Double.parseDouble(cost);
-		spawnRepairman(squidward);
+    	Repairer meGusta = new Repairer();
+    	meGusta.name = name;
+    	meGusta.loc = loc;
+    	meGusta.type = type;
+    	meGusta.cost = Double.parseDouble(cost);
+		spawnRepairman(meGusta);
 	}
 	
 	private void removeRepairman(String name) {
@@ -264,8 +283,8 @@ public class Griswold extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			rep.entity.remove();
 		}
-		FrozenTicks.clear();
-		FrozenPos.clear();
+		//FrozenTicks.clear();
+		//FrozenPos.clear();
 		repairmen.clear();
 	}
 	
@@ -284,16 +303,18 @@ public class Griswold extends JavaPlugin implements Listener{
 			((Villager) repairman).setProfession(Profession.BLACKSMITH);
 		}
 
-		FrozenTicks.put(repairman, 5);
-		FrozenPos.put(repairman, loc);
+		//FrozenTicks.put(repairman, 5);
+		//FrozenPos.put(repairman, loc);
 
 		squidward.entity = repairman;
 
-		repairmen.add(squidward);
+		if (!repairmen.contains(squidward)) repairmen.add(squidward);
 
-		chunks.add(loc.getChunk());
+		//chunks.add(loc.getChunk());
 
 		loc.getWorld().loadChunk(loc.getChunk());
+
+		squidward.overwriteAI();
 
 		if (debug) {
 			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
@@ -451,7 +472,7 @@ public class Griswold extends JavaPlugin implements Listener{
         return (economy != null);
     }
 
-	private class Frosttouch_freezeController extends TimerTask
+	/*private class Frosttouch_freezeController extends TimerTask
     {
         //Make sure all frozen mobs are stuck in place
         public void run()
@@ -470,7 +491,7 @@ public class Griswold extends JavaPlugin implements Listener{
                 }
             }
         }
-    }
+    }  */
 }
 
 class Repairer {
@@ -479,4 +500,21 @@ class Repairer {
 	public Location loc;
 	public String type = "all";
 	public double cost = 1;
+
+	public void overwriteAI() {
+		try {
+			EntityVillager ev = ((CraftVillager)entity).getHandle();
+
+			Field goalsField = EntityLiving.class.getDeclaredField("goalSelector");
+			goalsField.setAccessible(true);
+			PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(ev);
+			Field listField = PathfinderGoalSelector.class.getDeclaredField("a");
+			listField.setAccessible(true);
+			List list = (List)listField.get(goals);
+			list.clear();
+			goals.a(2, new PathfinderGoalLookAtPlayer(ev, EntityHuman.class, 12.0F, 1.0F));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }
