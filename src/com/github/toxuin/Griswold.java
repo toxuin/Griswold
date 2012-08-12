@@ -46,11 +46,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	static Logger log = Logger.getLogger("Minecraft");
 	
 	public static Set<Repairer> repairmen = new HashSet<Repairer>();
-	//private Set<Chunk> chunks = new HashSet<Chunk>();
-	
-    //private Map<Entity, Integer> FrozenTicks = new HashMap<Entity, Integer>();
-    //private Map<Entity, Location> FrozenPos = new HashMap<Entity, Location>();
-    
+
 	public static Permission permission = null;
     public static Economy economy = null;
     
@@ -64,8 +60,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
 		this.getServer().getPluginManager().registerEvents(this, this);
-		
-		//this.getServer().getScheduler().scheduleSyncRepeatingTask(this, new Frosttouch_freezeController(), 0, 5);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
@@ -102,19 +96,6 @@ public class Griswold extends JavaPlugin implements Listener{
 			}
 		}
 	}
-	/*
-	// PREVENT DESPAWN
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onChunkUnload(ChunkUnloadEvent event) {
-		if (chunks.isEmpty()) return;
-		for (Chunk chunk : chunks){
-			if (event.getChunk().equals(chunk)) {
-				chunk.getWorld().loadChunk(chunk);
-				event.setCancelled(true);
-			}
-		}
-	}
-	*/
 
 	// NEW DESPAWN PREVENTION
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -283,8 +264,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		for (Repairer rep : repairmen) {
 			rep.entity.remove();
 		}
-		//FrozenTicks.clear();
-		//FrozenPos.clear();
 		repairmen.clear();
 	}
 	
@@ -303,14 +282,9 @@ public class Griswold extends JavaPlugin implements Listener{
 			((Villager) repairman).setProfession(Profession.BLACKSMITH);
 		}
 
-		//FrozenTicks.put(repairman, 5);
-		//FrozenPos.put(repairman, loc);
-
 		squidward.entity = repairman;
 
 		if (!repairmen.contains(squidward)) repairmen.add(squidward);
-
-		//chunks.add(loc.getChunk());
 
 		loc.getWorld().loadChunk(loc.getChunk());
 
@@ -442,10 +416,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		}
 		
 	}
-	
-	// NONE OF MY CODE BELOW THIS LINE
-	// -------------------------------
-
 
     private boolean setupPermissions()
     {
@@ -471,27 +441,6 @@ public class Griswold extends JavaPlugin implements Listener{
 
         return (economy != null);
     }
-
-	/*private class Frosttouch_freezeController extends TimerTask
-    {
-        //Make sure all frozen mobs are stuck in place
-        public void run()
-        {
-            Set<Entity> keys = FrozenTicks.keySet();
-            for(Entity ent : keys)
-            {
-                //If this has an entry, freeze
-                if(FrozenTicks.containsKey(ent) && FrozenTicks.get(ent) > 0)
-                {
-                    //If moved, move back
-                    if(!FrozenPos.get(ent).equals(ent.getLocation()))
-                    {
-                        ent.teleport(FrozenPos.get(ent));
-                    }
-                }
-            }
-        }
-    }  */
 }
 
 class Repairer {
@@ -503,16 +452,16 @@ class Repairer {
 
 	public void overwriteAI() {
 		try {
-			EntityVillager ev = ((CraftVillager)entity).getHandle();
-
+			EntityVillager villager = ((CraftVillager)entity).getHandle();
 			Field goalsField = EntityLiving.class.getDeclaredField("goalSelector");
 			goalsField.setAccessible(true);
-			PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(ev);
+			PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(villager);
 			Field listField = PathfinderGoalSelector.class.getDeclaredField("a");
 			listField.setAccessible(true);
 			List list = (List)listField.get(goals);
 			list.clear();
-			goals.a(2, new PathfinderGoalLookAtPlayer(ev, EntityHuman.class, 12.0F, 1.0F));
+			goals.a(1, new PathfinderGoalLookAtPlayer(villager, EntityHuman.class, 12.0F, 1.0F));
+			goals.a(2, new PathfinderGoalRandomLookaround(villager));
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

@@ -103,6 +103,11 @@ public class Interactor {
 							if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
 								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
 					            if(Griswold.economy == null || r.transactionSuccess()) {
+						            if (clearEnchantments) {
+							            for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
+								            item.removeEnchantment(enchantToDel);
+							            }
+						            }
 
 									net.minecraft.server.ItemStack vanillaItem = CraftItemStack.createNMSItemStack(item);
 									int bonus = (new Random()).nextInt(maxEnchantBonus);
@@ -110,11 +115,6 @@ public class Interactor {
 									if (list != null) {
 					                   for (Object obj : list) {
 					                        EnchantmentInstance instance = (EnchantmentInstance) obj;
-					                        if (clearEnchantments) {
-					                        	for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
-					                        		item.removeEnchantment(enchantToDel);
-					                        	}
-					                        }
 					                        item.addEnchantment(org.bukkit.enchantments.Enchantment.getById(instance.enchantment.id), instance.level);
 					                    }
 										inter.valid = false; // INVALIDATE INTERACTION
@@ -161,6 +161,7 @@ public class Interactor {
 				// NEEDS ENCHANT
 				if (enableEnchants) {
 					// ENCHANTS ENABLED
+					price = addEnchantmentPrice;
 					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) {
 						// CAN ENCHANT
 						interactions.add(interaction);
@@ -183,10 +184,8 @@ public class Interactor {
 		} else {
 			if (item.getType() == Material.AIR) {
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_noitem);
-				return;
 			} else {
 				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_cannot);
-				return;
 			}
 		}
 	}
@@ -194,21 +193,19 @@ public class Interactor {
 	private static double getPrice(Repairer repairman, ItemStack item) {
 		if (Griswold.economy == null) return 0.0;
 		double price = 0;
-		
 		if (repairableTools.contains(item.getTypeId())) price = basicToolsPrice;
 		else if (repairableTools.contains(item.getTypeId())) price = basicArmorPrice;
-		
+
 		price += item.getDurability();
-		
+
 		Map<Enchantment, Integer> enchantments = item.getEnchantments();
-		
+
 		if (!enchantments.isEmpty()) {
 			for (int i = 0; i<enchantments.size(); i++) {
 				Object[] enchantsLevels = enchantments.values().toArray();
 				price = price + enchantmentPrice * Integer.parseInt(enchantsLevels[i].toString());
 			}
 		}
-		
 		return price * repairman.cost;
 	}
 }
