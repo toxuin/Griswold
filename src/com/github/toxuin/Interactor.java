@@ -18,11 +18,11 @@ public class Interactor {
 	public static double basicToolsPrice = 10.0;
 	public static double basicArmorPrice = 10.0;
 	public static double enchantmentPrice = 30.0;
+	
+	public static boolean enableEnchants = true;
 	public static double addEnchantmentPrice = 50.0;
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
-	
-	public static boolean enableEnchants = true;
 	
 	private final static List<Integer> repairableTools;
 	private final static List<Integer> repairableArmor;
@@ -47,26 +47,13 @@ public class Interactor {
 		final ItemStack item = player.getItemInHand();
 		
 		double price = Math.round(getPrice(repairman, item));
-		
-		boolean canRepair = false;
-		if (repairman.type.equalsIgnoreCase("all") && (
-				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")) && 
-				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor")) &&
-				((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"))
-			)) {
-			canRepair = (repairableTools.contains(item.getTypeId())) || repairableArmor.contains(item.getTypeId());
-		} else if (repairman.type.equalsIgnoreCase("tools") && Griswold.permission.has(player, "griswold.tools")) {
-			canRepair = (repairableTools.contains(item.getTypeId()));
-		} else if (repairman.type.equalsIgnoreCase("armor") && Griswold.permission.has(player, "griswold.armor")) {
-			canRepair = repairableArmor.contains(item.getTypeId());
-		} else if (repairman.type.equalsIgnoreCase("both")) {
-			canRepair = ( (repairableArmor.contains(item.getTypeId()) && Griswold.permission.has(player, "griswold.armor"))
-						|| (repairableTools.contains(item.getTypeId()) && Griswold.permission.has(player, "griswold.tools")) );
-		} else if (repairman.type.equalsIgnoreCase("enchant") && Griswold.permission.has(player, "griswold.enchant")) {
-			canRepair = true;
+
+		if (item.getType() == Material.AIR) {
+			player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_noitem);
+			return;
 		}
-		
-		if (item != null && canRepair) {
+
+		if (checkCanRepair(player, repairman, item)) {
 			Interaction interaction = new Interaction(player, repairman.entity, item, item.getDurability(), System.currentTimeMillis());
 			
 			// INTERACTS SECOND TIME
@@ -151,43 +138,56 @@ public class Interactor {
 							Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
 					else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_free);
 					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
-					return;
 				} else {
 					// CANNOT REPAIR
 					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_needs_repair);
-					return;
 				}
 			} else {
 				// NEEDS ENCHANT
-				if (enableEnchants) {
-					// ENCHANTS ENABLED
+				if (enableEnchants) { // ENCHANTS ENABLED
 					price = addEnchantmentPrice;
-					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) {
-						// CAN ENCHANT
+					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) { // CAN ENCHANT
 						interactions.add(interaction);
 						if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
 								Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
 						else player.sendMessage(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+Lang.chat_enchant_free);
 						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_agreed);
-						return;
-					} else {
-						// CANNOT ENCHANT
+					} else { // CANNOT ENCHANT
 						player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
-						return;
 					}
-				} else {
-					// ENCHANTS DISABLED
+				} else { // ENCHANTS DISABLED
 					player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
-					return;
 				}
 			}
 		} else {
-			if (item.getType() == Material.AIR) {
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_noitem);
-			} else {
-				player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_cannot);
-			}
+			player.sendMessage(ChatColor.GOLD+"<"+repairman.name+">"+ChatColor.WHITE+" "+Lang.chat_cannot);
 		}
+	}
+
+	private static boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
+		if (repairman.type.equalsIgnoreCase("all")) {
+			if (item.getDurability() != 0) {
+				if (repairableArmor.contains(item.getTypeId())) {
+					// check for armor perm
+					return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
+				} else return ((repairableTools.contains(item.getTypeId())) &&       // check tools perm
+							((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
+			} else {
+				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+			}
+		} else if (repairman.type.equalsIgnoreCase("both")) {
+			if (repairableArmor.contains(item.getTypeId())) {
+				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
+			} else return ((repairableTools.contains(item.getTypeId())) &&
+					((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
+		} else if (repairman.type.equalsIgnoreCase("tools")) {
+			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools"));
+		} else if (repairman.type.equalsIgnoreCase("armor")) {
+			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
+		} else if (repairman.type.equalsIgnoreCase("enchant")) {
+			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+		}
+		return false;
 	}
 
 	private static double getPrice(Repairer repairman, ItemStack item) {
@@ -230,6 +230,7 @@ class Interaction {
 		int delta = (int) (time-inter.time);
 		return ((inter.item.equals(item)) &&
 				(inter.valid) &&
+				(inter.damage == damage) &&
 				(inter.player.equals(player)) &&
 				(inter.repairman.equals(repairman)) &&
 				(delta < Griswold.timeout));

@@ -87,7 +87,9 @@ public class Griswold extends JavaPlugin implements Listener{
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		if (permission != null) {
-			if (!permission.has(event.getPlayer(), "griswold.tools") || !permission.has(event.getPlayer(), "griswold.armor") || !permission.has(event.getPlayer(), "griswold.enchant")) return;
+			if (!permission.has(event.getPlayer(), "griswold.tools") ||
+				!permission.has(event.getPlayer(), "griswold.armor") ||
+				!permission.has(event.getPlayer(), "griswold.enchant")) return;
 		}
 		for (Repairer rep : repairmen) {
 			if (event.getRightClicked().equals(rep.entity)) {
