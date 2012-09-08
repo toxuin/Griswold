@@ -28,6 +28,8 @@ import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.github.toxuin.Metrics.Graph;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -67,7 +69,8 @@ public class Griswold extends JavaPlugin implements Listener{
 
 		try {
 		    Metrics metrics = new Metrics(this);
-		    metrics.addCustomData(new Metrics.Plotter("Number of NPCs") {
+		    Graph graph = metrics.createGraph("Number of NPCs");
+		    graph.addPlotter(new Metrics.Plotter("Total") {
 		        @Override
 		        public int getValue() {
 		            return repairmen.size();
