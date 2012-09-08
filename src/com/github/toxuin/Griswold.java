@@ -66,7 +66,13 @@ public class Griswold extends JavaPlugin implements Listener{
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
 		try {
-		    MetricsLite metrics = new MetricsLite(this);
+		    Metrics metrics = new Metrics(this);
+		    metrics.addCustomData(new Metrics.Plotter("Number of NPCs") {
+		        @Override
+		        public int getValue() {
+		            return repairmen.size();
+		        }
+		    });
 		    metrics.start();
 		} catch (IOException e) {
 		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
