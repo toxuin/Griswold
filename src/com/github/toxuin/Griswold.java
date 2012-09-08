@@ -23,7 +23,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
+import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -46,6 +46,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	static Logger log = Logger.getLogger("Minecraft");
 	
 	public static Set<Repairer> repairmen = new HashSet<Repairer>();
+	private Set<Chunk> chunks = new HashSet<Chunk>();
 
 	public static Permission permission = null;
     public static Economy economy = null;
@@ -99,10 +100,16 @@ public class Griswold extends JavaPlugin implements Listener{
 		}
 	}
 
-	// NEW DESPAWN PREVENTION
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void onChunkLoad(ChunkLoadEvent event) {
-		loadRepairmenInChunk(event.getChunk());
+	// PREVENT DESPAWN
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	public void onChunkUnload(ChunkUnloadEvent event) {
+		if (chunks.isEmpty()) return;
+		for (Chunk chunk : chunks){
+			if (event.getChunk().equals(chunk)) {
+				chunk.getWorld().loadChunk(chunk);
+				event.setCancelled(true);
+			}
+		}
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
@@ -190,15 +197,6 @@ public class Griswold extends JavaPlugin implements Listener{
 		despawnAll();
 		readConfig();
 	}
-
-	private void loadRepairmenInChunk(Chunk chunk) {
-		for (Repairer rep : repairmen) {
-			if (rep.loc.getChunk().equals(chunk)) {
-				spawnRepairman(rep);
-				if (debug) log.info(prefix+"DEBUG: LOADED REPAIRMAN "+rep.name+" AGAIN!");
-			}
-		}
-	}
 	
 	private void createRepairman(String name, Location loc) {
 		createRepairman(name, loc, "all", "1");
@@ -251,12 +249,12 @@ public class Griswold extends JavaPlugin implements Listener{
 		reloadPlugin();
 	}
 	
-	private void listRepairmen(CommandSender sender){
+	private void listRepairmen(CommandSender sender) {
 		String result = "";
 		for (Repairer rep : repairmen) {
 			result = result + rep.name + ", ";
 		}
-		if (result.equals("")) {
+		if (!result.equals("")) {
 			sender.sendMessage(ChatColor.GREEN+Lang.repairman_list);
 			sender.sendMessage(result);
 		}
@@ -271,7 +269,10 @@ public class Griswold extends JavaPlugin implements Listener{
 	
 	private void spawnRepairman (Repairer squidward) {
 		Location loc = squidward.loc;
-		if (loc == null) return;
+		if (loc == null) {
+			log.info(prefix+"ERROR: LOCATION "+loc+" IS NULL");
+			return;
+		}
 		if (squidward.type.equals("enchant") && !Interactor.enableEnchants) {
 			log.info(prefix+String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
 			return;
@@ -345,6 +346,8 @@ public class Griswold extends JavaPlugin implements Listener{
 	        		squidward.type = config.getString("repairmen."+repairman+".type");
 	        		squidward.cost = config.getDouble("repairmen."+repairman+".cost");
 	        		
+	        		squidward.loc.getWorld().loadChunk(squidward.loc.getChunk());
+	        		
 	        		spawnRepairman(squidward);
 	        	}
         	}
@@ -409,8 +412,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	private class Starter implements Runnable {
 		@Override
 		public void run() {
-			despawnAll();
-			readConfig();
+			reloadPlugin();
 
 			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
 			if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
