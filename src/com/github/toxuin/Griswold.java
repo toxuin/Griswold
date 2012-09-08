@@ -29,6 +29,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Logger;
@@ -64,6 +65,13 @@ public class Griswold extends JavaPlugin implements Listener{
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
+		try {
+		    MetricsLite metrics = new MetricsLite(this);
+		    metrics.start();
+		} catch (IOException e) {
+		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
+		}
+		
 		log.info( prefix + "Enabled! Version: " + version);
 	}
 
