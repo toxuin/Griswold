@@ -265,6 +265,7 @@ public class Griswold extends JavaPlugin implements Listener{
 			rep.entity.remove();
 		}
 		repairmen.clear();
+		chunks.clear();
 	}
 	
 	private void spawnRepairman (Repairer squidward) {
@@ -288,7 +289,8 @@ public class Griswold extends JavaPlugin implements Listener{
 		squidward.entity = repairman;
 
 		if (!repairmen.contains(squidward)) repairmen.add(squidward);
-
+		
+		if (!chunks.contains(loc.getChunk())) chunks.add(loc.getChunk());
 		loc.getWorld().loadChunk(loc.getChunk());
 
 		squidward.overwriteAI();
@@ -462,6 +464,7 @@ class Repairer {
 			PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(villager);
 			Field listField = PathfinderGoalSelector.class.getDeclaredField("a");
 			listField.setAccessible(true);
+			@SuppressWarnings("rawtypes")
 			List list = (List)listField.get(goals);
 			list.clear();
 			goals.a(1, new PathfinderGoalLookAtPlayer(villager, EntityHuman.class, 12.0F, 1.0F));

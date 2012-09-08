@@ -27,7 +27,8 @@ public class Lang {
 	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
 	public static String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
 	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
-	
+	public static String name_format = "ERROR: LANG NOT FOUND: name_format";
+
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
 	public static String chat_poor = "ERROR: LANG NOT FOUND: chat_poor";
@@ -67,6 +68,7 @@ public class Lang {
         respawned = language.getString("respawned");
         error_few_arguments = language.getString("error_few_arguments");
 		error_enchanter_not_spawned = language.getString("error_enchanter_not_spawned");
+		name_format = language.getString("name_format");
         
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -112,6 +114,7 @@ public class Lang {
         	language.set("respawned", "All blacksmiths respawned");
         	language.set("error_few_arguments", "Too few arguments.");
 	        language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
+	        language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
         	
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
@@ -195,6 +198,18 @@ public class Lang {
 			language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
 			language.set("version", 0.051d);
 
+			try {
+				language.save(langFile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+		
+		if (language.getDouble("version") == 0.051d) {
+			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.051");
+			language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
+			language.set("version", 0.06d);
+			
 			try {
 				language.save(langFile);
 			} catch (Exception e) {
