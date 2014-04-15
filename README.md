@@ -49,6 +49,8 @@ These commands are for administrative purposes, users don't need them.
 
 All commands require griswold.admin permission and fallbacks to OP if something bad happens.
 
+/blacksmith command has an alias – /bsmith to avoid conflicts with other plugins.
+
 ##NPC Types:##
 When you use /blacksmith create command you can specify a type of NPC. Available types are:
 

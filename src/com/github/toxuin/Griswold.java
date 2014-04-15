@@ -2,7 +2,6 @@ package com.github.toxuin;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
-import net.minecraft.server.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
@@ -11,7 +10,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.entity.CraftVillager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -36,7 +34,11 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Logger;
 
-public class Griswold extends JavaPlugin implements Listener{
+// VERSION DEPENDANT
+import net.minecraft.server.v1_7_R1.*;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
+
+public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
 	public static String prefix = null;
 	
@@ -95,7 +97,7 @@ public class Griswold extends JavaPlugin implements Listener{
 		if (repairmen.isEmpty()) return;
 		for (Repairer rep : repairmen) {
 			if (event.getEntity().equals(rep.entity)) {
-				event.setDamage(0);
+				event.setDamage(0d);
 				event.setCancelled(true);
 			}
 		}
@@ -130,7 +132,6 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-
 		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
 			if (args.length > 0) {
 				if (args[0].equalsIgnoreCase("reload")) {
@@ -216,7 +217,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	}
 	
 	private void createRepairman(String name, Location loc) {
-		createRepairman(name, loc, "all", "1");
+        createRepairman(name, loc, "all", "1");
 	}
 	
 	private void createRepairman(String name, Location loc, String type, String cost) {
@@ -288,7 +289,7 @@ public class Griswold extends JavaPlugin implements Listener{
 	private void spawnRepairman (Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) {
-			log.info(prefix+"ERROR: LOCATION "+loc+" IS NULL");
+			log.info(prefix+"ERROR: LOCATION IS NULL");
 			return;
 		}
 		if (squidward.type.equals("enchant") && !Interactor.enableEnchants) {

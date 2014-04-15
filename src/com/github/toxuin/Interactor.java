@@ -1,15 +1,17 @@
 package com.github.toxuin;
 
 import net.milkbowl.vault.economy.EconomyResponse;
-import net.minecraft.server.EnchantmentInstance;
-import net.minecraft.server.EnchantmentManager;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+// VERSION DEPENDANT STUFF
+import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
+import net.minecraft.server.v1_7_R1.EnchantmentInstance;
+import net.minecraft.server.v1_7_R1.EnchantmentManager;
 
 import java.util.*;
 
@@ -24,21 +26,71 @@ public class Interactor {
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
 	
-	private final static List<Integer> repairableTools;
-	private final static List<Integer> repairableArmor;
+	private final static List<Material> repairableTools = new LinkedList<Material>();
+	private final static List<Material> repairableArmor = new LinkedList<Material>();
 	static {
-		repairableTools = new LinkedList<Integer>();
-		repairableArmor = new LinkedList<Integer>();
-		
-		for (int i = 256; i <= 259; i++) repairableTools.add(i); // IRON TOOLS AND ZIPPO
-		for (int i = 267; i <= 279; i++) repairableTools.add(i); // WOODEN, STONE, DIAMOND TOOLS
-		for (int i = 283; i <= 286; i++) repairableTools.add(i); // GOLDEN TOOLS
-		for (int i = 290; i <= 294; i++) repairableTools.add(i); // HOES
-		repairableTools.add(359); // SCISSORS
-		repairableTools.add(Material.BOW.getId()); // BOW
-		repairableTools.add(Material.FISHING_ROD.getId()); // FISHING ROD
-		
-		for (int i = 298; i <= 317; i++) repairableArmor.add(i); // ALL ARMOR
+        repairableTools.add(Material.IRON_AXE);
+        repairableTools.add(Material.IRON_PICKAXE);
+        repairableTools.add(Material.IRON_SWORD);
+        repairableTools.add(Material.IRON_HOE);
+        repairableTools.add(Material.IRON_SPADE);              // IRON TOOLS
+
+        repairableTools.add(Material.WOOD_AXE);
+        repairableTools.add(Material.WOOD_PICKAXE);
+        repairableTools.add(Material.WOOD_SWORD);
+        repairableTools.add(Material.WOOD_HOE);
+        repairableTools.add(Material.WOOD_SPADE);              // WOODEN TOOLS
+
+        repairableTools.add(Material.STONE_AXE);
+        repairableTools.add(Material.STONE_PICKAXE);
+        repairableTools.add(Material.STONE_SWORD);
+        repairableTools.add(Material.STONE_HOE);
+        repairableTools.add(Material.STONE_SPADE);             // STONE TOOLS
+
+        repairableTools.add(Material.DIAMOND_AXE);
+        repairableTools.add(Material.DIAMOND_PICKAXE);
+        repairableTools.add(Material.DIAMOND_SWORD);
+        repairableTools.add(Material.DIAMOND_HOE);
+        repairableTools.add(Material.DIAMOND_SPADE);           // DIAMOND TOOLS
+
+        repairableTools.add(Material.GOLD_AXE);
+        repairableTools.add(Material.GOLD_PICKAXE);
+        repairableTools.add(Material.GOLD_SWORD);
+        repairableTools.add(Material.GOLD_HOE);
+        repairableTools.add(Material.GOLD_SPADE);           // GOLDEN TOOLS
+
+        repairableTools.add(Material.FLINT_AND_STEEL); // ZIPPO
+		repairableTools.add(Material.SHEARS); // SCISSORS
+		repairableTools.add(Material.BOW); // BOW
+		repairableTools.add(Material.FISHING_ROD); // FISHING ROD
+
+        // ARMORZ!
+        repairableArmor.add(Material.LEATHER_BOOTS);
+        repairableArmor.add(Material.LEATHER_CHESTPLATE);
+        repairableArmor.add(Material.LEATHER_HELMET);
+        repairableArmor.add(Material.LEATHER_LEGGINGS);
+
+        repairableArmor.add(Material.CHAINMAIL_BOOTS);
+        repairableArmor.add(Material.CHAINMAIL_CHESTPLATE);
+        repairableArmor.add(Material.CHAINMAIL_HELMET);
+        repairableArmor.add(Material.CHAINMAIL_LEGGINGS);
+
+        repairableArmor.add(Material.IRON_BOOTS);
+        repairableArmor.add(Material.IRON_CHESTPLATE);
+        repairableArmor.add(Material.IRON_HELMET);
+        repairableArmor.add(Material.IRON_LEGGINGS);
+
+        repairableArmor.add(Material.GOLD_BOOTS);
+        repairableArmor.add(Material.GOLD_CHESTPLATE);
+        repairableArmor.add(Material.GOLD_HELMET);
+        repairableArmor.add(Material.GOLD_LEGGINGS);
+
+        repairableArmor.add(Material.DIAMOND_BOOTS);
+        repairableArmor.add(Material.DIAMOND_CHESTPLATE);
+        repairableArmor.add(Material.DIAMOND_HELMET);
+        repairableArmor.add(Material.DIAMOND_LEGGINGS);
+
+        // THINK OF A WAY TO ADD OTHER ITEMS FROM CONFIG
 	}
 	
 	private static Set<Interaction> interactions = new HashSet<Interaction>();
@@ -96,13 +148,12 @@ public class Interactor {
 							            }
 						            }
 
-									net.minecraft.server.ItemStack vanillaItem = CraftItemStack.createNMSItemStack(item);
+									net.minecraft.server.v1_7_R1.ItemStack vanillaItem = CraftItemStack.asNMSCopy(item);
 									int bonus = (new Random()).nextInt(maxEnchantBonus);
 									List<?> list = EnchantmentManager.b(new Random(), vanillaItem, bonus);
 									if (list != null) {
 					                   for (Object obj : list) {
-					                        EnchantmentInstance instance = (EnchantmentInstance) obj;
-					                        item.addEnchantment(org.bukkit.enchantments.Enchantment.getById(instance.enchantment.id), instance.level);
+					                        item.addEnchantment((Enchantment) obj, ((EnchantmentInstance) obj).level);
 					                    }
 										inter.valid = false; // INVALIDATE INTERACTION
 					                    player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_enchant_success);
@@ -167,18 +218,18 @@ public class Interactor {
 	private static boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
 		if (repairman.type.equalsIgnoreCase("all")) {
 			if (item.getDurability() != 0) {
-				if (repairableArmor.contains(item.getTypeId())) {
+				if (repairableArmor.contains(item.getType())) {
 					// check for armor perm
 					return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-				} else return ((repairableTools.contains(item.getTypeId())) &&       // check tools perm
+				} else return ((repairableTools.contains(item.getType())) &&       // check tools perm
 							((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
 			} else {
 				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
 			}
 		} else if (repairman.type.equalsIgnoreCase("both")) {
-			if (repairableArmor.contains(item.getTypeId())) {
+			if (repairableArmor.contains(item.getType())) {
 				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-			} else return ((repairableTools.contains(item.getTypeId())) &&
+			} else return ((repairableTools.contains(item.getType())) &&
 					((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
 		} else if (repairman.type.equalsIgnoreCase("tools")) {
 			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools"));
@@ -193,8 +244,8 @@ public class Interactor {
 	private static double getPrice(Repairer repairman, ItemStack item) {
 		if (Griswold.economy == null) return 0.0;
 		double price = 0;
-		if (repairableTools.contains(item.getTypeId())) price = basicToolsPrice;
-		else if (repairableTools.contains(item.getTypeId())) price = basicArmorPrice;
+		if (repairableTools.contains(item.getType())) price = basicToolsPrice;
+		else if (repairableTools.contains(item.getType())) price = basicArmorPrice;
 
 		price += item.getDurability();
 
