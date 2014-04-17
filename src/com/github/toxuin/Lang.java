@@ -29,6 +29,9 @@ public class Lang {
 	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
 	public static String name_format = "ERROR: LANG NOT FOUND: name_format";
 
+    public static String names_on = "ERROR: LANG NOT FOUND: names_on";
+    public static String names_off = "ERROR: LANG NOT FOUND: names_off";
+
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
 	public static String chat_poor = "ERROR: LANG NOT FOUND: chat_poor";
@@ -69,7 +72,10 @@ public class Lang {
         error_few_arguments = language.getString("error_few_arguments");
 		error_enchanter_not_spawned = language.getString("error_enchanter_not_spawned");
 		name_format = language.getString("name_format");
-        
+
+        names_on = language.getString("names_on");
+        names_off = language.getString("names_off");
+
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
         chat_poor = language.getString("chat_poor");
@@ -115,7 +121,10 @@ public class Lang {
         	language.set("error_few_arguments", "Too few arguments.");
 	        language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
 	        language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
-        	
+
+            language.set("names_on", "Now showing blacksmiths' names.");
+            language.set("names_off", "Now hiding blacksmiths' names.");
+
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
         	language.set("chat_poor", "You have no money, that's sad!");
@@ -216,5 +225,18 @@ public class Lang {
 				e.printStackTrace();
 			}
 		}
+
+        if (language.getDouble("version") == 0.06d) {
+            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
+            language.set("names_on", "Now showing blacksmiths' names.");
+            language.set("names_off", "Now hiding blacksmiths' names.");
+            language.set("version", 0.07d);
+
+            try {
+                language.save(langFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 	}
 }

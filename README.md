@@ -45,6 +45,8 @@ These commands are for administrative purposes, users don't need them.
 
 * **/blacksmith despawn** / **respawn** - despawns or respawns all repairmen. Config is not re-read, you have to use next command to reload config.
 
+* **/blacksmith names** – toggles names above their heads.
+
 * **/blacksmith reload** - reloads config, despawns and then respawns all the repairmen.
 
 All commands require griswold.admin permission and fallbacks to OP if something bad happens.

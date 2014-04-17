@@ -55,6 +55,7 @@ public class Griswold extends JavaPlugin implements Listener {
     
     public static double version;
     static String lang = "en_US";
+    public static boolean namesVisible = true;
  
 	public void onEnable(){
 		directory = this.getDataFolder();
@@ -171,11 +172,9 @@ public class Griswold extends JavaPlugin implements Listener {
 						} else {
 							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
 						}
-					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+					} else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
 							removeRepairman(args[1]);
 							sender.sendMessage(String.format(Lang.deleted, args[1]));
-						}
 					}
 				}
 				if (args[0].equalsIgnoreCase("list")) {
@@ -193,13 +192,24 @@ public class Griswold extends JavaPlugin implements Listener {
 						} else {
 							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
 						}
-					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+					} else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
 							despawnAll();
 							sender.sendMessage(Lang.despawned);
-						}
 					}
 				}
+                if (args[0].equalsIgnoreCase("names")) {
+                    if (permission != null) {
+                        if (permission.has(sender, "griswold.admin")) {
+                            toggleNames();
+                            sender.sendMessage(namesVisible?Lang.names_on:Lang.names_off);
+                        } else {
+                            sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+                        }
+                    } else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+                        toggleNames();
+                        sender.sendMessage(namesVisible?Lang.names_on:Lang.names_off);
+                    }
+                }
 			} else {
 				sender.sendMessage(ChatColor.RED+Lang.error_few_arguments);
 				return true;
@@ -282,6 +292,21 @@ public class Griswold extends JavaPlugin implements Listener {
 		repairmen.clear();
 		chunks.clear();
 	}
+
+    private void toggleNames() {
+        namesVisible = !namesVisible;
+        for (Repairer rep : repairmen) {
+            LivingEntity entity = (LivingEntity) rep.entity;
+            entity.setCustomNameVisible(namesVisible);
+        }
+
+        config.set("ShowNames", namesVisible);
+        try {
+            config.save(configFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	
 	private void spawnRepairman (Repairer squidward) {
 		Location loc = squidward.loc;
@@ -294,7 +319,8 @@ public class Griswold extends JavaPlugin implements Listener {
 			return;
 		}
 		LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
-
+        repairman.setCustomNameVisible(namesVisible);
+        repairman.setCustomName(squidward.name);
 		if (squidward.type.equals("enchant")) {
 			((Villager) repairman).setProfession(Profession.LIBRARIAN);
 		} else {
@@ -328,6 +354,7 @@ public class Griswold extends JavaPlugin implements Listener {
         	debug = config.getBoolean("Debug");
         	timeout = config.getInt("Timeout");
         	lang = config.getString("Language");
+            namesVisible = config.getBoolean("ShowNames");
         	
         	if (Double.parseDouble(config.getString("Version")) < version) {
         		updateConfig(config.getString("Version"));
@@ -376,6 +403,7 @@ public class Griswold extends JavaPlugin implements Listener {
         } else {
         	config.set("Timeout", 5000);
         	config.set("Language", "en_US");
+            config.set("ShowNames", true);
         	config.set("BasicArmorPrice", 10.0);
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
@@ -424,6 +452,19 @@ public class Griswold extends JavaPlugin implements Listener {
 				e.printStackTrace();
 			}
 		}
+
+        if (Double.parseDouble(oldVersion) == 0.06d || Double.parseDouble(oldVersion) == 0.051d) {
+            log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.51/0.6");
+            // ADDED IN 0.07
+            config.set("ShowNames", true);
+
+            config.set("Version", 0.07d);
+            try {
+                config.save(configFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 	}
 
 	private class Starter implements Runnable {
