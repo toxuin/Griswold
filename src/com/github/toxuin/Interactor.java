@@ -178,7 +178,7 @@ public class Interactor {
 			
 			// INTERACTS FIRST TIME
 			
-			if (interactions.size() > 10) interactions.clear(); // THIS SUCK, I KNOW
+			if (interactions.size() > 10) interactions.clear(); // THIS SUCKS, I KNOW
 
 			if (item.getDurability() != 0) {
 				// NEEDS REPAIR
@@ -195,7 +195,7 @@ public class Interactor {
 				}
 			} else {
 				// NEEDS ENCHANT
-				if (enableEnchants) { // ENCHANTS ENABLED
+				if (enableEnchants && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) )) { // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
 					price = addEnchantmentPrice;
 					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) { // CAN ENCHANT
 						interactions.add(interaction);

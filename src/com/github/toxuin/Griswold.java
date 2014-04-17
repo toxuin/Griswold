@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.*;
@@ -33,7 +34,6 @@ import java.util.logging.Logger;
 // VERSION DEPENDANT
 import net.minecraft.server.v1_7_R1.*;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftLivingEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -102,7 +102,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	}
 
 	// MAKE INTERACTION
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
 		if (permission != null) {
 			if (!permission.has(event.getPlayer(), "griswold.tools") ||
@@ -116,6 +116,20 @@ public class Griswold extends JavaPlugin implements Listener {
 			}
 		}
 	}
+
+    // NO ZOMBIE NO CRY
+    @EventHandler
+    public void onZombieTarget(EntityTargetLivingEntityEvent event) {
+        Entity someone = event.getEntity();
+        if (someone instanceof Zombie) {
+            for (Repairer rep : repairmen) {
+                if (rep.entity.equals(event.getTarget())) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+    }
 
 	// PREVENT DESPAWN
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
