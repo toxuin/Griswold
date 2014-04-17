@@ -10,11 +10,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.*;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,8 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.plugin.PluginDescriptionFile;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.toxuin.Metrics.Graph;
@@ -37,6 +33,7 @@ import java.util.logging.Logger;
 // VERSION DEPENDANT
 import net.minecraft.server.v1_7_R1.*;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftLivingEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -474,21 +471,21 @@ class Repairer {
 	public String type = "all";
 	public double cost = 1;
 
-	public void overwriteAI() {
-		try {
-			EntityVillager villager = ((CraftVillager)entity).getHandle();
-			Field goalsField = EntityLiving.class.getDeclaredField("goalSelector");
-			goalsField.setAccessible(true);
-			PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(villager);
-			Field listField = PathfinderGoalSelector.class.getDeclaredField("a");
-			listField.setAccessible(true);
-			@SuppressWarnings("rawtypes")
-			List list = (List)listField.get(goals);
-			list.clear();
-			goals.a(1, new PathfinderGoalLookAtPlayer(villager, EntityHuman.class, 12.0F, 1.0F));
-			goals.a(2, new PathfinderGoalRandomLookaround(villager));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+    public void overwriteAI() {
+        try {
+            EntityVillager villager = ((CraftVillager)entity).getHandle();
+            Field goalsField = EntityInsentient.class.getDeclaredField("goalSelector");
+            goalsField.setAccessible(true);
+            PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(villager);
+            Field listField = PathfinderGoalSelector.class.getDeclaredField("b");
+            listField.setAccessible(true);
+            @SuppressWarnings("rawtypes")
+            List list = (List)listField.get(goals);
+            list.clear();
+            goals.a(1, new PathfinderGoalLookAtPlayer(villager, EntityHuman.class, 12.0F, 1.0F));
+            goals.a(2, new PathfinderGoalRandomLookaround(villager));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

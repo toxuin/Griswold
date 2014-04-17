@@ -17,7 +17,7 @@ Simple!
 
 * Items that are fully repaired can be enchanted (optional)!
 
-* Fully multilingual. There are english, [german](https://github.com/downloads/toxuin/Griswold/de_DE.yml) and [russian](https://github.com/downloads/toxuin/Griswold/ru_RU.yml) out-of-the-box, but you can add more!
+* Fully multilingual. There are english, [German](https://github.com/downloads/toxuin/Griswold/de_DE.yml) and [Russian](https://github.com/downloads/toxuin/Griswold/ru_RU.yml) out-of-the-box, but you can add more!
 
 * All major economy systems supported. If [Vault](http://dev.bukkit.org/server-mods/vault/) supports something - than it'll work with Griswold.
 
@@ -68,7 +68,7 @@ All parameters are stored in config.yml and are reloadable without restarting th
 
 **Debug** is for debugging stuff and not usually useful if you don't know why you need it. Default is "**false**".
 
-**Timaout** is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default is "**5000**" (5 sec).
+**Timeout** is for timeout of blacksmiths "remember" your item and are waiting for you to confirm the repair. Default is "**5000**" (5 sec).
 
 **Language** is a name of language file (without .yml at the end) stored next to config.yml and containing all the text in preferred language. Default is "**en_US**".
 
