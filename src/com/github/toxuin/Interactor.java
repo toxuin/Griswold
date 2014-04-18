@@ -97,6 +97,8 @@ public class Interactor {
 	
 	public static void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
+
+        repairman.haggle();
 		
 		double price = Math.round(getPrice(repairman, item));
 

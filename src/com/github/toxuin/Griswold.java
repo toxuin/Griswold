@@ -34,6 +34,7 @@ import java.util.logging.Logger;
 // VERSION DEPENDANT
 import net.minecraft.server.v1_7_R1.*;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -525,6 +526,7 @@ class Repairer {
 	public Location loc;
 	public String type = "all";
 	public double cost = 1;
+    Random rnd = new Random();
 
     public void overwriteAI() {
         try {
@@ -541,6 +543,12 @@ class Repairer {
             goals.a(2, new PathfinderGoalRandomLookaround(villager));
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public void haggle() {
+        if (entity instanceof CraftVillager) {
+            ((CraftWorld) entity.getLocation().getWorld()).getHandle().makeSound(((CraftVillager) entity).getHandle(), "mob.villager.haggle", 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
         }
     }
 }
