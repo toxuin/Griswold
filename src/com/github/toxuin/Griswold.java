@@ -35,6 +35,7 @@ import java.util.logging.Logger;
 import net.minecraft.server.v1_7_R1.*;
 import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
 import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -225,6 +226,23 @@ public class Griswold extends JavaPlugin implements Listener {
                         sender.sendMessage(namesVisible?Lang.names_on:Lang.names_off);
                     }
                 }
+                if (args[0].equalsIgnoreCase("sound")) {
+                    if (args.length < 3) {
+                        sender.sendMessage(Lang.error_few_arguments);
+                        return false;
+                    }
+                    if (permission != null) {
+                        if (permission.has(sender, "griswold.admin")) {
+                            setSound(args[1], args[2]);
+                            sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+                        } else {
+                            sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
+                        }
+                    } else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
+                        setSound(args[1], args[2]);
+                        sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+                    }
+                }
 			} else {
 				sender.sendMessage(ChatColor.RED+Lang.error_few_arguments);
 				return true;
@@ -232,7 +250,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 		return false;
 	}
-	
+
 	private void reloadPlugin() {
 		despawnAll();
 		readConfig();
@@ -256,6 +274,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		config.set("repairmen."+name+".X", loc.getX());
 		config.set("repairmen."+name+".Y", loc.getY());
 		config.set("repairmen."+name+".Z", loc.getZ());
+        config.set("repairmen."+name+".sound", "mob.villager.haggle");
 		config.set("repairmen."+name+".type", type);
 		config.set("repairmen."+name+".cost", Double.parseDouble(cost));
     	
@@ -322,8 +341,17 @@ public class Griswold extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
     }
+
+    private void setSound(String name, String sound) {
+         for (Repairer rep : repairmen) {
+             if (rep.name.equals(name)) {
+                 rep.sound = sound;
+                 return;
+             }
+         }
+    }
 	
-	private void spawnRepairman (Repairer squidward) {
+	private void spawnRepairman(Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) {
 			log.info(prefix+"ERROR: LOCATION IS NULL");
@@ -360,7 +388,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
     	Lang.createLangFile();
 		
-		configFile = new File(directory,"config.yml");
+		configFile = new File(directory, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
         
         repairmen.clear();
@@ -402,6 +430,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	        									config.getDouble("repairmen."+repairman+".X"),
 	        									config.getDouble("repairmen."+repairman+".Y"),
 	        									config.getDouble("repairmen."+repairman+".Z"));
+                    squidward.sound = config.getString("repairmen." + repairman + ".sound");
 	        		squidward.type = config.getString("repairmen."+repairman+".type");
 	        		squidward.cost = config.getDouble("repairmen."+repairman+".cost");
 	        		
@@ -526,7 +555,8 @@ class Repairer {
 	public Location loc;
 	public String type = "all";
 	public double cost = 1;
-    Random rnd = new Random();
+    public String sound = "mob.villager.haggle";
+    private Random rnd = new Random();
 
     public void overwriteAI() {
         try {
@@ -547,8 +577,8 @@ class Repairer {
     }
 
     public void haggle() {
-        if (entity instanceof CraftVillager) {
-            ((CraftWorld) entity.getLocation().getWorld()).getHandle().makeSound(((CraftVillager) entity).getHandle(), "mob.villager.haggle", 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
+        if (!this.sound.equals("") && !this.sound.equals("mute") && this.entity instanceof CraftEntity) {
+            ((CraftWorld) this.entity.getLocation().getWorld()).getHandle().makeSound(((CraftEntity) this.entity).getHandle(), this.sound, 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
         }
     }
 }

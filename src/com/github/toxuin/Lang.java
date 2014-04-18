@@ -31,6 +31,7 @@ public class Lang {
 
     public static String names_on = "ERROR: LANG NOT FOUND: names_on";
     public static String names_off = "ERROR: LANG NOT FOUND: names_off";
+    public static String sound_changed = "ERROR: LANG NOT FOUND: sound_changed";
 
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
@@ -75,6 +76,7 @@ public class Lang {
 
         names_on = language.getString("names_on");
         names_off = language.getString("names_off");
+        sound_changed = language.getString("sound_changed");
 
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -102,7 +104,7 @@ public class Lang {
         if (!langFile.exists()) {
         	language.set("economy_not_found", "Warning: economy system not found: all repairs are free!");
         	language.set("permissions_not_found", "Warning: permission system not found: access is open to everyone!");
-        	language.set("insufficient_params", "Please add more parameters! Usage: "+ChatColor.BLUE+"/repairman create "+ChatColor.GREEN+"name "+ChatColor.GRAY+"type cost!");
+        	language.set("insufficient_params", "Please add more parameters! Usage: "+ChatColor.BLUE+"/blacksmith create "+ChatColor.GREEN+"name "+ChatColor.GRAY+"type cost");
         	language.set("repairman_exists", "ERROR: repairman %s already exists!");
         	language.set("config_loaded", "Config loaded!");
         	language.set("error_config", "ERROR when writing to config.yml");
@@ -124,6 +126,7 @@ public class Lang {
 
             language.set("names_on", "Now showing blacksmiths' names.");
             language.set("names_off", "Now hiding blacksmiths' names.");
+            language.set("sound_changed", "Blacksmith %s has new sound now!");
 
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
@@ -230,6 +233,7 @@ public class Lang {
             Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
             language.set("names_on", "Now showing blacksmiths' names.");
             language.set("names_off", "Now hiding blacksmiths' names.");
+            language.set("sound_changed", "Blacksmith %s has new sound now!");
             language.set("version", 0.07d);
 
             try {
