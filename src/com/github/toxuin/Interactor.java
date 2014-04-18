@@ -152,8 +152,9 @@ public class Interactor {
 									int bonus = (new Random()).nextInt(maxEnchantBonus);
 									List<?> list = EnchantmentManager.b(new Random(), vanillaItem, bonus);
 									if (list != null) {
-					                   for (Object obj : list) {
-					                        item.addEnchantment((Enchantment) obj, ((EnchantmentInstance) obj).level);
+					                    for (Object obj : list) {
+                                            EnchantmentInstance instance = (EnchantmentInstance) obj;
+                                            item.addEnchantment(Enchantment.getById(instance.enchantment.id), instance.level);
 					                    }
 										inter.valid = false; // INVALIDATE INTERACTION
 					                    player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_enchant_success);
