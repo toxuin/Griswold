@@ -33,10 +33,10 @@ import java.util.*;
 import java.util.logging.Logger;
 
 // VERSION DEPENDANT
-import net.minecraft.server.v1_7_R2.*;
-import org.bukkit.craftbukkit.v1_7_R2.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R2.entity.CraftEntity;
+import net.minecraft.server.v1_7_R1.*;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -599,7 +599,7 @@ class Repairer {
     }
 
     public void haggle() {
-        if (!this.sound.equals("") && !this.sound.equals("mute") && this.entity instanceof CraftEntity) {
+        if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && this.entity instanceof CraftEntity) {
             ((CraftWorld) this.entity.getLocation().getWorld()).getHandle().makeSound(((CraftEntity) this.entity).getHandle(), this.sound, 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
         }
     }
