@@ -19,6 +19,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,10 +33,10 @@ import java.util.*;
 import java.util.logging.Logger;
 
 // VERSION DEPENDANT
-import net.minecraft.server.v1_7_R1.*;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
+import net.minecraft.server.v1_7_R2.*;
+import org.bukkit.craftbukkit.v1_7_R2.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R2.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -48,9 +49,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	private static FileConfiguration config = null;
 	private static File configFile = null;
 	static Logger log = Logger.getLogger("Minecraft");
-	
-	public static Set<Repairer> repairmen = new HashSet<Repairer>();
-	private Set<Chunk> chunks = new HashSet<Chunk>();
+    private Map<Repairer, Chunk> npcChunks = new HashMap<Repairer, Chunk>();
 
 	public static Permission permission = null;
     public static Economy economy = null;
@@ -75,7 +74,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		    graph.addPlotter(new Metrics.Plotter("Total") {
 		        @Override
 		        public int getValue() {
-		            return repairmen.size();
+		            return npcChunks.keySet().size();
 		        }
 		    });
 		    metrics.start();
@@ -94,8 +93,9 @@ public class Griswold extends JavaPlugin implements Listener {
 	// MAKE THEM INVINCIBLE
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
-		if (repairmen.isEmpty()) return;
-		for (Repairer rep : repairmen) {
+		if (npcChunks.isEmpty()) return;
+        Set<Repairer> npcs = npcChunks.keySet();
+		for (Repairer rep : npcs) {
 			if (event.getEntity().equals(rep.entity)) {
 				event.setDamage(0d);
 				event.setCancelled(true);
@@ -111,7 +111,8 @@ public class Griswold extends JavaPlugin implements Listener {
 				!permission.has(event.getPlayer(), "griswold.armor") ||
 				!permission.has(event.getPlayer(), "griswold.enchant")) return;
 		}
-		for (Repairer rep : repairmen) {
+        Set<Repairer> npcs = npcChunks.keySet();
+		for (Repairer rep : npcs) {
 			if (event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
 				event.setCancelled(true);
@@ -124,7 +125,8 @@ public class Griswold extends JavaPlugin implements Listener {
     public void onZombieTarget(EntityTargetLivingEntityEvent event) {
         Entity someone = event.getEntity();
         if (someone instanceof Zombie) {
-            for (Repairer rep : repairmen) {
+            Set<Repairer> npcs = npcChunks.keySet();
+            for (Repairer rep : npcs) {
                 if (rep.entity.equals(event.getTarget())) {
                     event.setCancelled(true);
                     return;
@@ -133,17 +135,29 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-	// PREVENT DESPAWN
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onChunkUnload(ChunkUnloadEvent event) {
-		if (chunks.isEmpty()) return;
-		for (Chunk chunk : chunks){
-			if (event.getChunk().equals(chunk)) {
-				chunk.getWorld().loadChunk(chunk);
-				event.setCancelled(true);
-			}
-		}
-	}
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onNewChunkLoad(ChunkLoadEvent event) {
+        if (npcChunks.isEmpty()) return;
+        if (npcChunks.containsValue(event.getChunk())) {
+            for (Repairer rep : npcChunks.keySet()) {
+                if (npcChunks.get(rep).equals(event.getChunk())) {
+                    spawnRepairman(rep);
+                }
+            }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onNewChunkUnload(ChunkUnloadEvent event) {
+        if (npcChunks.isEmpty()) return;
+        if (npcChunks.containsValue(event.getChunk())) {
+            for (Repairer rep : npcChunks.keySet()) {
+                if (npcChunks.get(rep).equals(event.getChunk())) {
+                    despawnRepairman(rep);
+                }
+            }
+        }
+    }
 
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
@@ -262,7 +276,8 @@ public class Griswold extends JavaPlugin implements Listener {
 	
 	private void createRepairman(String name, Location loc, String type, String cost) {
 		boolean found = false;
-		for (Repairer rep : repairmen) {
+        Set<Repairer> npcs = npcChunks.keySet();
+		for (Repairer rep : npcs) {
 			if (rep.name.equalsIgnoreCase(name)) found = true;
 		}
 		if (found) {
@@ -310,7 +325,8 @@ public class Griswold extends JavaPlugin implements Listener {
 	
 	private void listRepairmen(CommandSender sender) {
 		String result = "";
-		for (Repairer rep : repairmen) {
+        Set<Repairer> npcs = npcChunks.keySet();
+		for (Repairer rep : npcs) {
 			result = result + rep.name + ", ";
 		}
 		if (!result.equals("")) {
@@ -320,16 +336,17 @@ public class Griswold extends JavaPlugin implements Listener {
 	}
 	
 	private void despawnAll() {
-		for (Repairer rep : repairmen) {
+        Set<Repairer> npcs = npcChunks.keySet();
+		for (Repairer rep : npcs) {
 			rep.entity.remove();
 		}
-		repairmen.clear();
-		chunks.clear();
+        npcChunks.clear();
 	}
 
     private void toggleNames() {
         namesVisible = !namesVisible;
-        for (Repairer rep : repairmen) {
+        Set<Repairer> npcs = npcChunks.keySet();
+        for (Repairer rep : npcs) {
             LivingEntity entity = (LivingEntity) rep.entity;
             entity.setCustomNameVisible(namesVisible);
         }
@@ -343,12 +360,13 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     private void setSound(String name, String sound) {
-         for (Repairer rep : repairmen) {
-             if (rep.name.equals(name)) {
-                 rep.sound = sound;
-                 return;
-             }
-         }
+        Set<Repairer> npcs = npcChunks.keySet();
+        for (Repairer rep : npcs) {
+            if (rep.name.equals(name)) {
+                rep.sound = sound;
+                return;
+            }
+        }
     }
 	
 	private void spawnRepairman(Repairer squidward) {
@@ -372,10 +390,9 @@ public class Griswold extends JavaPlugin implements Listener {
 
 		squidward.entity = repairman;
 
-		if (!repairmen.contains(squidward)) repairmen.add(squidward);
-		
-		if (!chunks.contains(loc.getChunk())) chunks.add(loc.getChunk());
-		loc.getWorld().loadChunk(loc.getChunk());
+		if (!npcChunks.containsKey(squidward)) npcChunks.put(squidward, loc.getChunk());
+
+		//loc.getWorld().loadChunk(loc.getChunk());
 
 		squidward.overwriteAI();
 
@@ -383,6 +400,11 @@ public class Griswold extends JavaPlugin implements Listener {
 			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
 	}
+
+    private void despawnRepairman(Repairer squidward) {
+        squidward.entity.remove();
+        npcChunks.remove(squidward);
+    }
 	
 	private void readConfig() {
 
@@ -391,7 +413,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		configFile = new File(directory, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
         
-        repairmen.clear();
+        npcChunks.clear();
         
         if (configFile.exists()) {
         	debug = config.getBoolean("Debug");
@@ -442,7 +464,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	        log.info(prefix+Lang.config_loaded);
 
         	if(debug) {
-        		log.info(prefix+String.format(Lang.debug_loaded, repairmen.size()));
+        		log.info(prefix+String.format(Lang.debug_loaded, npcChunks.keySet().size()));
         	}
         } else {
         	config.set("Timeout", 5000);
