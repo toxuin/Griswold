@@ -3,7 +3,6 @@ package com.github.toxuin;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -49,7 +48,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	private static FileConfiguration config = null;
 	private static File configFile = null;
 	static Logger log = Logger.getLogger("Minecraft");
-    private Map<Repairer, Chunk> npcChunks = new HashMap<Repairer, Chunk>();
+    private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
 
 	public static Permission permission = null;
     public static Economy economy = null;
@@ -57,7 +56,7 @@ public class Griswold extends JavaPlugin implements Listener {
     public static double version;
     static String lang = "en_US";
     public static boolean namesVisible = true;
- 
+
 	public void onEnable(){
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -138,10 +137,17 @@ public class Griswold extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onNewChunkLoad(ChunkLoadEvent event) {
         if (npcChunks.isEmpty()) return;
-        if (npcChunks.containsValue(event.getChunk())) {
-            for (Repairer rep : npcChunks.keySet()) {
-                if (npcChunks.get(rep).equals(event.getChunk())) {
-                    spawnRepairman(rep);
+        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
+
+        for (Pair pair : npcChunks.values()) {
+            if (pair.equals(coords)) {
+                log.info("Trying to bring an NPC back to life...");
+
+                for (Repairer rep : npcChunks.keySet()) {
+                    if (npcChunks.get(rep).equals(coords)) {
+                        spawnRepairman(rep);
+                        log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
+                    }
                 }
             }
         }
@@ -150,10 +156,15 @@ public class Griswold extends JavaPlugin implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onNewChunkUnload(ChunkUnloadEvent event) {
         if (npcChunks.isEmpty()) return;
-        if (npcChunks.containsValue(event.getChunk())) {
-            for (Repairer rep : npcChunks.keySet()) {
-                if (npcChunks.get(rep).equals(event.getChunk())) {
-                    despawnRepairman(rep);
+        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
+
+        for (Pair pair : npcChunks.values()) {
+            if (pair.equals(coords)) {
+                for (Repairer rep : npcChunks.keySet()) {
+                    if (npcChunks.get(rep).equals(coords)) {
+                        rep.entity.remove();
+                        log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
+                    }
                 }
             }
         }
@@ -390,7 +401,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
 		squidward.entity = repairman;
 
-		if (!npcChunks.containsKey(squidward)) npcChunks.put(squidward, loc.getChunk());
+		if (!npcChunks.containsKey(squidward)) npcChunks.put(squidward, new Pair(loc.getChunk().getX(), loc.getChunk().getZ()));
 
 		//loc.getWorld().loadChunk(loc.getChunk());
 
@@ -400,11 +411,6 @@ public class Griswold extends JavaPlugin implements Listener {
 			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
 	}
-
-    private void despawnRepairman(Repairer squidward) {
-        squidward.entity.remove();
-        npcChunks.remove(squidward);
-    }
 	
 	private void readConfig() {
 
@@ -602,5 +608,21 @@ class Repairer {
         if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && this.entity instanceof CraftEntity) {
             ((CraftWorld) this.entity.getLocation().getWorld()).getHandle().makeSound(((CraftEntity) this.entity).getHandle(), this.sound, 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
         }
+    }
+}
+
+class Pair {
+    public int x = 0;
+    public int z = 0;
+    public Pair (int x, int z) {
+        this.x = x;
+        this.z = z;
+    }
+
+    public boolean equals(Pair pair) {
+        return this.x == pair.x && this.z == pair.z;
+    }
+    public String toString() {
+        return "Pair{x="+this.x+"z="+this.z+"}";
     }
 }
