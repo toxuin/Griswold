@@ -8,6 +8,7 @@ commands:
   blacksmith:
     description: does all the work for Griswold plugin
     aliases: bsmith
+    usage: "/<command> [command]. Command can be: reload, create, remove, list, despawn, names, sound."
 
 permissions:
     griswold.*:
