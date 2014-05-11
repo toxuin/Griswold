@@ -142,12 +142,10 @@ public class Griswold extends JavaPlugin implements Listener {
 
         for (Pair pair : npcChunks.values()) {
             if (pair.equals(coords)) {
-                log.info("Trying to bring an NPC back to life...");
-
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         spawnRepairman(rep);
-                        log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
+                        if (debug) log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
                     }
                 }
             }
@@ -164,7 +162,7 @@ public class Griswold extends JavaPlugin implements Listener {
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         rep.entity.remove();
-                        log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
+                        if (debug) log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
                     }
                 }
             }
