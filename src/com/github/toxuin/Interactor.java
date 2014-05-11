@@ -3,6 +3,7 @@ package com.github.toxuin;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -13,6 +14,7 @@ import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
 import net.minecraft.server.v1_7_R1.EnchantmentInstance;
 import net.minecraft.server.v1_7_R1.EnchantmentManager;
 
+import java.io.File;
 import java.util.*;
 
 public class Interactor {
@@ -90,11 +92,25 @@ public class Interactor {
         repairableArmor.add(Material.DIAMOND_HELMET);
         repairableArmor.add(Material.DIAMOND_LEGGINGS);
 
-        // THINK OF A WAY TO ADD OTHER ITEMS FROM CONFIG
+        File configFile = new File(Griswold.directory, "config.yml");
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        if (configFile.exists()) {
+            if (config.isConfigurationSection("custom_items.tools")) {
+                Set<String> tools = config.getConfigurationSection("custom_items.tools").getKeys(false);
+                for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
+                Griswold.log.info("Added "+tools.size()+" custom tools from config file");
+            }
+
+            if (config.isConfigurationSection("custom_items.armor")) {
+                Set<String> armor = config.getConfigurationSection("custom_items.armor").getKeys(false);
+                for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
+                Griswold.log.info("Added "+armor.size()+" custom armors from config file");
+            }
+        }
 	}
 	
 	private static Set<Interaction> interactions = new HashSet<Interaction>();
-	
+
 	public static void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
 

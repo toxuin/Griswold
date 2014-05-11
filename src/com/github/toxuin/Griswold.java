@@ -327,11 +327,9 @@ public class Griswold extends JavaPlugin implements Listener {
         		log.info(prefix+"ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
         		log.info(prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
         	}
-        	
-        	
+
         	Lang.checkLangVersion(lang);
 			Lang.init();
-
 
 	        Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
 	        Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
