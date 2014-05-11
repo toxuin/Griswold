@@ -95,16 +95,16 @@ public class Interactor {
         File configFile = new File(Griswold.directory, "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         if (configFile.exists()) {
-            if (config.isConfigurationSection("custom_items.tools")) {
-                Set<String> tools = config.getConfigurationSection("custom_items.tools").getKeys(false);
+            if (config.isConfigurationSection("CustomItems.Tools")) {
+                Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
                 for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info("Added "+tools.size()+" custom tools from config file");
+                Griswold.log.info(Griswold.prefix+"Added "+tools.size()+" custom tools from config file");
             }
 
-            if (config.isConfigurationSection("custom_items.armor")) {
-                Set<String> armor = config.getConfigurationSection("custom_items.armor").getKeys(false);
+            if (config.isConfigurationSection("CustomItems.Armor")) {
+                Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
                 for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info("Added "+armor.size()+" custom armors from config file");
+                Griswold.log.info(Griswold.prefix+"Added "+armor.size()+" custom armors from config file");
             }
         }
 	}
