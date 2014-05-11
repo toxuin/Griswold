@@ -4,9 +4,7 @@ import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
@@ -55,7 +53,7 @@ public class Griswold extends JavaPlugin implements Listener {
     
     public static double version;
     static String lang = "en_US";
-    public static boolean namesVisible = true;
+    public boolean namesVisible = true;
 
 	public void onEnable(){
 		directory = this.getDataFolder();
@@ -64,6 +62,9 @@ public class Griswold extends JavaPlugin implements Listener {
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
 		this.getServer().getPluginManager().registerEvents(this, this);
+
+        CommandListener commandListener = new CommandListener(this);
+        getCommand("blacksmith").setExecutor(commandListener);
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
@@ -170,122 +171,16 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-		if(cmd.getName().equalsIgnoreCase("blacksmith")) {
-			if (args.length > 0) {
-				if (args[0].equalsIgnoreCase("reload")) {
-					if (sender.isOp() || sender instanceof ConsoleCommandSender || permission.has(sender, "griswold.admin")) {
-						reloadPlugin();
-					} else {
-						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-						return false;
-					}
-					return true;
-				}
-				if (args[0].equalsIgnoreCase("create")) {
-					if ((permission == null && sender.isOp()) || (sender instanceof Player && (permission.has(sender, "griswold.admin") || sender.isOp()))) {
-						if (args.length >= 2) {
-							Player player = (Player) sender;
-							Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
-							location.setY(Math.round(player.getLocation().getY()));
-							String name = args[1];
-							if (args.length < 4) {
-								createRepairman(name, location);
-								player.sendMessage(Lang.new_created);
-							} else {
-								String type = args[2];
-								String cost = args[3];
-								createRepairman(name, location, type, cost);
-								player.sendMessage(Lang.new_created);
-							}
-						} else sender.sendMessage(Lang.insufficient_params);
-					} else {
-						sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-						return false;
-					}
-					return true;
-				}
-				if (args[0].equalsIgnoreCase("remove")) {
-					if (permission != null) {
-						if (args.length>1 && permission.has(sender, "griswold.admin")) {
-							removeRepairman(args[1]);
-							sender.sendMessage(String.format(Lang.deleted, args[1]));
-						} else {
-							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-						}
-					} else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-							removeRepairman(args[1]);
-							sender.sendMessage(String.format(Lang.deleted, args[1]));
-					}
-				}
-				if (args[0].equalsIgnoreCase("list")) {
-					if (permission != null) {
-						if (permission.has(sender, "griswold.admin")) listRepairmen(sender);
-					} else {
-						if (sender instanceof ConsoleCommandSender || sender.isOp())  listRepairmen(sender);
-					}
-				}
-				if (args[0].equalsIgnoreCase("despawn")) {
-					if (permission != null) {
-						if (permission.has(sender, "griswold.admin")) {
-							despawnAll();
-							sender.sendMessage(Lang.despawned);
-						} else {
-							sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-						}
-					} else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-							despawnAll();
-							sender.sendMessage(Lang.despawned);
-					}
-				}
-                if (args[0].equalsIgnoreCase("names")) {
-                    if (permission != null) {
-                        if (permission.has(sender, "griswold.admin")) {
-                            toggleNames();
-                            sender.sendMessage(namesVisible?Lang.names_on:Lang.names_off);
-                        } else {
-                            sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-                        }
-                    } else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-                        toggleNames();
-                        sender.sendMessage(namesVisible?Lang.names_on:Lang.names_off);
-                    }
-                }
-                if (args[0].equalsIgnoreCase("sound")) {
-                    if (args.length < 3) {
-                        sender.sendMessage(Lang.error_few_arguments);
-                        return false;
-                    }
-                    if (permission != null) {
-                        if (permission.has(sender, "griswold.admin")) {
-                            setSound(args[1], args[2]);
-                            sender.sendMessage(String.format(Lang.sound_changed, args[1]));
-                        } else {
-                            sender.sendMessage(ChatColor.RED+Lang.error_accesslevel);
-                        }
-                    } else if (sender instanceof ConsoleCommandSender || sender.isOp()) {
-                        setSound(args[1], args[2]);
-                        sender.sendMessage(String.format(Lang.sound_changed, args[1]));
-                    }
-                }
-			} else {
-				sender.sendMessage(ChatColor.RED+Lang.error_few_arguments);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private void reloadPlugin() {
+	void reloadPlugin() {
 		despawnAll();
 		readConfig();
 	}
 	
-	private void createRepairman(String name, Location loc) {
+	void createRepairman(String name, Location loc) {
         createRepairman(name, loc, "all", "1");
 	}
 	
-	private void createRepairman(String name, Location loc, String type, String cost) {
+	void createRepairman(String name, Location loc, String type, String cost) {
 		boolean found = false;
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
@@ -319,7 +214,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		spawnRepairman(meGusta);
 	}
 	
-	private void removeRepairman(String name) {
+	void removeRepairman(String name) {
 		if (config.isConfigurationSection("repairmen."+name)){
 			config.set("repairmen."+name, null);
 			try {
@@ -334,7 +229,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		reloadPlugin();
 	}
 	
-	private void listRepairmen(CommandSender sender) {
+	void listRepairmen(CommandSender sender) {
 		String result = "";
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
@@ -346,7 +241,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 	}
 	
-	private void despawnAll() {
+	void despawnAll() {
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
 			rep.entity.remove();
@@ -354,7 +249,7 @@ public class Griswold extends JavaPlugin implements Listener {
         npcChunks.clear();
 	}
 
-    private void toggleNames() {
+    void toggleNames() {
         namesVisible = !namesVisible;
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
@@ -370,7 +265,7 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-    private void setSound(String name, String sound) {
+    void setSound(String name, String sound) {
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (rep.name.equals(name)) {
