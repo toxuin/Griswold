@@ -12,3 +12,7 @@
 .idea
 *.iml
 *.eml
+
+# maven #
+
+target/*

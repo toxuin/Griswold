@@ -30,10 +30,10 @@ import java.util.*;
 import java.util.logging.Logger;
 
 // VERSION DEPENDANT
-import net.minecraft.server.v1_7_R2.*;
-import org.bukkit.craftbukkit.v1_7_R2.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R2.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R2.entity.CraftEntity;
+import net.minecraft.server.v1_7_R3.*;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
