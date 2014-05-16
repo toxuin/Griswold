@@ -1,4 +1,4 @@
-package com.github.toxuin;
+package com.github.toxuin.griswold;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
@@ -21,7 +21,7 @@ import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.toxuin.Metrics.Graph;
+import com.github.toxuin.griswold.Metrics.Graph;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,10 +30,10 @@ import java.util.*;
 import java.util.logging.Logger;
 
 // VERSION DEPENDANT
-import net.minecraft.server.v1_7_R1.*;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R1.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R1.entity.CraftEntity;
+import net.minecraft.server.v1_7_R2.*;
+import org.bukkit.craftbukkit.v1_7_R2.entity.CraftVillager;
+import org.bukkit.craftbukkit.v1_7_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R2.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;

@@ -1,8 +1,9 @@
-name: Griswold
-main: com.github.toxuin.Griswold
-version: 0.07
+name: ${project.name}
+main: ${project.groupId}.${project.artifactId}.${project.name}
+version: ${project.version}
 author: toxuin
-description: Creates a man who repairs stuff.
+description: ${project.description}
+load: POSTWORLD
 
 commands:
   blacksmith:

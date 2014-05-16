@@ -26,7 +26,7 @@
  * either expressed or implied, of anybody else.
  */
 
-package com.github.toxuin;
+package com.github.toxuin.Griswold;
 
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;

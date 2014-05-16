@@ -1,4 +1,4 @@
-package com.github.toxuin;
+package com.github.toxuin.Griswold;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;

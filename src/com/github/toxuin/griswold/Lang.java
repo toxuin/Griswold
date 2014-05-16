@@ -1,4 +1,4 @@
-package com.github.toxuin;
+package com.github.toxuin.griswold;
 
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;

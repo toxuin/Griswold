@@ -1,4 +1,4 @@
-package com.github.toxuin;
+package com.github.toxuin.Griswold;
 
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
@@ -10,9 +10,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 // VERSION DEPENDANT STUFF
-import org.bukkit.craftbukkit.v1_7_R1.inventory.CraftItemStack;
-import net.minecraft.server.v1_7_R1.EnchantmentInstance;
-import net.minecraft.server.v1_7_R1.EnchantmentManager;
+import org.bukkit.craftbukkit.v1_7_R2.inventory.CraftItemStack;
+import net.minecraft.server.v1_7_R2.EnchantmentInstance;
+import net.minecraft.server.v1_7_R2.EnchantmentManager;
 
 import java.io.File;
 import java.util.*;
@@ -166,7 +166,7 @@ public class Interactor {
 							            }
 						            }
 
-									net.minecraft.server.v1_7_R1.ItemStack vanillaItem = CraftItemStack.asNMSCopy(item);
+									net.minecraft.server.v1_7_R2.ItemStack vanillaItem = CraftItemStack.asNMSCopy(item);
 									int bonus = (new Random()).nextInt(maxEnchantBonus);
 									List<?> list = EnchantmentManager.b(new Random(), vanillaItem, bonus);
 									if (list != null) {
