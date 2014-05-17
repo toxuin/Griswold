@@ -124,7 +124,7 @@ public class Interactor {
 		}
 
 		if (checkCanRepair(player, repairman, item)) {
-			Interaction interaction = new Interaction(player, repairman.entity, item, item.getDurability(), System.currentTimeMillis());
+			Interaction interaction = new Interaction(player.getUniqueId(), repairman.entity, item, item.getDurability(), System.currentTimeMillis());
 			
 			// INTERACTS SECOND TIME
 			
@@ -281,16 +281,16 @@ public class Interactor {
 }
 
 class Interaction {
-	Player player;
+	UUID player;
 	Entity repairman;
 	ItemStack item;
 	int damage;
 	long time;
 	boolean valid;
-	public Interaction(Player player, Entity repairman, ItemStack item, int dmg, long time) {
+	public Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
 		this.item = item;
 		this.damage = dmg;
-		this.player = player;
+		this.player = playerId;
 		this.repairman = repairman;
 		this.time = time;
 		this.valid = true;
