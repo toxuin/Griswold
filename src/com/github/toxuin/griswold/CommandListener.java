@@ -125,7 +125,7 @@ public class CommandListener implements CommandExecutor {
             else return Griswold.permission.has(sender, "griswold.admin");
         }
 
-        // UNKNOWN COMMAND. YES, THAT'S SAFE.
+        // UNKNOWN COMMAND.
         return true;
     }
 }
