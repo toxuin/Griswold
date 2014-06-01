@@ -37,4 +37,4 @@ name_format: '§6<%s>§f '
 names_on: 'Имена кузнецов отображены.'
 names_off: 'Имена кузнецов скрыты.'
 sound_changed: 'Новый звук для кузнеца %s установлен!'
-version: 0.07
+version: 0.072

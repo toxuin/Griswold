@@ -137,8 +137,8 @@ public class Lang {
         	language.set("chat_agreed", "Agreed? Yes? Pass it to me if agreed.");
         	language.set("chat_cannot", "I can not repair this kind of things.");
         	
-        	language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it for %s %s.");
-        	language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it - for free of course.");
+        	language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it - for free of course.");
+        	language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
         	language.set("chat_enchant_success", "Now it's shiny - hope that means it now does something special.");
         	language.set("chat_noitem", ChatColor.AQUA+"*Shakes your hand*"+ChatColor.WHITE+" Hello! Glad to meet you!");
         	language.set("chat_enchant_failed", "Ehm... Looks like nothing happened with your item.");
@@ -242,5 +242,19 @@ public class Lang {
                 e.printStackTrace();
             }
         }
+
+        if (language.getDouble("version") == 0.07d || language.getDouble("version") == 0.071d) {
+            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.07 / 0.071");
+            language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it - for free of course.");
+            language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
+            language.set("version", 0.072d);
+
+            try {
+                language.save(langFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
 	}
 }
