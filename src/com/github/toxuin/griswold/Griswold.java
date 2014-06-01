@@ -61,6 +61,19 @@ public class Griswold extends JavaPlugin implements Listener {
 		version = Double.parseDouble(pdfFile.getVersion());
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
+        // CHECK IF USING THE WRONG PLUGIN VERSION
+        try {
+            Object test = org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager.class.getName();
+        } catch (NoClassDefFoundError ex) {
+            log.severe(prefix + " PLUGIN NOT LOADED!!!");
+            log.severe(prefix + " ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
+            log.severe(prefix + " GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
+            log.severe(prefix + " YOUR SERVER VERSION IS " + this.getServer().getBukkitVersion());
+            log.severe(prefix + " PLUGIN NOT LOADED!!!");
+            this.getPluginLoader().disablePlugin(this);
+            return;
+        }
+
 		this.getServer().getPluginManager().registerEvents(this, this);
 
         CommandListener commandListener = new CommandListener(this);
