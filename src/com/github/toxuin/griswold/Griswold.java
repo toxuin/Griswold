@@ -1,7 +1,6 @@
 package com.github.toxuin.griswold;
 
 import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -9,16 +8,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Villager.Profession;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -31,16 +22,14 @@ import java.util.logging.Logger;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
-	public static String prefix = null;
-	
 	public static boolean debug = false;
-	
 	public static int timeout = 5000;
+    static Logger log;
 	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
-	static Logger log;
     private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
+    Interactor interactor;
 
     public static Economy economy = null;
     
@@ -53,23 +42,21 @@ public class Griswold extends JavaPlugin implements Listener {
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
-		prefix = "[" + pdfFile.getName()+ "]: ";
+        interactor = new Interactor();
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
         if (ClassProxy.getClass("entity.CraftVillager") == null) {
-            log.severe(prefix + " PLUGIN NOT LOADED!!!");
-            log.severe(prefix + " ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
-            log.severe(prefix + " GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
-            log.severe(prefix + " YOUR SERVER VERSION IS " + this.getServer().getBukkitVersion());
-            log.severe(prefix + " PLUGIN NOT LOADED!!!");
+            log.severe("PLUGIN NOT LOADED!!!");
+            log.severe("ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
+            log.severe("GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
+            log.severe("YOUR SERVER VERSION IS " + this.getServer().getBukkitVersion());
+            log.severe("PLUGIN NOT LOADED!!!");
             this.getPluginLoader().disablePlugin(this);
             return;
         }
 
-		this.getServer().getPluginManager().registerEvents(this, this);
-
-        CommandListener commandListener = new CommandListener(this);
-        getCommand("blacksmith").setExecutor(commandListener);
+        this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
+        getCommand("blacksmith").setExecutor(new CommandListener(this));
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
@@ -87,109 +74,31 @@ public class Griswold extends JavaPlugin implements Listener {
 		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
 		}
 		
-		log.info( prefix + "Enabled! Version: " + version);
+		log.info("Enabled! Version: " + version);
 	}
 
 	public void onDisable(){
         despawnAll();
-		log.info( prefix + "Disabled.");
+		log.info("Disabled.");
 	}
 
-	// MAKE THEM INVINCIBLE
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onEntityDamage(EntityDamageEvent event) {
-		if (npcChunks.isEmpty()) return;
-        Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
-			if (event.getEntity().equals(rep.entity)) {
-				event.setDamage(0d);
-				event.setCancelled(true);
-			}
-		}
-	}
-
-	// MAKE INTERACTION
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-        if (!event.getPlayer().hasPermission("griswold.tools") ||
-            !event.getPlayer().hasPermission("griswold.armor") ||
-            !event.getPlayer().hasPermission("griswold.enchant")) return;
-
-        Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
-			if (event.getRightClicked().equals(rep.entity)) {
-				Interactor.interact(event.getPlayer(), rep);
-				event.setCancelled(true);
-			}
-		}
-	}
-
-    // NO ZOMBIE NO CRY
-    @EventHandler
-    public void onZombieTarget(EntityTargetLivingEntityEvent event) {
-        Entity someone = event.getEntity();
-        if (someone instanceof Zombie) {
-            Set<Repairer> npcs = npcChunks.keySet();
-            for (Repairer rep : npcs) {
-                if (rep.entity.equals(event.getTarget())) {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onNewChunkLoad(ChunkLoadEvent event) {
-        if (npcChunks.isEmpty()) return;
-        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
-                    if (npcChunks.get(rep).equals(coords)) {
-                        spawnRepairman(rep);
-                        if (debug) log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onNewChunkUnload(ChunkUnloadEvent event) {
-        if (npcChunks.isEmpty()) return;
-        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
-                    if (npcChunks.get(rep).equals(coords)) {
-                        rep.entity.remove();
-                        if (debug) log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
-                    }
-                }
-            }
-        }
-    }
-
-	void reloadPlugin() {
+	public void reloadPlugin() {
 		despawnAll();
 		readConfig();
 	}
 	
-	void createRepairman(String name, Location loc) {
+	public void createRepairman(String name, Location loc) {
         createRepairman(name, loc, "all", "1");
 	}
 	
-	void createRepairman(String name, Location loc, String type, String cost) {
+	public void createRepairman(String name, Location loc, String type, String cost) {
 		boolean found = false;
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
 			if (rep.name.equalsIgnoreCase(name)) found = true;
 		}
 		if (found) {
-			log.info(prefix+String.format(Lang.repairman_exists, name));
+			log.info(String.format(Lang.repairman_exists, name));
 			return;
 		}
 			
@@ -204,7 +113,7 @@ public class Griswold extends JavaPlugin implements Listener {
     	try {
     		config.save(configFile);
     	} catch (Exception e) {
-    		log.info(prefix+Lang.error_config);
+    		log.info(Lang.error_config);
     		e.printStackTrace();
     	}
 		
@@ -216,7 +125,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		spawnRepairman(meGusta);
 	}
 	
-	void removeRepairman(String name) {
+	public void removeRepairman(String name) {
 		if (config.isConfigurationSection("repairmen."+name)){
 			config.set("repairmen."+name, null);
 			try {
@@ -225,13 +134,13 @@ public class Griswold extends JavaPlugin implements Listener {
         		e.printStackTrace();
         	}
 		} else {
-			log.info(prefix+Lang.error_remove);
+			log.info(Lang.error_remove);
 			return;
 		}
 		reloadPlugin();
 	}
 	
-	void listRepairmen(CommandSender sender) {
+	public void listRepairmen(CommandSender sender) {
 		String result = "";
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
@@ -243,7 +152,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 	}
 	
-	void despawnAll() {
+	public void despawnAll() {
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
 			rep.entity.remove();
@@ -251,7 +160,7 @@ public class Griswold extends JavaPlugin implements Listener {
         npcChunks.clear();
 	}
 
-    void toggleNames() {
+    public void toggleNames() {
         namesVisible = !namesVisible;
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
@@ -267,7 +176,7 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-    void setSound(String name, String sound) {
+    public void setSound(String name, String sound) {
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (rep.name.equals(name)) {
@@ -277,14 +186,14 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 	
-	private void spawnRepairman(Repairer squidward) {
+	public void spawnRepairman(Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) {
-			log.info(prefix+"ERROR: LOCATION IS NULL");
+			log.info("ERROR: LOCATION IS NULL");
 			return;
 		}
 		if (squidward.type.equals("enchant") && !Interactor.enableEnchants) {
-			log.info(prefix+String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
+			log.info(String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
 			return;
 		}
 		LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
@@ -305,9 +214,13 @@ public class Griswold extends JavaPlugin implements Listener {
 		squidward.overwriteAI();
 
 		if (debug) {
-			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
+			log.info(String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
 	}
+
+    public Map<Repairer, Pair> getNpcChunks() {
+        return this.npcChunks;
+    }
 	
 	private void readConfig() {
 
@@ -327,9 +240,9 @@ public class Griswold extends JavaPlugin implements Listener {
         	if (Double.parseDouble(config.getString("Version")) < version) {
         		updateConfig(config.getString("Version"));
         	} else if (Double.parseDouble(config.getString("Version")) == 0) {
-        		log.info(prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        		log.info(prefix+"ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
-        		log.info(prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        		log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        		log.info("ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
+        		log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
         	}
 
         	Lang.checkLangVersion(lang);
@@ -362,10 +275,10 @@ public class Griswold extends JavaPlugin implements Listener {
 	        		spawnRepairman(squidward);
 	        	}
         	}
-	        log.info(prefix+Lang.config_loaded);
+	        log.info(Lang.config_loaded);
 
         	if(debug) {
-        		log.info(prefix+String.format(Lang.debug_loaded, npcChunks.keySet().size()));
+        		log.info(String.format(Lang.debug_loaded, npcChunks.keySet().size()));
         	}
         } else {
         	config.set("Timeout", 5000);
@@ -382,9 +295,9 @@ public class Griswold extends JavaPlugin implements Listener {
         	config.set("Version", this.getDescription().getVersion());
         	try {
         		config.save(configFile);
-        		log.info(prefix+Lang.default_config);
+        		log.info(Lang.default_config);
         	} catch (Exception e) {
-        		log.info(prefix+Lang.error_create_config);
+        		log.info(Lang.error_create_config);
         		e.printStackTrace();
         	}
         }
@@ -393,7 +306,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	private void updateConfig(String oldVersion) {
 		if (Double.parseDouble(oldVersion) < 0.05d) {
 			// ADDED IN 0.05
-			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION OLDER THAN 0.5");
+			log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION OLDER THAN 0.5");
 
 			config.set("PriceToAddEnchantment", 50.0);
 	        config.set("ClearOldEnchantments", true);
@@ -408,7 +321,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 
 		if (Double.parseDouble(oldVersion) == 0.05d) {
-			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
+			log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
 			// ADDED IN 0.051
 			config.set("UseEnchantmentSystem", true);
 
@@ -421,7 +334,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 
         if (Double.parseDouble(oldVersion) == 0.06d || Double.parseDouble(oldVersion) == 0.051d) {
-            log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.51/0.6");
+            log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.51/0.6");
             // ADDED IN 0.07
             config.set("ShowNames", true);
 
@@ -434,11 +347,11 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 	}
 
-	private class Starter implements Runnable {
+    private class Starter implements Runnable {
 		@Override
 		public void run() {
 			reloadPlugin();
-			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
+			if (!setupEconomy()) log.info(Lang.economy_not_found);
 		}
 		
 	}
