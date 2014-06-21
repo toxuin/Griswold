@@ -88,8 +88,7 @@ public class CommandListener implements CommandExecutor {
     }
 
 	private boolean can(CommandSender sender, String command) {
-
-		if(!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
+		if (!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
 				command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("list") ||
 				command.equalsIgnoreCase("despawn") || command.equalsIgnoreCase("names") ||
 				command.equalsIgnoreCase("sound"))) {
@@ -97,17 +96,12 @@ public class CommandListener implements CommandExecutor {
 			return true;
 		}
 
-		if(!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
+		if (!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
 			return false;
 		}
 
-		if(sender instanceof ConsoleCommandSender) return true;
-
-		if(Griswold.permission == null) {
-			return sender.isOp();
-		} else {
-			return Griswold.permission.has(sender, "griswold.admin");
-		}
-
+		if (sender instanceof ConsoleCommandSender) return true;
+		//if (Griswold.permission == null) return sender.isOp();
+		return sender.hasPermission("griswold.admin");
 	}
 }

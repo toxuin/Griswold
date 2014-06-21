@@ -8,7 +8,6 @@ import java.util.logging.Logger;
 
 public class Lang {
 	public static String economy_not_found = "ERROR: LANG NOT FOUND: economy_not_found";
-	public static String permissions_not_found = "ERROR: LANG NOT FOUND: permissions_not_found";
 	public static String insufficient_params = "ERROR: LANG NOT FOUND: insufficient_params";
 	public static String repairman_exists = "ERROR: LANG NOT FOUND: repairman_exists";
 	public static String config_loaded = "ERROR: LANG NOT FOUND: config_loaded";
@@ -53,7 +52,6 @@ public class Lang {
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         economy_not_found = language.getString("economy_not_found");
-        permissions_not_found = language.getString("permissions_not_found");
         insufficient_params = language.getString("insufficient_params");
         repairman_exists = language.getString("repairman_exists");
         config_loaded = language.getString("config_loaded");
@@ -103,7 +101,6 @@ public class Lang {
         
         if (!langFile.exists()) {
         	language.set("economy_not_found", "Warning: economy system not found: all repairs are free!");
-        	language.set("permissions_not_found", "Warning: permission system not found: access is open to everyone!");
         	language.set("insufficient_params", "Please add more parameters! Usage: "+ChatColor.BLUE+"/blacksmith create "+ChatColor.GREEN+"name "+ChatColor.GRAY+"type cost");
         	language.set("repairman_exists", "ERROR: repairman %s already exists!");
         	language.set("config_loaded", "Config loaded!");
@@ -256,5 +253,16 @@ public class Lang {
             }
         }
 
+        if (language.getDouble("version") == 0.072d) {
+            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.072");
+            language.set("permissions_not_found", null);
+            language.set("version", 0.073d);
+
+            try {
+                language.save(langFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 	}
 }

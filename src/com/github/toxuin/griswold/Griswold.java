@@ -3,14 +3,6 @@ package com.github.toxuin.griswold;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
 
-import net.minecraft.server.v1_7_R3.EntityVillager;
-import net.minecraft.server.v1_7_R3.PathfinderGoalLookAtPlayer;
-import net.minecraft.server.v1_7_R3.PathfinderGoalRandomLookaround;
-import net.minecraft.server.v1_7_R3.PathfinderGoalSelector;
-import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -37,8 +29,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
-
-
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
 	public static String prefix = null;
@@ -52,7 +42,6 @@ public class Griswold extends JavaPlugin implements Listener {
 	static Logger log;
     private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
 
-	public static Permission permission = null;
     public static Economy economy = null;
     
     public static double version;
@@ -122,11 +111,10 @@ public class Griswold extends JavaPlugin implements Listener {
 	// MAKE INTERACTION
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-		if (permission != null) {
-			if (!permission.has(event.getPlayer(), "griswold.tools") ||
-				!permission.has(event.getPlayer(), "griswold.armor") ||
-				!permission.has(event.getPlayer(), "griswold.enchant")) return;
-		}
+        if (!event.getPlayer().hasPermission("griswold.tools") ||
+            !event.getPlayer().hasPermission("griswold.armor") ||
+            !event.getPlayer().hasPermission("griswold.enchant")) return;
+
         Set<Repairer> npcs = npcChunks.keySet();
 		for (Repairer rep : npcs) {
 			if (event.getRightClicked().equals(rep.entity)) {
@@ -450,28 +438,12 @@ public class Griswold extends JavaPlugin implements Listener {
 		@Override
 		public void run() {
 			reloadPlugin();
-
 			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
-			if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
-			
 		}
 		
 	}
 
-    private boolean setupPermissions()
-    {
-    	if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
-        if (permissionProvider != null) {
-            permission = permissionProvider.getProvider();
-        }
-        return (permission != null);
-    }
-
-    private boolean setupEconomy()
-    {
+    private boolean setupEconomy() {
     	if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
@@ -479,7 +451,6 @@ public class Griswold extends JavaPlugin implements Listener {
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }
-
         return (economy != null);
     }
 }
