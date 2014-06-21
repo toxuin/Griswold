@@ -17,8 +17,7 @@ import net.minecraft.server.v1_7_R3.EnchantmentManager;
 import java.io.File;
 import java.util.*;
 
-public class Interactor {
-	
+class Interactor {
 	public static double basicToolsPrice = 10.0;
 	public static double basicArmorPrice = 10.0;
 	public static double enchantmentPrice = 30.0;
@@ -28,9 +27,10 @@ public class Interactor {
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
 	
-	private final static List<Material> repairableTools = new LinkedList<Material>();
-	private final static List<Material> repairableArmor = new LinkedList<Material>();
-	static {
+	private final List<Material> repairableTools = new LinkedList<Material>();
+	private final List<Material> repairableArmor = new LinkedList<Material>();
+
+	public Interactor() {
         repairableTools.add(Material.IRON_AXE);
         repairableTools.add(Material.IRON_PICKAXE);
         repairableTools.add(Material.IRON_SWORD);
@@ -62,9 +62,9 @@ public class Interactor {
         repairableTools.add(Material.GOLD_SPADE);           // GOLDEN TOOLS
 
         repairableTools.add(Material.FLINT_AND_STEEL); // ZIPPO
-		repairableTools.add(Material.SHEARS); // SCISSORS
-		repairableTools.add(Material.BOW); // BOW
-		repairableTools.add(Material.FISHING_ROD); // FISHING ROD
+        repairableTools.add(Material.SHEARS); // SCISSORS
+        repairableTools.add(Material.BOW); // BOW
+        repairableTools.add(Material.FISHING_ROD); // FISHING ROD
 
         // ARMORZ!
         repairableArmor.add(Material.LEATHER_BOOTS);
@@ -98,20 +98,20 @@ public class Interactor {
             if (config.isConfigurationSection("CustomItems.Tools")) {
                 Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
                 for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info(Griswold.prefix+"Added "+tools.size()+" custom tools from config file");
+                Griswold.log.info("Added "+tools.size()+" custom tools from config file");
             }
 
             if (config.isConfigurationSection("CustomItems.Armor")) {
                 Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
                 for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info(Griswold.prefix+"Added "+armor.size()+" custom armors from config file");
+                Griswold.log.info("Added " + armor.size() + " custom armors from config file");
             }
         }
 	}
 	
-	private static Set<Interaction> interactions = new HashSet<Interaction>();
+	private final Set<Interaction> interactions = new HashSet<Interaction>();
 
-	public static void interact(Player player, Repairer repairman) {
+	public void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
 
         repairman.haggle();
@@ -140,7 +140,7 @@ public class Interactor {
 						 EconomyResponse r = null;
 						if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
 							if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
-				            if(Griswold.economy == null || r.transactionSuccess()) {
+				            if (Griswold.economy == null || r.transactionSuccess()) {
 								item.setDurability((short) 0);
 					            inter.valid = false; // INVALIDATE INTERACTION
 								player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_done);
@@ -234,33 +234,37 @@ public class Interactor {
 		}
 	}
 
-	private static boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
+	private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
 		if (repairman.type.equalsIgnoreCase("all")) {
 			if (item.getDurability() != 0) {
 				if (repairableArmor.contains(item.getType())) {
 					// check for armor perm
-					return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-				} else return ((repairableTools.contains(item.getType())) &&       // check tools perm
-							((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
+					return player.hasPermission("griswold.armor");
+				} else {
+					return (repairableTools.contains(item.getType()) &&       // check tools perm
+							player.hasPermission("griswold.tools"));
+				}
 			} else {
-				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+				return player.hasPermission("griswold.enchant");
 			}
 		} else if (repairman.type.equalsIgnoreCase("both")) {
 			if (repairableArmor.contains(item.getType())) {
-				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-			} else return ((repairableTools.contains(item.getType())) &&
-					((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
+				return player.hasPermission("griswold.armor");
+			} else {
+				return (repairableTools.contains(item.getType()) &&
+						player.hasPermission("griswold.tools"));
+			}
 		} else if (repairman.type.equalsIgnoreCase("tools")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools"));
+			return player.hasPermission("griswold.tools");
 		} else if (repairman.type.equalsIgnoreCase("armor")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
+			return player.hasPermission("griswold.armor");
 		} else if (repairman.type.equalsIgnoreCase("enchant")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+			return player.hasPermission("griswold.enchant");
 		}
 		return false;
 	}
 
-	private static double getPrice(Repairer repairman, ItemStack item) {
+	private double getPrice(Repairer repairman, ItemStack item) {
 		if (Griswold.economy == null) return 0.0;
 		double price = 0;
 		if (repairableTools.contains(item.getType())) price = basicToolsPrice;
@@ -281,11 +285,11 @@ public class Interactor {
 }
 
 class Interaction {
-	UUID player;
-	Entity repairman;
-	ItemStack item;
-	int damage;
-	long time;
+	private final UUID player;
+	private final Entity repairman;
+	private final ItemStack item;
+	private final int damage;
+	private final long time;
 	boolean valid;
 	public Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
 		this.item = item;
