@@ -9,12 +9,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-// VERSION DEPENDANT STUFF
-import org.bukkit.craftbukkit.v1_7_R3.inventory.CraftItemStack;
-import net.minecraft.server.v1_7_R3.EnchantmentInstance;
-import net.minecraft.server.v1_7_R3.EnchantmentManager;
-
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.*;
 
 class Interactor {
@@ -29,6 +26,10 @@ class Interactor {
 	
 	private final List<Material> repairableTools = new LinkedList<Material>();
 	private final List<Material> repairableArmor = new LinkedList<Material>();
+
+    final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
+    final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
+    final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
 
 	public Interactor() {
         repairableTools.add(Material.IRON_AXE);
@@ -111,7 +112,8 @@ class Interactor {
 	
 	private final Set<Interaction> interactions = new HashSet<Interaction>();
 
-	public void interact(Player player, Repairer repairman) {
+	@SuppressWarnings("unchecked")
+    public void interact(Player player, Repairer repairman) {
 		final ItemStack item = player.getItemInHand();
 
         repairman.haggle();
@@ -138,8 +140,8 @@ class Interactor {
 							repairman.type.equalsIgnoreCase("all")
 						)) {
 						 EconomyResponse r = null;
-						if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
-							if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
+						if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
+							if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
 				            if (Griswold.economy == null || r.transactionSuccess()) {
 								item.setDurability((short) 0);
 					            inter.valid = false; // INVALIDATE INTERACTION
@@ -157,8 +159,8 @@ class Interactor {
 					} else if (enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all"))) {
 							price = addEnchantmentPrice;
 							EconomyResponse r = null;
-							if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
-								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
+							if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
+								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
 					            if (Griswold.economy == null || r.transactionSuccess()) {
 						            if (clearEnchantments) {
 							            for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
@@ -166,20 +168,30 @@ class Interactor {
 							            }
 						            }
 
-									net.minecraft.server.v1_7_R3.ItemStack vanillaItem = CraftItemStack.asNMSCopy(item);
-									int bonus = (new Random()).nextInt(maxEnchantBonus);
-									List<?> list = EnchantmentManager.b(new Random(), vanillaItem, bonus);
-									if (list != null) {
-					                    for (Object obj : list) {
-                                            EnchantmentInstance instance = (EnchantmentInstance) obj;
-                                            item.addEnchantment(Enchantment.getById(instance.enchantment.id), instance.level);
-					                    }
-										inter.valid = false; // INVALIDATE INTERACTION
-					                    player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_enchant_success);
-					                } else {
-										inter.valid = false; // INVALIDATE INTERACTION
-										player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_enchant_failed);
-									}
+                                    try {
+                                        Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
+                                        Object vanillaItem = asNMSCopy.invoke(null, item);
+                                        int bonus = (new Random()).nextInt(maxEnchantBonus);
+                                        Method b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
+                                        List<?> list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+                                        if (list != null) {
+                                            for (Object obj : list) {
+                                                Object instance = enchantmentInstance.cast(obj);
+                                                Field enchantmentField = enchantmentInstance.getField("enchantment");
+                                                Field levelField = enchantmentInstance.getField("level");
+                                                Object enchantment = enchantmentField.get(instance);
+                                                Field idField = enchantment.getClass().getField("id");
+                                                item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
+                                            }
+                                            inter.valid = false; // INVALIDATE INTERACTION
+                                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
+                                        } else {
+                                            inter.valid = false; // INVALIDATE INTERACTION
+                                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
+                                        }
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
 									return;
 							
 					            } else {
