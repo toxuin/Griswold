@@ -87,19 +87,27 @@ public class CommandListener implements CommandExecutor {
         return false;
     }
 
-    private boolean can(CommandSender sender, String command) {
+	private boolean can(CommandSender sender, String command) {
+
+		if(!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
+				command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("list") ||
+				command.equalsIgnoreCase("despawn") || command.equalsIgnoreCase("names") ||
+				command.equalsIgnoreCase("sound"))) {
+			// UNKNOWN COMMAND.
+			return true;
+		}
 
 		if(!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
 			return false;
 		}
 
-		if (sender instanceof ConsoleCommandSender) return true;
+		if(sender instanceof ConsoleCommandSender) return true;
 
-		if (Griswold.permission == null) {
+		if(Griswold.permission == null) {
 			return sender.isOp();
 		} else {
 			return Griswold.permission.has(sender, "griswold.admin");
 		}
 
-    }
+	}
 }
