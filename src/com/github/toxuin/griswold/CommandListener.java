@@ -88,44 +88,18 @@ public class CommandListener implements CommandExecutor {
     }
 
     private boolean can(CommandSender sender, String command) {
-        if (command.equalsIgnoreCase("reload")) {
-            // ONLY CONSOLE, OP, griswold.admin
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("create")) {
-             // ONLY OP, griswold.admin
-            if (!(sender instanceof Player)) return false;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("remove")) {
-             // ONLY OP, griswold.admin, CONSOLE
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("list")) {
-            // ONLY OP, griswold.admin, CONSOLE
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("despawn")) {
-            // ONLY OP, griswold.admin, CONSOLE
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("names")) {
-            // ONLY OP, griswold.admin, CONSOLE
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        } else if (command.equalsIgnoreCase("sound")) {
-            // ONLY OP, griswold.admin, CONSOLE
-            if (sender instanceof ConsoleCommandSender) return true;
-            if (Griswold.permission == null) return sender.isOp();
-            else return Griswold.permission.has(sender, "griswold.admin");
-        }
 
-        // UNKNOWN COMMAND.
-        return true;
+		if(!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
+			return false;
+		}
+
+		if (sender instanceof ConsoleCommandSender) return true;
+
+		if (Griswold.permission == null) {
+			return sender.isOp();
+		} else {
+			return Griswold.permission.has(sender, "griswold.admin");
+		}
+
     }
 }
