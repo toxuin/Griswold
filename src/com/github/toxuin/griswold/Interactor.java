@@ -159,7 +159,7 @@ public class Interactor {
 							EconomyResponse r = null;
 							if (Griswold.economy == null || Griswold.economy.getBalance(player.getName()) >= price) {
 								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player.getName(), price);
-					            if(Griswold.economy == null || r.transactionSuccess()) {
+					            if (Griswold.economy == null || r.transactionSuccess()) {
 						            if (clearEnchantments) {
 							            for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
 								            item.removeEnchantment(enchantToDel);

@@ -2,6 +2,15 @@ package com.github.toxuin.griswold;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.permission.Permission;
+
+import net.minecraft.server.v1_7_R3.EntityVillager;
+import net.minecraft.server.v1_7_R3.PathfinderGoalLookAtPlayer;
+import net.minecraft.server.v1_7_R3.PathfinderGoalRandomLookaround;
+import net.minecraft.server.v1_7_R3.PathfinderGoalSelector;
+import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -25,15 +34,10 @@ import com.github.toxuin.griswold.Metrics.Graph;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Logger;
 
-// VERSION DEPENDANT
-import net.minecraft.server.v1_7_R3.*;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
+
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -45,7 +49,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
-	static Logger log = Logger.getLogger("Minecraft");
+	static Logger log;
     private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
 
 	public static Permission permission = null;
@@ -56,15 +60,14 @@ public class Griswold extends JavaPlugin implements Listener {
     public boolean namesVisible = true;
 
 	public void onEnable(){
+        log = this.getLogger();
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
 		prefix = "[" + pdfFile.getName()+ "]: ";
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
-        try {
-            Object test = org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager.class.getName();
-        } catch (NoClassDefFoundError ex) {
+        if (ClassProxy.getClass("entity.CraftVillager") == null) {
             log.severe(prefix + " PLUGIN NOT LOADED!!!");
             log.severe(prefix + " ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
             log.severe(prefix + " GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
@@ -478,40 +481,6 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 
         return (economy != null);
-    }
-}
-
-class Repairer {
-	public Entity entity;
-	public String name = "Repairman";
-	public Location loc;
-	public String type = "all";
-	public double cost = 1;
-    public String sound = "mob.villager.haggle";
-    private Random rnd = new Random();
-
-    public void overwriteAI() {
-        try {
-            EntityVillager villager = ((CraftVillager)entity).getHandle();
-            Field goalsField = EntityInsentient.class.getDeclaredField("goalSelector");
-            goalsField.setAccessible(true);
-            PathfinderGoalSelector goals = (PathfinderGoalSelector) goalsField.get(villager);
-            Field listField = PathfinderGoalSelector.class.getDeclaredField("b");
-            listField.setAccessible(true);
-            @SuppressWarnings("rawtypes")
-            List list = (List)listField.get(goals);
-            list.clear();
-            goals.a(1, new PathfinderGoalLookAtPlayer(villager, EntityHuman.class, 12.0F, 1.0F));
-            goals.a(2, new PathfinderGoalRandomLookaround(villager));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void haggle() {
-        if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && this.entity instanceof CraftEntity) {
-            ((CraftWorld) this.entity.getLocation().getWorld()).getHandle().makeSound(((CraftEntity) this.entity).getHandle(), this.sound, 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
-        }
     }
 }
 
