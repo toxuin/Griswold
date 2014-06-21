@@ -5,39 +5,22 @@ public class ClassProxy {
     // THANK FOR VERSIONED NMS PACKAGES, EvilSeph
     // THERE ARE PEOPLE WHO HATE YOU.
 
+    private static final String[] SUPPORTED_API = {"v1_7_R3", "v1_7_R2", "v1_7_R1"};
+
     // RELATIVE TO net.minecraft.server.vX_X_RX.
     public static Class getClass(String className) {
-        try {
-            return Class.forName("net.minecraft.server.v1_7_R3." + className);
-        } catch (ClassNotFoundException e) {
+        Class result = null;
+        for (String api : SUPPORTED_API) {
             try {
-                return Class.forName("net.minecraft.server.v1_7_R2." + className);
-            } catch (ClassNotFoundException e1) {
+                result = Class.forName("net.minecraft.server." + api + "." + className);
+            } catch (ClassNotFoundException e) {
                 try {
-                    return Class.forName("net.minecraft.server.v1_7_R1." + className);
-                } catch (ClassNotFoundException e2) {
-                    return getOBCClass(className);
-                    /// DO NOTHING SINCE ALL CLASS CHECKS ARE DONE ON PLUGIN LOADING
+                    result = Class.forName("org.bukkit.craftbukkit." + api + "." + className);
+                } catch (ClassNotFoundException e1) {
+                    // DO NOTHING SINCE RESULT IS ALREADY NULL
                 }
             }
         }
-    }
-
-    // RELATIVE TO org.bukkit.craftbukkit.vX_X_RX.
-    public static Class getOBCClass(String className) {
-        try {
-            return Class.forName("org.bukkit.craftbukkit.v1_7_R3." + className);
-        } catch (ClassNotFoundException e) {
-            try {
-                return Class.forName("org.bukkit.craftbukkit.v1_7_R2." + className);
-            } catch (ClassNotFoundException e1) {
-                try {
-                    return Class.forName("org.bukkit.craftbukkit.v1_7_R1." + className);
-                } catch (ClassNotFoundException e2) {
-                    e2.printStackTrace();
-                    return null;
-                }
-            }
-        }
+        return result;
     }
 }
