@@ -8,16 +8,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
-public class CommandListener implements CommandExecutor {
-    private Griswold plugin;
+class CommandListener implements CommandExecutor {
+    private final Griswold plugin;
 
     public CommandListener(Griswold griswold) {
         this.plugin = griswold;
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        if (args.length == 0) { sender.sendMessage(Lang.error_few_arguments); return false; }
-        if (!can(sender, args[0])) { sender.sendMessage(ChatColor.RED+Lang.error_accesslevel); return true; }
+        if (args.length == 0) { sender.sendMessage(plugin.getLang().error_few_arguments); return false; }
+        if (!can(sender, args[0])) { sender.sendMessage(ChatColor.RED+plugin.getLang().error_accesslevel); return true; }
 
         // RELOAD COMMAND
         if (args[0].equalsIgnoreCase("reload")) {
@@ -28,7 +28,7 @@ public class CommandListener implements CommandExecutor {
         // CREATE COMMAND
         else if (args[0].equalsIgnoreCase("create")) {
             if (args.length < 2) {
-                sender.sendMessage(Lang.insufficient_params);
+                sender.sendMessage(plugin.getLang().insufficient_params);
                 return true;
             }
 
@@ -37,19 +37,19 @@ public class CommandListener implements CommandExecutor {
             location.setY(Math.round(player.getLocation().getY()));
             if (args.length < 4) plugin.createRepairman(args[1], location);
             else plugin.createRepairman(args[1], location, args[2], args[3]);
-            player.sendMessage(Lang.new_created);
+            player.sendMessage(plugin.getLang().new_created);
             return true;
         }
 
         // REMOVE COMMAND
         else if (args[0].equalsIgnoreCase("remove")) {
             if (args.length < 2) {
-                sender.sendMessage(Lang.error_few_arguments);
+                sender.sendMessage(plugin.getLang().error_few_arguments);
                 return true;
             }
 
             plugin.removeRepairman(args[1]);
-            sender.sendMessage(String.format(Lang.deleted, args[1]));
+            sender.sendMessage(String.format(plugin.getLang().deleted, args[1]));
             return true;
         }
 
@@ -62,26 +62,26 @@ public class CommandListener implements CommandExecutor {
         // DESPAWN
         else if (args[0].equalsIgnoreCase("despawn")) {
             plugin.despawnAll();
-            sender.sendMessage(Lang.despawned);
+            sender.sendMessage(plugin.getLang().despawned);
             return true;
         }
 
         // NAMES COMMAND
         else if (args[0].equalsIgnoreCase("names")) {
             plugin.toggleNames();
-            sender.sendMessage(plugin.namesVisible?Lang.names_on:Lang.names_off);
+            sender.sendMessage(plugin.namesVisible?plugin.getLang().names_on:plugin.getLang().names_off);
             return true;
         }
 
         // SOUND COMMAND
         else if (args[0].equalsIgnoreCase("sound")) {
             if (args.length < 3) {
-                sender.sendMessage(Lang.error_few_arguments);
+                sender.sendMessage(plugin.getLang().error_few_arguments);
                 return true;
             }
 
             plugin.setSound(args[1], args[2]);
-            sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+            sender.sendMessage(String.format(plugin.getLang().sound_changed, args[1]));
         }
 
         return false;
@@ -103,11 +103,7 @@ public class CommandListener implements CommandExecutor {
 
 		if(sender instanceof ConsoleCommandSender) return true;
 
-		if(Griswold.permission == null) {
-			return sender.isOp();
-		} else {
-			return Griswold.permission.has(sender, "griswold.admin");
-		}
+		return sender.hasPermission("griswold.admin");
 
 	}
 }

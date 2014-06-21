@@ -30,89 +30,91 @@ class Interactor {
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
 	
-	private final static List<Material> repairableTools = new LinkedList<Material>();
-	private final static List<Material> repairableArmor = new LinkedList<Material>();
-	static { // TODO
-        repairableTools.add(Material.IRON_AXE);
-        repairableTools.add(Material.IRON_PICKAXE);
-        repairableTools.add(Material.IRON_SWORD);
-        repairableTools.add(Material.IRON_HOE);
-        repairableTools.add(Material.IRON_SPADE);              // IRON TOOLS
+	private final List<Material> repairableTools = new LinkedList<Material>();
+	private final List<Material> repairableArmor = new LinkedList<Material>();
 
-        repairableTools.add(Material.WOOD_AXE);
-        repairableTools.add(Material.WOOD_PICKAXE);
-        repairableTools.add(Material.WOOD_SWORD);
-        repairableTools.add(Material.WOOD_HOE);
-        repairableTools.add(Material.WOOD_SPADE);              // WOODEN TOOLS
+	public Interactor(final Griswold plugin) {
+		this.plugin = plugin;
+		init();
+	}
 
-        repairableTools.add(Material.STONE_AXE);
-        repairableTools.add(Material.STONE_PICKAXE);
-        repairableTools.add(Material.STONE_SWORD);
-        repairableTools.add(Material.STONE_HOE);
-        repairableTools.add(Material.STONE_SPADE);             // STONE TOOLS
+	private void init() {
+		repairableTools.add(Material.IRON_AXE);
+		repairableTools.add(Material.IRON_PICKAXE);
+		repairableTools.add(Material.IRON_SWORD);
+		repairableTools.add(Material.IRON_HOE);
+		repairableTools.add(Material.IRON_SPADE);              // IRON TOOLS
 
-        repairableTools.add(Material.DIAMOND_AXE);
-        repairableTools.add(Material.DIAMOND_PICKAXE);
-        repairableTools.add(Material.DIAMOND_SWORD);
-        repairableTools.add(Material.DIAMOND_HOE);
-        repairableTools.add(Material.DIAMOND_SPADE);           // DIAMOND TOOLS
+		repairableTools.add(Material.WOOD_AXE);
+		repairableTools.add(Material.WOOD_PICKAXE);
+		repairableTools.add(Material.WOOD_SWORD);
+		repairableTools.add(Material.WOOD_HOE);
+		repairableTools.add(Material.WOOD_SPADE);              // WOODEN TOOLS
 
-        repairableTools.add(Material.GOLD_AXE);
-        repairableTools.add(Material.GOLD_PICKAXE);
-        repairableTools.add(Material.GOLD_SWORD);
-        repairableTools.add(Material.GOLD_HOE);
-        repairableTools.add(Material.GOLD_SPADE);           // GOLDEN TOOLS
+		repairableTools.add(Material.STONE_AXE);
+		repairableTools.add(Material.STONE_PICKAXE);
+		repairableTools.add(Material.STONE_SWORD);
+		repairableTools.add(Material.STONE_HOE);
+		repairableTools.add(Material.STONE_SPADE);             // STONE TOOLS
 
-        repairableTools.add(Material.FLINT_AND_STEEL); // ZIPPO
+		repairableTools.add(Material.DIAMOND_AXE);
+		repairableTools.add(Material.DIAMOND_PICKAXE);
+		repairableTools.add(Material.DIAMOND_SWORD);
+		repairableTools.add(Material.DIAMOND_HOE);
+		repairableTools.add(Material.DIAMOND_SPADE);           // DIAMOND TOOLS
+
+		repairableTools.add(Material.GOLD_AXE);
+		repairableTools.add(Material.GOLD_PICKAXE);
+		repairableTools.add(Material.GOLD_SWORD);
+		repairableTools.add(Material.GOLD_HOE);
+		repairableTools.add(Material.GOLD_SPADE);           // GOLDEN TOOLS
+
+		repairableTools.add(Material.FLINT_AND_STEEL); // ZIPPO
 		repairableTools.add(Material.SHEARS); // SCISSORS
 		repairableTools.add(Material.BOW); // BOW
 		repairableTools.add(Material.FISHING_ROD); // FISHING ROD
 
-        // ARMORZ!
-        repairableArmor.add(Material.LEATHER_BOOTS);
-        repairableArmor.add(Material.LEATHER_CHESTPLATE);
-        repairableArmor.add(Material.LEATHER_HELMET);
-        repairableArmor.add(Material.LEATHER_LEGGINGS);
+		// ARMORZ!
+		repairableArmor.add(Material.LEATHER_BOOTS);
+		repairableArmor.add(Material.LEATHER_CHESTPLATE);
+		repairableArmor.add(Material.LEATHER_HELMET);
+		repairableArmor.add(Material.LEATHER_LEGGINGS);
 
-        repairableArmor.add(Material.CHAINMAIL_BOOTS);
-        repairableArmor.add(Material.CHAINMAIL_CHESTPLATE);
-        repairableArmor.add(Material.CHAINMAIL_HELMET);
-        repairableArmor.add(Material.CHAINMAIL_LEGGINGS);
+		repairableArmor.add(Material.CHAINMAIL_BOOTS);
+		repairableArmor.add(Material.CHAINMAIL_CHESTPLATE);
+		repairableArmor.add(Material.CHAINMAIL_HELMET);
+		repairableArmor.add(Material.CHAINMAIL_LEGGINGS);
 
-        repairableArmor.add(Material.IRON_BOOTS);
-        repairableArmor.add(Material.IRON_CHESTPLATE);
-        repairableArmor.add(Material.IRON_HELMET);
-        repairableArmor.add(Material.IRON_LEGGINGS);
+		repairableArmor.add(Material.IRON_BOOTS);
+		repairableArmor.add(Material.IRON_CHESTPLATE);
+		repairableArmor.add(Material.IRON_HELMET);
+		repairableArmor.add(Material.IRON_LEGGINGS);
 
-        repairableArmor.add(Material.GOLD_BOOTS);
-        repairableArmor.add(Material.GOLD_CHESTPLATE);
-        repairableArmor.add(Material.GOLD_HELMET);
-        repairableArmor.add(Material.GOLD_LEGGINGS);
+		repairableArmor.add(Material.GOLD_BOOTS);
+		repairableArmor.add(Material.GOLD_CHESTPLATE);
+		repairableArmor.add(Material.GOLD_HELMET);
+		repairableArmor.add(Material.GOLD_LEGGINGS);
 
-        repairableArmor.add(Material.DIAMOND_BOOTS);
-        repairableArmor.add(Material.DIAMOND_CHESTPLATE);
-        repairableArmor.add(Material.DIAMOND_HELMET);
-        repairableArmor.add(Material.DIAMOND_LEGGINGS);
+		repairableArmor.add(Material.DIAMOND_BOOTS);
+		repairableArmor.add(Material.DIAMOND_CHESTPLATE);
+		repairableArmor.add(Material.DIAMOND_HELMET);
+		repairableArmor.add(Material.DIAMOND_LEGGINGS);
 
-        File configFile = new File(Griswold.directory, "config.yml");
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        if (configFile.exists()) {
-            if (config.isConfigurationSection("CustomItems.Tools")) {
-                Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
-                for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
-                plugin.getLogger().info("Added "+tools.size()+" custom tools from config file"); // TODO
-            }
+		File configFile = new File(Griswold.directory, "config.yml");
+		YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+		if (configFile.exists()) {
+			if (config.isConfigurationSection("CustomItems.Tools")) {
+				Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
+				for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
+				plugin.getLogger().info("Added "+tools.size()+" custom tools from config file");
+			}
 
-            if (config.isConfigurationSection("CustomItems.Armor")) {
-                Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
-                for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
-                plugin.getLogger().info("Added "+armor.size()+" custom armors from config file"); // TODO
-            }
-        }
-	}
-
-	public Interactor(final Griswold plugin) {
-		this.plugin = plugin;
+			if (config.isConfigurationSection("CustomItems.Armor")) {
+				Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
+				for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
+				plugin.getLogger().info("Added "+armor.size()+" custom armors from config file");
+			}
+		}
 	}
 	
 	private final Set<Interaction> interactions = new HashSet<Interaction>();
@@ -240,7 +242,7 @@ class Interactor {
 		}
 	}
 
-	private static boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
+	private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
 		if(repairman.type.equalsIgnoreCase("all")) {
 			if(item.getDurability() != 0) {
 				if(repairableArmor.contains(item.getType())) {
@@ -270,7 +272,7 @@ class Interactor {
 		return false;
 	}
 
-	private static double getPrice(Repairer repairman, ItemStack item) {
+	private double getPrice(Repairer repairman, ItemStack item) {
 		if (Griswold.economy == null) return 0.0;
 		double price = 0;
 		if (repairableTools.contains(item.getType())) price = basicToolsPrice;

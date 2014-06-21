@@ -4,56 +4,60 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.util.logging.Logger;
 
-public class Lang {
-	public static String economy_not_found = "ERROR: LANG NOT FOUND: economy_not_found";
-	public static String permissions_not_found = "ERROR: LANG NOT FOUND: permissions_not_found";
-	public static String insufficient_params = "ERROR: LANG NOT FOUND: insufficient_params";
-	public static String repairman_exists = "ERROR: LANG NOT FOUND: repairman_exists";
-	public static String config_loaded = "ERROR: LANG NOT FOUND: config_loaded";
-	public static String error_config = "ERROR: LANG NOT FOUND: error_config";
-	public static String error_remove = "ERROR: LANG NOT FOUND: error_remove";
-	public static String repairman_list = "ERROR: LANG NOT FOUND: repairman_list";
-	public static String repairman_spawn = "ERROR: LANG NOT FOUND: repairman_spawn";
-	public static String debug_loaded = "ERROR: LANG NOT FOUND: debug_loaded";
-	public static String default_config = "ERROR: LANG NOT FOUND: default_config";
-	public static String error_create_config = "ERROR: LANG NOT FOUND: error_create_config";
-	public static String lang_loaded = "ERROR: LANG NOT FOUND: lang_loaded";
-	public static String error_accesslevel = "ERROR: LANG NOT FOUND: error_accesslevel";
-	public static String new_created = "ERROR: LANG NOT FOUND: new_created";
-	public static String deleted = "ERROR: LANG NOT FOUND: deleted";
-	public static String despawned = "ERROR: LANG NOT FOUND: despawned";
-	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
-	public static String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
-	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
-	public static String name_format = "ERROR: LANG NOT FOUND: name_format";
+class Lang {
 
-    public static String names_on = "ERROR: LANG NOT FOUND: names_on";
-    public static String names_off = "ERROR: LANG NOT FOUND: names_off";
-    public static String sound_changed = "ERROR: LANG NOT FOUND: sound_changed";
+	private final Griswold plugin;
 
-	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
-	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
-	public static String chat_poor = "ERROR: LANG NOT FOUND: chat_poor";
-	public static String chat_norepair = "ERROR: LANG NOT FOUND: chat_norepair";
-	public static String chat_free = "ERROR: LANG NOT FOUND: chat_free";
-	public static String chat_cost = "ERROR: LANG NOT FOUND: chat_cost";
-	public static String chat_agreed = "ERROR: LANG NOT FOUND: chat_agreed";
-	public static String chat_cannot = "ERROR: LANG NOT FOUND: chat_cannot";
-	public static String chat_enchant_cost = "ERROR: LANG NOT FOUND: chat_enchant_cost";
-	public static String chat_enchant_free = "ERROR: LANG NOT FOUND: chat_enchant_free";
-	public static String chat_enchant_success = "ERROR: LANG NOT FOUND: chat_enchant_success";
-	public static String chat_noitem = "ERROR: LANG NOT FOUND: chat_noitem";
-	public static String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
-	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
+	public String economy_not_found = "ERROR: LANG NOT FOUND: economy_not_found";
+	//public static String permissions_not_found = "ERROR: LANG NOT FOUND: permissions_not_found";
+	public String insufficient_params = "ERROR: LANG NOT FOUND: insufficient_params";
+	public String repairman_exists = "ERROR: LANG NOT FOUND: repairman_exists";
+	public String config_loaded = "ERROR: LANG NOT FOUND: config_loaded";
+	public String error_config = "ERROR: LANG NOT FOUND: error_config";
+	public String error_remove = "ERROR: LANG NOT FOUND: error_remove";
+	public String repairman_list = "ERROR: LANG NOT FOUND: repairman_list";
+	public String repairman_spawn = "ERROR: LANG NOT FOUND: repairman_spawn";
+	public String debug_loaded = "ERROR: LANG NOT FOUND: debug_loaded";
+	public String default_config = "ERROR: LANG NOT FOUND: default_config";
+	public String error_create_config = "ERROR: LANG NOT FOUND: error_create_config";
+	public String lang_loaded = "ERROR: LANG NOT FOUND: lang_loaded";
+	public String error_accesslevel = "ERROR: LANG NOT FOUND: error_accesslevel";
+	public String new_created = "ERROR: LANG NOT FOUND: new_created";
+	public String deleted = "ERROR: LANG NOT FOUND: deleted";
+	public String despawned = "ERROR: LANG NOT FOUND: despawned";
+	public String respawned = "ERROR: LANG NOT FOUND: respawned";
+	public String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
+	public String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
+	public String name_format = "ERROR: LANG NOT FOUND: name_format";
+	public String names_on = "ERROR: LANG NOT FOUND: names_on";
+	public String names_off = "ERROR: LANG NOT FOUND: names_off";
+	public String sound_changed = "ERROR: LANG NOT FOUND: sound_changed";
+	public String chat_done = "ERROR: LANG NOT FOUND: chat_done";
+	public String chat_error = "ERROR: LANG NOT FOUND: chat_error";
+	public String chat_poor = "ERROR: LANG NOT FOUND: chat_poor";
+	public String chat_norepair = "ERROR: LANG NOT FOUND: chat_norepair";
+	public String chat_free = "ERROR: LANG NOT FOUND: chat_free";
+	public String chat_cost = "ERROR: LANG NOT FOUND: chat_cost";
+	public String chat_agreed = "ERROR: LANG NOT FOUND: chat_agreed";
+	public String chat_cannot = "ERROR: LANG NOT FOUND: chat_cannot";
+	public String chat_enchant_cost = "ERROR: LANG NOT FOUND: chat_enchant_cost";
+	public String chat_enchant_free = "ERROR: LANG NOT FOUND: chat_enchant_free";
+	public String chat_enchant_success = "ERROR: LANG NOT FOUND: chat_enchant_success";
+	public String chat_noitem = "ERROR: LANG NOT FOUND: chat_noitem";
+	public String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
+	public String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
+
+	public Lang(final Griswold plugin) {
+		this.plugin = plugin;
+	}
 	
-	public static void init() {
-		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
+	public void init() {
+		File langFile = new File(Griswold.directory,Griswold.locale +".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         economy_not_found = language.getString("economy_not_found");
-        permissions_not_found = language.getString("permissions_not_found");
+        //permissions_not_found = language.getString("permissions_not_found");
         insufficient_params = language.getString("insufficient_params");
         repairman_exists = language.getString("repairman_exists");
         config_loaded = language.getString("config_loaded");
@@ -94,10 +98,10 @@ public class Lang {
         chat_enchant_failed = language.getString("chat_enchant_failed");
         chat_needs_repair = language.getString("chat_needs_repair");
         
-        Logger.getLogger("Minecraft").info(String.format(Griswold.prefix+lang_loaded, Griswold.lang+".yml"));
+        plugin.getLogger().info(String.format(lang_loaded, Griswold.locale + ".yml"));
 	}
 	
-	public static void createLangFile() {
+	public  void createLangFile() {
 		File langFile = new File(Griswold.directory, "en_US.yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
@@ -154,19 +158,19 @@ public class Lang {
         }
 	}
 	
-	public static void checkLangVersion(String locale) {
+	public void checkLangVersion(String locale) {
 		File langFile = new File(Griswold.directory, locale+".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (language.getDouble("version") == 0) {
-        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        	Griswold.log.info(Griswold.prefix+"ERROR: YOUR LANGUAGE FILE IS CORRUPTED!!! ERROR!");
-        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	plugin.getLogger().info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	plugin.getLogger().info("ERROR: YOUR LANGUAGE FILE IS CORRUPTED!!! ERROR!");
+        	plugin.getLogger().info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
         	return;
         }
         
 		if (language.getDouble("version") < 0.04d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
+			plugin.getLogger().info("UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
 			
 			language.set("lang_loaded", "Language file %s loaded!");
 			
@@ -186,7 +190,7 @@ public class Lang {
     	}
 		
 		if (language.getDouble("version") == 0.04d) {
-    		Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.04");
+    		plugin.getLogger().info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.04");
     		
     		language.set("error_few_arguments", "Too few arguments.");
     		language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
@@ -206,7 +210,7 @@ public class Lang {
     	}
 
 		if (language.getDouble("version") == 0.05d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.05");
+			plugin.getLogger().info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.05");
 			language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
 			language.set("version", 0.051d);
 
@@ -218,7 +222,7 @@ public class Lang {
 		}
 		
 		if (language.getDouble("version") == 0.051d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.051");
+			plugin.getLogger().info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.051");
 			language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
 			language.set("version", 0.06d);
 			
@@ -230,7 +234,7 @@ public class Lang {
 		}
 
         if (language.getDouble("version") == 0.06d) {
-            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
+            plugin.getLogger().info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
             language.set("names_on", "Now showing blacksmiths' names.");
             language.set("names_off", "Now hiding blacksmiths' names.");
             language.set("sound_changed", "Blacksmith %s has new sound now!");
@@ -244,7 +248,7 @@ public class Lang {
         }
 
         if (language.getDouble("version") == 0.07d || language.getDouble("version") == 0.071d) {
-            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.07 / 0.071");
+            plugin.getLogger().info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.07 / 0.071");
             language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it - for free of course.");
             language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
             language.set("version", 0.072d);

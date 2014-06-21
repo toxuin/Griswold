@@ -25,13 +25,12 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.*;
-import java.util.logging.Logger;
 
 // VERSION DEPENDANT
 
-public class Griswold extends JavaPlugin implements Listener {
+class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
-	public static String prefix = null;
+	//public static String prefix = null;
 	
 	public boolean debug = false;
 	
@@ -39,31 +38,34 @@ public class Griswold extends JavaPlugin implements Listener {
 	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
-	static Logger log = Logger.getLogger("Minecraft");
-    private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
+	//static final Logger log = Logger.getLogger("Minecraft");
+    private final Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
 
 	//public static Permission permission = null;
     public static Economy economy = null;
     
     public static double version;
-    static String lang = "en_US";
+    static String locale = "en_US";
     public boolean namesVisible = true;
+	
+	private Lang lang;
+	private Interactor interactor;
 
 	public void onEnable(){
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
-		prefix = "[" + pdfFile.getName()+ "]: ";
+		//prefix = "[" + pdfFile.getName()+ "]: ";
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
         try {
             Object test = org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager.class.getName();
         } catch (NoClassDefFoundError ex) {
-            log.severe(prefix + " PLUGIN NOT LOADED!!!");
-            log.severe(prefix + " ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
-            log.severe(prefix + " GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
-            log.severe(prefix + " YOUR SERVER VERSION IS " + this.getServer().getBukkitVersion());
-            log.severe(prefix + " PLUGIN NOT LOADED!!!");
+            getLogger().severe("PLUGIN NOT LOADED!!!");
+			getLogger().severe("ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
+			getLogger().severe("GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
+			getLogger().severe("YOUR SERVER VERSION IS " + this.getServer().getBukkitVersion());
+			getLogger().severe("PLUGIN NOT LOADED!!!");
             this.getPluginLoader().disablePlugin(this);
             return;
         }
@@ -73,6 +75,9 @@ public class Griswold extends JavaPlugin implements Listener {
         getCommand("blacksmith").setExecutor(new CommandListener(this));
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
+		
+		this.lang = new Lang(this);
+		this.interactor = new Interactor(this);
 
 		try {
 		    Metrics metrics = new Metrics(this);
@@ -85,15 +90,15 @@ public class Griswold extends JavaPlugin implements Listener {
 		    });
 		    metrics.start();
 		} catch (IOException e) {
-		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
+		    if (debug) getLogger().info("ERROR: failed to submit stats to MCStats");
 		}
-		
-		log.info( prefix + "Enabled! Version: " + version);
+
+		getLogger().info("Enabled! Version: " + version);
 	}
 
 	public void onDisable(){
         despawnAll();
-		log.info( prefix + "Disabled.");
+		getLogger().info("Disabled.");
 	}
 
 
@@ -114,7 +119,7 @@ public class Griswold extends JavaPlugin implements Listener {
 			if (rep.name.equalsIgnoreCase(name)) found = true;
 		}
 		if (found) {
-			log.info(prefix+String.format(Lang.repairman_exists, name));
+			getLogger().info(String.format(lang.repairman_exists, name));
 			return;
 		}
 			
@@ -129,7 +134,7 @@ public class Griswold extends JavaPlugin implements Listener {
     	try {
     		config.save(configFile);
     	} catch (Exception e) {
-    		log.info(prefix+Lang.error_config);
+			getLogger().info(lang.error_config);
     		e.printStackTrace();
     	}
 		
@@ -150,7 +155,7 @@ public class Griswold extends JavaPlugin implements Listener {
         		e.printStackTrace();
         	}
 		} else {
-			log.info(prefix+Lang.error_remove);
+			getLogger().info(lang.error_remove);
 			return;
 		}
 		reloadPlugin();
@@ -163,7 +168,7 @@ public class Griswold extends JavaPlugin implements Listener {
 			result = result + rep.name + ", ";
 		}
 		if (!result.equals("")) {
-			sender.sendMessage(ChatColor.GREEN+Lang.repairman_list);
+			sender.sendMessage(ChatColor.GREEN+lang.repairman_list);
 			sender.sendMessage(result);
 		}
 	}
@@ -205,11 +210,11 @@ public class Griswold extends JavaPlugin implements Listener {
 	public void spawnRepairman(Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) {
-			log.info(prefix+"ERROR: LOCATION IS NULL");
+			getLogger().info("ERROR: LOCATION IS NULL");
 			return;
 		}
 		if (squidward.type.equals("enchant") && !Interactor.enableEnchants) {
-			log.info(prefix+String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
+			getLogger().info(String.format(lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
 			return;
 		}
 		LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
@@ -230,13 +235,13 @@ public class Griswold extends JavaPlugin implements Listener {
 		squidward.overwriteAI();
 
 		if (debug) {
-			log.info(prefix+String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
+			getLogger().info(String.format(lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
 	}
 	
 	private void readConfig() {
 
-    	Lang.createLangFile();
+		lang.createLangFile();
 		
 		configFile = new File(directory, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
@@ -246,19 +251,19 @@ public class Griswold extends JavaPlugin implements Listener {
         if (configFile.exists()) {
         	debug = config.getBoolean("Debug");
         	timeout = config.getInt("Timeout");
-        	lang = config.getString("Language");
+        	locale = config.getString("Language");
             namesVisible = config.getBoolean("ShowNames");
         	
         	if (Double.parseDouble(config.getString("Version")) < version) {
         		updateConfig(config.getString("Version"));
         	} else if (Double.parseDouble(config.getString("Version")) == 0) {
-        		log.info(prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        		log.info(prefix+"ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
-        		log.info(prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+				getLogger().info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+				getLogger().info("ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
+				getLogger().info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
         	}
 
-        	Lang.checkLangVersion(lang);
-			Lang.init();
+        	lang.checkLangVersion(locale);
+			lang.init();
 
 	        Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
 	        Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
@@ -287,10 +292,10 @@ public class Griswold extends JavaPlugin implements Listener {
 	        		spawnRepairman(squidward);
 	        	}
         	}
-	        log.info(prefix+Lang.config_loaded);
+			getLogger().info(lang.config_loaded);
 
         	if(debug) {
-        		log.info(prefix+String.format(Lang.debug_loaded, npcChunks.keySet().size()));
+				getLogger().info(String.format(lang.debug_loaded, npcChunks.keySet().size()));
         	}
         } else {
         	config.set("Timeout", 5000);
@@ -307,9 +312,9 @@ public class Griswold extends JavaPlugin implements Listener {
         	config.set("Version", this.getDescription().getVersion());
         	try {
         		config.save(configFile);
-        		log.info(prefix+Lang.default_config);
+				getLogger().info(lang.default_config);
         	} catch (Exception e) {
-        		log.info(prefix+Lang.error_create_config);
+				getLogger().info(lang.error_create_config);
         		e.printStackTrace();
         	}
         }
@@ -318,7 +323,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	private void updateConfig(String oldVersion) {
 		if (Double.parseDouble(oldVersion) < 0.05d) {
 			// ADDED IN 0.05
-			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION OLDER THAN 0.5");
+			getLogger().info("UPDATING CONFIG " + config.getName() + " FROM VERSION OLDER THAN 0.5");
 
 			config.set("PriceToAddEnchantment", 50.0);
 	        config.set("ClearOldEnchantments", true);
@@ -333,7 +338,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 
 		if (Double.parseDouble(oldVersion) == 0.05d) {
-			log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
+			getLogger().info("UPDATING CONFIG " + config.getName() + " FROM VERSION 0.5");
 			// ADDED IN 0.051
 			config.set("UseEnchantmentSystem", true);
 
@@ -346,7 +351,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
 
         if (Double.parseDouble(oldVersion) == 0.06d || Double.parseDouble(oldVersion) == 0.051d) {
-            log.info(prefix+"UPDATING CONFIG "+config.getName()+" FROM VERSION 0.51/0.6");
+			getLogger().info("UPDATING CONFIG " + config.getName() + " FROM VERSION 0.51/0.6");
             // ADDED IN 0.07
             config.set("ShowNames", true);
 
@@ -363,13 +368,21 @@ public class Griswold extends JavaPlugin implements Listener {
 		return this.npcChunks;
 	}
 
+	public Lang getLang() {
+		return this.lang;
+	}
+
+	public Interactor getInteractor() {
+		return this.interactor;
+	}
+
 	private class Starter implements Runnable {
 		@Override
 		public void run() {
 			reloadPlugin();
 
-			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
-			//if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
+			if (!setupEconomy()) getLogger().info(lang.economy_not_found);
+			//if (!setupPermissions()) log.info(prefix+lang.permissions_not_found);
 			
 		}
 		
@@ -395,7 +408,7 @@ class Repairer {
 	public String type = "all";
 	public double cost = 1;
     public String sound = "mob.villager.haggle";
-    private Random rnd = new Random();
+    private final Random rnd = new Random();
 
     public void overwriteAI() {
         try {
@@ -423,8 +436,8 @@ class Repairer {
 }
 
 class Pair {
-    public int x = 0;
-    public int z = 0;
+    private int x = 0;
+    private int z = 0;
     public Pair (int x, int z) {
         this.x = x;
         this.z = z;
