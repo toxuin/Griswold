@@ -100,8 +100,6 @@ public class CommandListener implements CommandExecutor {
 			return false;
 		}
 
-		if (sender instanceof ConsoleCommandSender) return true;
-		//if (Griswold.permission == null) return sender.isOp();
-		return sender.hasPermission("griswold.admin");
-	}
+        return sender instanceof ConsoleCommandSender || sender.hasPermission("griswold.admin");
+    }
 }

@@ -92,7 +92,7 @@ public class Lang {
         chat_enchant_failed = language.getString("chat_enchant_failed");
         chat_needs_repair = language.getString("chat_needs_repair");
         
-        Logger.getLogger("Minecraft").info(String.format(Griswold.prefix+lang_loaded, Griswold.lang+".yml"));
+        Logger.getLogger("Minecraft").info(String.format(lang_loaded, Griswold.lang+".yml"));
 	}
 	
 	public static void createLangFile() {
@@ -156,14 +156,14 @@ public class Lang {
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (language.getDouble("version") == 0) {
-        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        	Griswold.log.info(Griswold.prefix+"ERROR: YOUR LANGUAGE FILE IS CORRUPTED!!! ERROR!");
-        	Griswold.log.info(Griswold.prefix+"ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	Griswold.log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
+        	Griswold.log.info("ERROR: YOUR LANGUAGE FILE IS CORRUPTED!!! ERROR!");
+        	Griswold.log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
         	return;
         }
         
 		if (language.getDouble("version") < 0.04d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
+			Griswold.log.info("UPGRADING LANG FILE FROM VERSION OLDER THAN 0.04");
 			
 			language.set("lang_loaded", "Language file %s loaded!");
 			
@@ -183,7 +183,7 @@ public class Lang {
     	}
 		
 		if (language.getDouble("version") == 0.04d) {
-    		Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.04");
+    		Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.04");
     		
     		language.set("error_few_arguments", "Too few arguments.");
     		language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
@@ -203,7 +203,7 @@ public class Lang {
     	}
 
 		if (language.getDouble("version") == 0.05d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.05");
+			Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.05");
 			language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
 			language.set("version", 0.051d);
 
@@ -215,7 +215,7 @@ public class Lang {
 		}
 		
 		if (language.getDouble("version") == 0.051d) {
-			Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.051");
+			Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.051");
 			language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
 			language.set("version", 0.06d);
 			
@@ -227,7 +227,7 @@ public class Lang {
 		}
 
         if (language.getDouble("version") == 0.06d) {
-            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.06");
             language.set("names_on", "Now showing blacksmiths' names.");
             language.set("names_off", "Now hiding blacksmiths' names.");
             language.set("sound_changed", "Blacksmith %s has new sound now!");
@@ -241,7 +241,7 @@ public class Lang {
         }
 
         if (language.getDouble("version") == 0.07d || language.getDouble("version") == 0.071d) {
-            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.07 / 0.071");
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.07 / 0.071");
             language.set("chat_enchant_free", "This item is fully repaired, though I can enchant it - for free of course.");
             language.set("chat_enchant_cost", "This item is fully repaired, though I can enchant it for %s %s.");
             language.set("version", 0.072d);
@@ -254,7 +254,7 @@ public class Lang {
         }
 
         if (language.getDouble("version") == 0.072d) {
-            Griswold.log.info(Griswold.prefix+"UPGRADING LANG FILE "+locale+" FROM VERSION 0.072");
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.072");
             language.set("permissions_not_found", null);
             language.set("version", 0.073d);
 
