@@ -235,27 +235,31 @@ public class Interactor {
 	}
 
 	private static boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
-		if (repairman.type.equalsIgnoreCase("all")) {
-			if (item.getDurability() != 0) {
-				if (repairableArmor.contains(item.getType())) {
+		if(repairman.type.equalsIgnoreCase("all")) {
+			if(item.getDurability() != 0) {
+				if(repairableArmor.contains(item.getType())) {
 					// check for armor perm
-					return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-				} else return ((repairableTools.contains(item.getType())) &&       // check tools perm
-							((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
+					return player.hasPermission("griswold.armor");
+				} else {
+					return (repairableTools.contains(item.getType()) &&       // check tools perm
+							player.hasPermission("griswold.tools"));
+				}
 			} else {
-				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+				return player.hasPermission("griswold.enchant");
 			}
-		} else if (repairman.type.equalsIgnoreCase("both")) {
-			if (repairableArmor.contains(item.getType())) {
-				return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-			} else return ((repairableTools.contains(item.getType())) &&
-					((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools")));
-		} else if (repairman.type.equalsIgnoreCase("tools")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.tools"));
-		} else if (repairman.type.equalsIgnoreCase("armor")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.armor"));
-		} else if (repairman.type.equalsIgnoreCase("enchant")) {
-			return ((Griswold.permission == null) || Griswold.permission.has(player, "griswold.enchant"));
+		} else if(repairman.type.equalsIgnoreCase("both")) {
+			if(repairableArmor.contains(item.getType())) {
+				return player.hasPermission("griswold.armor");
+			} else {
+				return (repairableTools.contains(item.getType()) &&
+						player.hasPermission("griswold.tools"));
+			}
+		} else if(repairman.type.equalsIgnoreCase("tools")) {
+			return player.hasPermission("griswold.tools");
+		} else if(repairman.type.equalsIgnoreCase("armor")) {
+			return player.hasPermission("griswold.armor");
+		} else if(repairman.type.equalsIgnoreCase("enchant")) {
+			return player.hasPermission("griswold.enchant");
 		}
 		return false;
 	}
