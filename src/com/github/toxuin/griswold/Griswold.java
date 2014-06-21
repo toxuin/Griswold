@@ -12,16 +12,11 @@ import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
 import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.*;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
-import org.bukkit.event.world.ChunkUnloadEvent;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -38,7 +33,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
 	public static String prefix = null;
 	
-	public static boolean debug = false;
+	public boolean debug = false;
 	
 	public static int timeout = 5000;
 	
@@ -73,10 +68,9 @@ public class Griswold extends JavaPlugin implements Listener {
             return;
         }
 
-		this.getServer().getPluginManager().registerEvents(this, this);
+		this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
 
-        CommandListener commandListener = new CommandListener(this);
-        getCommand("blacksmith").setExecutor(commandListener);
+        getCommand("blacksmith").setExecutor(new CommandListener(this));
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
@@ -102,86 +96,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		log.info( prefix + "Disabled.");
 	}
 
-	// MAKE THEM INVINCIBLE
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onEntityDamage(EntityDamageEvent event) {
-		if (npcChunks.isEmpty()) return;
-        Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
-			if (event.getEntity().equals(rep.entity)) {
-				event.setDamage(0d);
-				event.setCancelled(true);
-			}
-		}
-	}
 
-	// MAKE INTERACTION
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-
-		if(!event.getPlayer().hasPermission("griswold.tools")
-				|| !event.getPlayer().hasPermission("griswold.armor")
-				|| !event.getPlayer().hasPermission("griswold.enchant")) {
-			return;
-		}
-
-		Set<Repairer> npcs = npcChunks.keySet();
-		for(Repairer rep : npcs) {
-			if(event.getRightClicked().equals(rep.entity)) {
-				Interactor.interact(event.getPlayer(), rep);
-				event.setCancelled(true);
-			}
-		}
-	}
-
-    // NO ZOMBIE NO CRY
-    @EventHandler
-    public void onZombieTarget(EntityTargetLivingEntityEvent event) {
-        Entity someone = event.getEntity();
-        if (someone instanceof Zombie) {
-            Set<Repairer> npcs = npcChunks.keySet();
-            for (Repairer rep : npcs) {
-                if (rep.entity.equals(event.getTarget())) {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onNewChunkLoad(ChunkLoadEvent event) {
-        if (npcChunks.isEmpty()) return;
-        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
-                    if (npcChunks.get(rep).equals(coords)) {
-                        spawnRepairman(rep);
-                        if (debug) log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
-                    }
-                }
-            }
-        }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onNewChunkUnload(ChunkUnloadEvent event) {
-        if (npcChunks.isEmpty()) return;
-        Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
-                    if (npcChunks.get(rep).equals(coords)) {
-                        rep.entity.remove();
-                        if (debug) log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
-                    }
-                }
-            }
-        }
-    }
 
 	void reloadPlugin() {
 		despawnAll();
@@ -287,7 +202,7 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 	
-	private void spawnRepairman(Repairer squidward) {
+	public void spawnRepairman(Repairer squidward) {
 		Location loc = squidward.loc;
 		if (loc == null) {
 			log.info(prefix+"ERROR: LOCATION IS NULL");
@@ -444,6 +359,10 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 	}
 
+	public Map<Repairer, Pair> getNpcChunks() {
+		return this.npcChunks;
+	}
+
 	private class Starter implements Runnable {
 		@Override
 		public void run() {
@@ -456,20 +375,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		
 	}
 
-    /*private boolean setupPermissions()
-    {
-    	if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Permission> permissionProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.permission.Permission.class);
-        if (permissionProvider != null) {
-            permission = permissionProvider.getProvider();
-        }
-        return (permission != null);
-    }*/
-
-    private boolean setupEconomy()
-    {
+    private boolean setupEconomy() {
     	if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
