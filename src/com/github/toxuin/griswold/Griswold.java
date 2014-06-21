@@ -1,14 +1,18 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.Metrics.Graph;
 import net.milkbowl.vault.economy.Economy;
-import net.milkbowl.vault.permission.Permission;
+import net.minecraft.server.v1_7_R3.*;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.*;
+import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
+import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.*;
 import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -18,10 +22,9 @@ import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import com.github.toxuin.griswold.Metrics.Graph;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,10 +33,6 @@ import java.util.*;
 import java.util.logging.Logger;
 
 // VERSION DEPENDANT
-import net.minecraft.server.v1_7_R3.*;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftVillager;
-import org.bukkit.craftbukkit.v1_7_R3.CraftWorld;
-import org.bukkit.craftbukkit.v1_7_R3.entity.CraftEntity;
 
 public class Griswold extends JavaPlugin implements Listener {
 	public static File directory;
@@ -48,7 +47,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	static Logger log = Logger.getLogger("Minecraft");
     private Map<Repairer, Pair> npcChunks = new HashMap<Repairer, Pair>();
 
-	public static Permission permission = null;
+	//public static Permission permission = null;
     public static Economy economy = null;
     
     public static double version;
@@ -119,14 +118,16 @@ public class Griswold extends JavaPlugin implements Listener {
 	// MAKE INTERACTION
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
 	public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
-		if (permission != null) {
-			if (!permission.has(event.getPlayer(), "griswold.tools") ||
-				!permission.has(event.getPlayer(), "griswold.armor") ||
-				!permission.has(event.getPlayer(), "griswold.enchant")) return;
+
+		if(!event.getPlayer().hasPermission("griswold.tools")
+				|| !event.getPlayer().hasPermission("griswold.armor")
+				|| !event.getPlayer().hasPermission("griswold.enchant")) {
+			return;
 		}
-        Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
-			if (event.getRightClicked().equals(rep.entity)) {
+
+		Set<Repairer> npcs = npcChunks.keySet();
+		for(Repairer rep : npcs) {
+			if(event.getRightClicked().equals(rep.entity)) {
 				Interactor.interact(event.getPlayer(), rep);
 				event.setCancelled(true);
 			}
@@ -449,13 +450,13 @@ public class Griswold extends JavaPlugin implements Listener {
 			reloadPlugin();
 
 			if (!setupEconomy()) log.info(prefix+Lang.economy_not_found);
-			if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
+			//if (!setupPermissions()) log.info(prefix+Lang.permissions_not_found);
 			
 		}
 		
 	}
 
-    private boolean setupPermissions()
+    /*private boolean setupPermissions()
     {
     	if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
@@ -465,7 +466,7 @@ public class Griswold extends JavaPlugin implements Listener {
             permission = permissionProvider.getProvider();
         }
         return (permission != null);
-    }
+    }*/
 
     private boolean setupEconomy()
     {
