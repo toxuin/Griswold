@@ -34,14 +34,17 @@ public class Griswold extends JavaPlugin implements Listener {
     public static Economy economy = null;
     
     public static double version;
+    public static String apiVersion;
     static String lang = "en_US";
     public boolean namesVisible = true;
 
-	public void onEnable(){
+    public void onEnable() {
         log = this.getLogger();
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
+        apiVersion = this.getServer().getClass().getPackage().getName().substring(
+                     this.getServer().getClass().getPackage().getName().lastIndexOf('.') + 1);
         interactor = new Interactor();
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
@@ -77,7 +80,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		log.info("Enabled! Version: " + version);
 	}
 
-	public void onDisable(){
+	public void onDisable() {
         despawnAll();
 		log.info("Disabled.");
 	}
