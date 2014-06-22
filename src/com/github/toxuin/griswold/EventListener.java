@@ -4,8 +4,8 @@ import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
@@ -54,19 +54,19 @@ public class EventListener implements Listener {
 		}
 	}
 
-	// NO ZOMBIE NO CRY
-	@EventHandler
-	public void onZombieTarget(EntityDamageByEntityEvent event) {
-		if (event.getEntity() instanceof Zombie) {
-			Set<Repairer> npcs = npcChunks.keySet();
-			for (Repairer rep : npcs) {
-				if (rep.entity.equals(event.getEntity())) {
-					event.setCancelled(true);
-					return;
-				}
-			}
-		}
-	}
+    // NO ZOMBIE NO CRY
+    @EventHandler
+    public void onZombieTarget(EntityTargetLivingEntityEvent event) {
+        if (event.getEntity() instanceof Zombie) {
+            Set<Repairer> npcs = npcChunks.keySet();
+            for (Repairer rep : npcs) {
+                if (rep.entity.equals(event.getTarget())) {
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+        }
+    }
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onNewChunkLoad(ChunkLoadEvent event) {
