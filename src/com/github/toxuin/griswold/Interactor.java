@@ -8,6 +8,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -60,12 +61,13 @@ class Interactor {
         repairableTools.add(Material.GOLD_PICKAXE);
         repairableTools.add(Material.GOLD_SWORD);
         repairableTools.add(Material.GOLD_HOE);
-        repairableTools.add(Material.GOLD_SPADE);           // GOLDEN TOOLS
+        repairableTools.add(Material.GOLD_SPADE);               // GOLDEN TOOLS
 
-        repairableTools.add(Material.FLINT_AND_STEEL); // ZIPPO
-        repairableTools.add(Material.SHEARS); // SCISSORS
-        repairableTools.add(Material.BOW); // BOW
-        repairableTools.add(Material.FISHING_ROD); // FISHING ROD
+        repairableTools.add(Material.FLINT_AND_STEEL);          // ZIPPO
+        repairableTools.add(Material.SHEARS);                   // SCISSORS
+        repairableTools.add(Material.BOW);                      // BOW
+        repairableTools.add(Material.FISHING_ROD);              // FISHING ROD
+        repairableTools.add(Material.BOOK);                     // BOOK
 
         // ARMORZ!
         repairableArmor.add(Material.LEATHER_BOOTS);
@@ -114,7 +116,7 @@ class Interactor {
 
 	@SuppressWarnings("unchecked")
     public void interact(Player player, Repairer repairman) {
-		final ItemStack item = player.getItemInHand();
+		ItemStack item = player.getItemInHand();
 
         repairman.haggle();
 		
@@ -174,6 +176,16 @@ class Interactor {
                                         int bonus = (new Random()).nextInt(maxEnchantBonus);
                                         Method b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
                                         List<?> list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+
+                                        EnchantmentStorageMeta bookmeta = null;
+                                        ItemStack bookLeftovers = null;
+                                        if (item.getType().equals(Material.BOOK)) {
+                                            if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
+                                            player.getInventory().remove(item);
+                                            item = new ItemStack(Material.ENCHANTED_BOOK);
+                                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                                        }
+
                                         if (list != null) {
                                             for (Object obj : list) {
                                                 Object instance = enchantmentInstance.cast(obj);
@@ -181,8 +193,19 @@ class Interactor {
                                                 Field levelField = enchantmentInstance.getField("level");
                                                 Object enchantment = enchantmentField.get(instance);
                                                 Field idField = enchantment.getClass().getField("id");
-                                                item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
+                                                if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
+                                                    bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
+                                                } else {
+                                                    item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
+                                                }
                                             }
+
+                                            if (item.getType().equals(Material.ENCHANTED_BOOK)) {
+                                                item.setItemMeta(bookmeta);
+                                                player.getInventory().setItemInHand(item);
+                                                if (bookLeftovers!=null) player.getInventory().addItem(bookLeftovers);
+                                            }
+
                                             inter.valid = false; // INVALIDATE INTERACTION
                                             player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
                                         } else {
