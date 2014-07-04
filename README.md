@@ -67,7 +67,7 @@ These commands are for administrative purposes, users don't need them.
 
 * **/blacksmith names** – toggles names above their heads.
 
-* **/blacksmith sound name minecraft_sound_id** – sets the interaction sound for the repairman. Use standard minecraft sound ID's (you can find those [here](http://www.minecraftforum.net/topic/1880130-all-minecraft-playsound-file-names/)). You can set sound to "mute" to be silent.
+* **/blacksmith sound name bukkit_sound_id** – sets the interaction sound for the repairman. Use standard bukkit Sound names (you can find those [here](http://jd.bukkit.org/rb/apidocs/org/bukkit/Sound.html)). You can set sound to "mute" to be silent.
 
 * **/blacksmith reload** - reloads config, despawns and then respawns all the repairmen.
 
