@@ -259,6 +259,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	        Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
 
 	        Interactor.enableEnchants = config.getBoolean("UseEnchantmentSystem");
+            Interactor.enchantBooks = config.getBoolean("EnchantBooks");
 
 	        if (config.isConfigurationSection("repairmen")) {
         		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
@@ -291,6 +292,7 @@ public class Griswold extends JavaPlugin implements Listener {
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
 	        config.set("UseEnchantmentSystem", true);
+            config.set("EnchantBooks", true);
         	config.set("PriceToAddEnchantment", 50.0);
         	config.set("ClearOldEnchantments", true);
         	config.set("EnchantmentBonus", 5);
@@ -347,6 +349,26 @@ public class Griswold extends JavaPlugin implements Listener {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        if (Double.parseDouble(oldVersion) == 0.07d) {
+            log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.7*");
+            if (config.isConfigurationSection("repairmen")) {
+                Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
+                for (String repairman : repairmen) {
+                    if (config.getString("repairmen." + repairman + ".sound").equals("mob.villager.haggle")) {
+                        config.set("repairmen." + repairman + ".sound", "VILLAGER_HAGGLE");
+                    }
+                }
+            }
+            config.set("EnchantBooks", true);
+
+            try {
+                config.save(configFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            config.set("Version", 0.08d);
         }
 	}
 
