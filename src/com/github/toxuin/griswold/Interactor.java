@@ -21,10 +21,11 @@ class Interactor {
 	public static double enchantmentPrice = 30.0;
 	
 	public static boolean enableEnchants = true;
+    public static boolean enchantBooks;
 	public static double addEnchantmentPrice = 50.0;
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
-	
+
 	private final List<Material> repairableTools = new LinkedList<Material>();
 	private final List<Material> repairableArmor = new LinkedList<Material>();
 
@@ -67,7 +68,7 @@ class Interactor {
         repairableTools.add(Material.SHEARS);                   // SCISSORS
         repairableTools.add(Material.BOW);                      // BOW
         repairableTools.add(Material.FISHING_ROD);              // FISHING ROD
-        repairableTools.add(Material.BOOK);                     // BOOK
+        if (enchantBooks) repairableTools.add(Material.BOOK);   // BOOK
 
         // ARMORZ!
         repairableArmor.add(Material.LEATHER_BOOTS);
@@ -179,7 +180,7 @@ class Interactor {
 
                                         EnchantmentStorageMeta bookmeta = null;
                                         ItemStack bookLeftovers = null;
-                                        if (item.getType().equals(Material.BOOK)) {
+                                        if (item.getType().equals(Material.BOOK) && enchantBooks) {
                                             if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
                                             player.getInventory().remove(item);
                                             item = new ItemStack(Material.ENCHANTED_BOOK);

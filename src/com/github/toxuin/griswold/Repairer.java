@@ -1,5 +1,6 @@
 package com.github.toxuin.griswold;
 
+import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
 import org.bukkit.Location;
 
@@ -58,16 +59,14 @@ public class Repairer {
     public void haggle() {
         if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && craftEntity.isInstance(this.entity)) {
             try {
-                Method worldGetHandle = craftWorld.getMethod("getHandle");
-                Object wserver = worldGetHandle.invoke(craftWorld.cast(this.entity.getLocation().getWorld()));
-                Method entityGetHandle = craftEntity.getMethod("getHandle");
-                Object entity = entityGetHandle.invoke(craftEntity.cast(this.entity));
-                Method makeSound = wserver.getClass().getMethod("makeSound", entityClass, String.class, float.class, float.class);
-                makeSound.invoke(wserver, entity, this.sound, 100f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
-            } catch (Exception e) {
-                e.printStackTrace();
+                Sound snd = Sound.valueOf(sound);
+                this.entity.getWorld().playSound(entity.getLocation(), snd, 1.2f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
+            } catch (IllegalArgumentException e) {
+                Griswold.log.info("NPC " + name + " has invalid sound! Disabling sound for it...");
+                sound = null;
             }
         }
+
     }
 
     // DEBUGGING METHODS
