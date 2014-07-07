@@ -21,13 +21,13 @@ class Interactor {
 	public static double enchantmentPrice = 30.0;
 	
 	public static boolean enableEnchants = true;
-    public static boolean enchantBooks;
 	public static double addEnchantmentPrice = 50.0;
 	public static int maxEnchantBonus = 5;
 	public static boolean clearEnchantments = false;
 
 	private final List<Material> repairableTools = new LinkedList<Material>();
 	private final List<Material> repairableArmor = new LinkedList<Material>();
+	private final List<Material> notEnchantable = new LinkedList<Material>();
 
     final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
     final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
@@ -64,11 +64,17 @@ class Interactor {
         repairableTools.add(Material.GOLD_HOE);
         repairableTools.add(Material.GOLD_SPADE);               // GOLDEN TOOLS
 
+        repairableTools.add(Material.BOW);                      // BOW
+
         repairableTools.add(Material.FLINT_AND_STEEL);          // ZIPPO
         repairableTools.add(Material.SHEARS);                   // SCISSORS
-        repairableTools.add(Material.BOW);                      // BOW
         repairableTools.add(Material.FISHING_ROD);              // FISHING ROD
-        if (enchantBooks) repairableTools.add(Material.BOOK);   // BOOK
+        repairableTools.add(Material.BOOK);                     // BOOK
+        repairableTools.add(Material.ENCHANTED_BOOK);
+
+        notEnchantable.add(Material.FLINT_AND_STEEL);
+        notEnchantable.add(Material.SHEARS);
+        notEnchantable.add(Material.FISHING_ROD);
 
         // ARMORZ!
         repairableArmor.add(Material.LEATHER_BOOTS);
@@ -173,17 +179,19 @@ class Interactor {
 
                                     try {
                                         Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
-                                        Object vanillaItem = asNMSCopy.invoke(null, item);
+                                        Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
                                         int bonus = (new Random()).nextInt(maxEnchantBonus);
                                         Method b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
                                         List<?> list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
 
                                         EnchantmentStorageMeta bookmeta = null;
                                         ItemStack bookLeftovers = null;
-                                        if (item.getType().equals(Material.BOOK) && enchantBooks) {
+                                        if (item.getType().equals(Material.BOOK)) {
                                             if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
                                             player.getInventory().remove(item);
                                             item = new ItemStack(Material.ENCHANTED_BOOK);
+                                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                                        } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                                             bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
                                         }
 
@@ -204,7 +212,11 @@ class Interactor {
                                             if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                                                 item.setItemMeta(bookmeta);
                                                 player.getInventory().setItemInHand(item);
-                                                if (bookLeftovers!=null) player.getInventory().addItem(bookLeftovers);
+                                                if (bookLeftovers!=null) {
+                                                    if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
+                                                        player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
+                                                    } else player.getInventory().addItem(bookLeftovers);
+                                                }
                                             }
 
                                             inter.valid = false; // INVALIDATE INTERACTION
@@ -237,7 +249,7 @@ class Interactor {
 
 			if (item.getDurability() != 0) {
 				// NEEDS REPAIR
-				if (!repairman.type.equalsIgnoreCase("enchant")){
+				if (!repairman.type.equalsIgnoreCase("enchant")) {
 					// CAN REPAIR
 					interactions.add(interaction);
 					if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
@@ -250,7 +262,7 @@ class Interactor {
 				}
 			} else {
 				// NEEDS ENCHANT
-				if (enableEnchants && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) )) { // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
+				if (enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) )) { // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
 					price = addEnchantmentPrice;
 					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) { // CAN ENCHANT
 						interactions.add(interaction);
@@ -318,6 +330,13 @@ class Interactor {
 		}
 		return price * repairman.cost;
 	}
+
+    protected void finalize() throws Throwable {
+        repairableArmor.clear();
+        repairableTools.clear();
+        notEnchantable.clear();
+        super.finalize();
+    }
 }
 
 class Interaction {
