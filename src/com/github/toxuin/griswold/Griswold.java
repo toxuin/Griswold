@@ -45,7 +45,6 @@ public class Griswold extends JavaPlugin implements Listener {
 		version = Double.parseDouble(pdfFile.getVersion());
         apiVersion = this.getServer().getClass().getPackage().getName().substring(
                      this.getServer().getClass().getPackage().getName().lastIndexOf('.') + 1);
-        interactor = new Interactor();
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
         if (ClassProxy.getClass("entity.CraftVillager") == null) {
@@ -63,7 +62,9 @@ public class Griswold extends JavaPlugin implements Listener {
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
-		try {
+        interactor = new Interactor();
+
+        try {
 		    Metrics metrics = new Metrics(this);
 		    Graph graph = metrics.createGraph("Number of NPCs");
 		    graph.addPlotter(new Metrics.Plotter("Total") {
@@ -81,6 +82,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	}
 
 	public void onDisable() {
+        interactor = null;
         despawnAll();
 		log.info("Disabled.");
 	}
@@ -259,7 +261,6 @@ public class Griswold extends JavaPlugin implements Listener {
 	        Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
 
 	        Interactor.enableEnchants = config.getBoolean("UseEnchantmentSystem");
-            Interactor.enchantBooks = config.getBoolean("EnchantBooks");
 
 	        if (config.isConfigurationSection("repairmen")) {
         		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
@@ -281,7 +282,7 @@ public class Griswold extends JavaPlugin implements Listener {
         	}
 	        log.info(Lang.config_loaded);
 
-        	if(debug) {
+        	if (debug) {
         		log.info(String.format(Lang.debug_loaded, npcChunks.keySet().size()));
         	}
         } else {
@@ -292,7 +293,6 @@ public class Griswold extends JavaPlugin implements Listener {
         	config.set("BasicToolPrice", 10.0);
         	config.set("BasicEnchantmentPrice", 30.0);
 	        config.set("UseEnchantmentSystem", true);
-            config.set("EnchantBooks", true);
         	config.set("PriceToAddEnchantment", 50.0);
         	config.set("ClearOldEnchantments", true);
         	config.set("EnchantmentBonus", 5);
@@ -361,14 +361,13 @@ public class Griswold extends JavaPlugin implements Listener {
                     }
                 }
             }
-            config.set("EnchantBooks", true);
+            config.set("Version", 0.08d);
 
             try {
                 config.save(configFile);
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            config.set("Version", 0.08d);
         }
 	}
 
