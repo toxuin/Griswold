@@ -26,6 +26,7 @@ public class Lang {
 	public static String respawned = "ERROR: LANG NOT FOUND: respawned";
 	public static String error_few_arguments = "ERROR: LANG NOT FOUND: error_few_arguments";
 	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
+    public static String error_npc_not_found = "ERROR: LANG NOT FOUND: error_npc_not_found";
 	public static String name_format = "ERROR: LANG NOT FOUND: name_format";
 
     public static String names_on = "ERROR: LANG NOT FOUND: names_on";
@@ -46,7 +47,7 @@ public class Lang {
 	public static String chat_noitem = "ERROR: LANG NOT FOUND: chat_noitem";
 	public static String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
 	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
-	
+
 	public static void init() {
 		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
@@ -70,6 +71,7 @@ public class Lang {
         respawned = language.getString("respawned");
         error_few_arguments = language.getString("error_few_arguments");
 		error_enchanter_not_spawned = language.getString("error_enchanter_not_spawned");
+        error_npc_not_found = language.getString("error_npc_not_found");
 		name_format = language.getString("name_format");
 
         names_on = language.getString("names_on");
@@ -119,6 +121,7 @@ public class Lang {
         	language.set("respawned", "All blacksmiths respawned");
         	language.set("error_few_arguments", "Too few arguments.");
 	        language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
+            language.set("error_npc_not_found", "Could not find NPC with name %s");
 	        language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
 
             language.set("names_on", "Now showing blacksmiths' names.");
@@ -257,6 +260,18 @@ public class Lang {
             Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.072");
             language.set("permissions_not_found", null);
             language.set("version", 0.073d);
+
+            try {
+                language.save(langFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (language.getDouble("version") == 0.073d) {
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.072");
+            language.set("error_npc_not_found", "Could not find NPC with name %s");
+            language.set("version", 0.08d);
 
             try {
                 language.save(langFile);

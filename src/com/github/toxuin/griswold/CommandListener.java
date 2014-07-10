@@ -1,5 +1,6 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.npcs.GriswoldNPC;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -80,8 +81,13 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
-            plugin.setSound(args[1], args[2]);
-            sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+            GriswoldNPC npc = plugin.getNPCByName(args[1]);
+            if (npc != null) {
+                npc.setSound(args[2]);
+                sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+            } else {
+                sender.sendMessage(String.format(Lang.error_npc_not_found, args[1]));
+            }
         }
 
         return false;

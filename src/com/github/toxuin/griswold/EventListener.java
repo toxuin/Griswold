@@ -1,5 +1,7 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.Pair;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,7 +18,7 @@ import java.util.Set;
 public class EventListener implements Listener {
 
 	private final Griswold plugin;
-	private final Map<Repairer, Pair> npcChunks;
+	private final Map<GriswoldNPC, Pair> npcChunks;
 
 	public EventListener(final Griswold plugin) {
 		this.plugin = plugin;
@@ -27,8 +29,8 @@ public class EventListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onEntityDamage(EntityDamageEvent event) {
 		if (npcChunks.isEmpty()) return;
-		Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
+		Set<GriswoldNPC> npcs = npcChunks.keySet();
+		for (GriswoldNPC rep : npcs) {
 			if (event.getEntity().equals(rep.entity)) {
 				event.setDamage(0d);
 				event.setCancelled(true);
@@ -45,10 +47,10 @@ public class EventListener implements Listener {
 			return;
 		}
 
-		Set<Repairer> npcs = npcChunks.keySet();
-		for (Repairer rep : npcs) {
+		Set<GriswoldNPC> npcs = npcChunks.keySet();
+		for (GriswoldNPC rep : npcs) {
 			if (event.getRightClicked().equals(rep.entity)) {
-				plugin.interactor.interact(event.getPlayer(), rep);
+				//plugin.interactor.interact(event.getPlayer(), rep);
 				event.setCancelled(true);
 			}
 		}
@@ -58,8 +60,8 @@ public class EventListener implements Listener {
     @EventHandler
     public void onZombieTarget(EntityTargetLivingEntityEvent event) {
         if (event.getEntity() instanceof Zombie) {
-            Set<Repairer> npcs = npcChunks.keySet();
-            for (Repairer rep : npcs) {
+            Set<GriswoldNPC> npcs = npcChunks.keySet();
+            for (GriswoldNPC rep : npcs) {
                 if (rep.entity.equals(event.getTarget())) {
                     event.setCancelled(true);
                     return;
@@ -75,9 +77,9 @@ public class EventListener implements Listener {
 
 		for (Pair pair : npcChunks.values()) {
 			if (pair.equals(coords)) {
-				for (Repairer rep : npcChunks.keySet()) {
+				for (GriswoldNPC rep : npcChunks.keySet()) {
 					if (npcChunks.get(rep).equals(coords)) {
-						plugin.spawnRepairman(rep);
+						plugin.registerRepairman(rep);
 						if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
 					}
 				}
@@ -92,7 +94,7 @@ public class EventListener implements Listener {
 
 		for (Pair pair : npcChunks.values()) {
 			if (pair.equals(coords)) {
-				for (Repairer rep : npcChunks.keySet()) {
+				for (GriswoldNPC rep : npcChunks.keySet()) {
 					if (npcChunks.get(rep).equals(coords)) {
 						rep.entity.remove();
 						if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");

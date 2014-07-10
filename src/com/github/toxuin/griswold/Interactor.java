@@ -1,11 +1,13 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.ClassProxy;
+import com.github.toxuin.griswold.util.Interaction;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -16,6 +18,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 class Interactor {
+    /*
 	public static double basicToolsPrice = 10.0;
 	public static double basicArmorPrice = 10.0;
 	public static double enchantmentPrice = 30.0;
@@ -119,13 +122,13 @@ class Interactor {
         }
 	}
 	
-	private final Set<Interaction> interactions = new HashSet<Interaction>();
+
 
 	@SuppressWarnings("unchecked")
-    public void interact(Player player, Repairer repairman) {
+    public void interact(Player player, GriswoldNPC repairman) {
 		ItemStack item = player.getItemInHand();
 
-        repairman.haggle();
+        repairman.makeSound();
 		
 		double price = Math.round(getPrice(repairman, item));
 
@@ -282,7 +285,7 @@ class Interactor {
 		}
 	}
 
-	private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
+	private boolean checkCanRepair(Player player, GriswoldNPC repairman, ItemStack item) {
 		if (repairman.type.equalsIgnoreCase("all")) {
 			if (item.getDurability() != 0) {
 				if (repairableArmor.contains(item.getType())) {
@@ -312,7 +315,7 @@ class Interactor {
 		return false;
 	}
 
-	private double getPrice(Repairer repairman, ItemStack item) {
+	private double getPrice(GriswoldNPC repairman, ItemStack item) {
 		if (Griswold.economy == null) return 0.0;
 		double price = 0;
 		if (repairableTools.contains(item.getType())) price = basicToolsPrice;
@@ -336,32 +339,5 @@ class Interactor {
         repairableTools.clear();
         notEnchantable.clear();
         super.finalize();
-    }
-}
-
-class Interaction {
-	private final UUID player;
-	private final Entity repairman;
-	private final ItemStack item;
-	private final int damage;
-	private final long time;
-	boolean valid;
-	public Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
-		this.item = item;
-		this.damage = dmg;
-		this.player = playerId;
-		this.repairman = repairman;
-		this.time = time;
-		this.valid = true;
-	}
-
-	public boolean equals(Interaction inter) {
-		int delta = (int) (time-inter.time);
-		return ((inter.item.equals(item)) &&
-				(inter.valid) &&
-				(inter.damage == damage) &&
-				(inter.player.equals(player)) &&
-				(inter.repairman.equals(repairman)) &&
-				(delta < Griswold.timeout));
-	}
+    } */
 }
