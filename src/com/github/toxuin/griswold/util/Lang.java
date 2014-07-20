@@ -1,5 +1,6 @@
-package com.github.toxuin.griswold;
+package com.github.toxuin.griswold.util;
 
+import com.github.toxuin.griswold.Griswold;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 

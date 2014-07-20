@@ -1,6 +1,7 @@
 package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -27,7 +28,7 @@ public class CommandListener implements CommandExecutor {
         }
 
         // CREATE COMMAND
-        else if (args[0].equalsIgnoreCase("create")) {
+        else if (args[0].equalsIgnoreCase("create") || args[0].equalsIgnoreCase("add")) {
             if (args.length < 2) {
                 sender.sendMessage(Lang.insufficient_params);
                 return true;
@@ -36,8 +37,8 @@ public class CommandListener implements CommandExecutor {
             Player player = (Player) sender;
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
-            if (args.length < 4) plugin.createRepairman(args[1], location);
-            else plugin.createRepairman(args[1], location, args[2], args[3]);
+            if (args.length < 4) plugin.createNpc(args[1], location);
+            else plugin.createNpc(args[1], location, args[2], args[3]);
             player.sendMessage(Lang.new_created);
             return true;
         }
@@ -49,14 +50,14 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
-            plugin.removeRepairman(args[1]);
+            plugin.removeNpc(args[1]);
             sender.sendMessage(String.format(Lang.deleted, args[1]));
             return true;
         }
 
         // LIST COMMAND
         else if (args[0].equalsIgnoreCase("list")) {
-            plugin.listRepairmen(sender);
+            plugin.listNpc(sender);
             return true;
         }
 
@@ -70,7 +71,7 @@ public class CommandListener implements CommandExecutor {
         // NAMES COMMAND
         else if (args[0].equalsIgnoreCase("names")) {
             plugin.toggleNames();
-            sender.sendMessage(plugin.namesVisible?Lang.names_on:Lang.names_off);
+            sender.sendMessage(Griswold.namesVisible ?Lang.names_on:Lang.names_off);
             return true;
         }
 

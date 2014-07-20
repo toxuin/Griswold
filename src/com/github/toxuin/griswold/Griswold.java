@@ -1,13 +1,13 @@
 package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
-import com.github.toxuin.griswold.professions.Repairer;
+import com.github.toxuin.griswold.professions.Blacksmith;
+import com.github.toxuin.griswold.professions.Profession;
 import com.github.toxuin.griswold.util.ClassProxy;
+import com.github.toxuin.griswold.util.Lang;
 import com.github.toxuin.griswold.util.Metrics;
 import net.milkbowl.vault.economy.Economy;
 
-import net.minecraft.server.v1_7_R3.EntitySnowman;
-import net.minecraft.server.v1_7_R3.World;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -35,16 +35,18 @@ public class Griswold extends JavaPlugin implements Listener {
 	private static FileConfiguration config = null;
 	private static File configFile = null;
     private Map<GriswoldNPC, Pair> npcChunks = new HashMap<GriswoldNPC, Pair>();
-    //Interactor interactor;
+
+    public static Griswold plugin;
 
     public static Economy economy = null;
     
     public static double version;
     public static String apiVersion;
-    static String lang = "en_US";
+    public static String lang = "en_US";
     public static boolean namesVisible = true;
 
     public void onEnable() {
+        plugin = this;
         log = this.getLogger();
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
@@ -68,8 +70,6 @@ public class Griswold extends JavaPlugin implements Listener {
 
 		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
 
-        //interactor = new Interactor();
-
         try {
 		    Metrics metrics = new Metrics(this);
 		    Graph graph = metrics.createGraph("Number of NPCs");
@@ -88,7 +88,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	}
 
 	public void onDisable() {
-        //interactor = null;
+        plugin = null;
         despawnAll();
 		log.info("Disabled.");
 	}
@@ -98,11 +98,11 @@ public class Griswold extends JavaPlugin implements Listener {
 		readConfig();
 	}
 	
-	public void createRepairman(String name, Location loc) {
-        createRepairman(name, loc, "all", "1");
+	public void createNpc(String name, Location loc) {
+        createNpc(name, loc, "all", "1");
 	}
 	
-	public void createRepairman(String name, Location loc, String type, String cost) {
+	public void createNpc(String name, Location loc, String type, String cost) {
 		boolean found = false;
         Set<GriswoldNPC> npcs = npcChunks.keySet();
 		for (GriswoldNPC rep : npcs) {
@@ -128,16 +128,24 @@ public class Griswold extends JavaPlugin implements Listener {
     		e.printStackTrace();
     	}
 
-
-        //ClassProxy.listMethods(EntitySnowman.class);
-
         // SAFE TO USE SO FAR:
-        //    IronGolem, Snowman, Villager, Whitch
-    	GriswoldNPC npc = new GriswoldNPC(name, loc, new Repairer(), Witch.class);
-        registerRepairman(npc);
+        //      IronGolem, Snowman, Villager, Whitch
+        //      Ocelot, Zombie, Skeleton, Horse, Chicken
+        //      Creeper, Cow, Pig, Wolf, Sheep, Squid
+        // NOT WORKING:
+        //      Spider(runs away)
+        //      Blaze (Shoots, flies away)
+        //      Wither (kills other npc, flies)
+        //      Human (cannot spawn)
+        //      Bat (flies away)
+        //      Enderman (teleports, walks)
+        //      Slime (jumps away)
+        //      Herobrine (steals diamonds and kicks dogs)
+    	GriswoldNPC npc = new GriswoldNPC(name, loc, new Blacksmith(), Villager.class);
+        registerNpc(npc);
 	}
 	
-	public void removeRepairman(String name) {
+	public void removeNpc(String name) {
 		if (config.isConfigurationSection("repairmen."+name)){
 			config.set("repairmen."+name, null);
 			try {
@@ -152,7 +160,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		reloadPlugin();
 	}
 	
-	public void listRepairmen(CommandSender sender) {
+	public void listNpc(CommandSender sender) {
 		String result = "";
         Set<GriswoldNPC> npcs = npcChunks.keySet();
 		for (GriswoldNPC rep : npcs) {
@@ -187,8 +195,8 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 	
-	public void registerRepairman(GriswoldNPC squidward) {
-        if (!npcChunks.containsKey(squidward)) npcChunks.put(squidward, new Pair(squidward.loc.getChunk().getX(), squidward.loc.getChunk().getZ()));
+	public void registerNpc(GriswoldNPC npc) {
+        if (!npcChunks.containsKey(npc)) npcChunks.put(npc, new Pair(npc.loc.getChunk().getX(), npc.loc.getChunk().getZ()));
 	}
 
     public Map<GriswoldNPC, Pair> getNpcChunks() {
@@ -221,15 +229,13 @@ public class Griswold extends JavaPlugin implements Listener {
         	Lang.checkLangVersion(lang);
 			Lang.init();
 
-	        /*Interactor.basicArmorPrice = config.getDouble("BasicArmorPrice");
-	        Interactor.basicToolsPrice = config.getDouble("BasicToolPrice");
-	        Interactor.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
-	        Interactor.addEnchantmentPrice = config.getDouble("PriceToAddEnchantment");
-	        Interactor.clearEnchantments = config.getBoolean("ClearOldEnchantments");
-	        Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
+	        Blacksmith.basicArmorPrice = config.getDouble("BasicArmorPrice");
+	        Blacksmith.basicToolsPrice = config.getDouble("BasicToolPrice");
+	        Blacksmith.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
+	        Blacksmith.addEnchantmentPrice = config.getDouble("PriceToAddEnchantment");
+	        Blacksmith.clearEnchantments = config.getBoolean("ClearOldEnchantments");
+	        Blacksmith.maxEnchantBonus = config.getInt("EnchantmentBonus");
 
-	        Interactor.enableEnchants = config.getBoolean("UseEnchantmentSystem");
-             */
 	        if (config.isConfigurationSection("repairmen")) {
         		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
 	        	for (String repairman : repairmen) {
@@ -239,13 +245,30 @@ public class Griswold extends JavaPlugin implements Listener {
 	        									config.getDouble("repairmen."+repairman+".Y"),
 	        									config.getDouble("repairmen."+repairman+".Z"));
                     String sound = config.getString("repairmen." + repairman + ".sound");
-	        		//squidward.type = config.getString("repairmen."+repairman+".type");
-	        		//squidward.cost = config.getDouble("repairmen."+repairman+".cost");
 
-                    GriswoldNPC squidward = new GriswoldNPC(repairman, loc, new Repairer(), Villager.class);
+                    Profession profession = new Blacksmith();
+
+                    GriswoldNPC squidward = new GriswoldNPC(repairman, loc, profession, Villager.class);
                     squidward.setSound(sound);
+                    if (squidward.profession instanceof Blacksmith) {
+                        String type = config.getString("repairmen."+repairman+".type");
+                        Blacksmith blacksmithy = (Blacksmith) squidward.profession;
+                        blacksmithy.priceMultiplier = config.getDouble("repairmen."+repairman+".cost") ;
+                        blacksmithy.canEnchant = (config.getBoolean("UseEnchantmentSystem") && (type.equals("all") || type.equals("enchant")));
+                        // TODO: WILL BE REMOVED
+                        if ((type.equals("all") || type.equals("both"))) {
+                            blacksmithy.canRepairTools = true;
+                            blacksmithy.canRepairArmor = true;
+                        } else if (type.equals("tools")) {
+                            blacksmithy.canRepairTools = true;
+                            blacksmithy.canRepairArmor = false;
+                        } else if (type.equals("armor")) {
+                            blacksmithy.canRepairTools = false;
+                            blacksmithy.canRepairArmor = true;
+                        }
+                    }
 
-	        		registerRepairman(squidward);
+	        		registerNpc(squidward);
 	        	}
         	}
 	        log.info(Lang.config_loaded);
@@ -361,5 +384,16 @@ public class Griswold extends JavaPlugin implements Listener {
             economy = economyProvider.getProvider();
         }
         return (economy != null);
+    }
+
+    public static boolean isNpc(Entity entity) {
+        if (Griswold.plugin.getNpcChunks().isEmpty()) return false;
+        Set<GriswoldNPC> npcs = Griswold.plugin.getNpcChunks().keySet();
+        for (GriswoldNPC npc : npcs) {
+            if (npc.entity.equals(entity)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -1,59 +1,53 @@
 package com.github.toxuin.griswold.npcs;
 
 import com.github.toxuin.griswold.Griswold;
-import com.github.toxuin.griswold.Lang;
+import com.github.toxuin.griswold.util.Lang;
+import com.github.toxuin.griswold.events.PlayerInteractGriswoldNPCEvent;
 import com.github.toxuin.griswold.professions.Profession;
 import com.github.toxuin.griswold.util.ClassProxy;
-import com.github.toxuin.griswold.util.Interaction;
+import org.bukkit.DyeColor;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.Location;
-import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.material.MaterialData;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
+import java.lang.reflect.*;
+import java.util.*;
 
 public class GriswoldNPC {
     public Class<LivingEntity> blueprintEntity;
     public LivingEntity entity;
     public String name = "Repairman";
     public Location loc;
-    Profession profession;
+    public Profession profession;
     Sound sound = Sound.VILLAGER_HAGGLE;
     private Random rnd = new Random();
 
-    final Set<Interaction> interactions = new HashSet<Interaction>();
-
-    final Class craftEntity = ClassProxy.getClass("entity.CraftEntity");
-    final Class entityInsentient = ClassProxy.getClass("EntityInsentient");
-    final Class entityHuman = ClassProxy.getClass("EntityHuman");
-    final Class pathfinderGoalSelector = ClassProxy.getClass("PathfinderGoalSelector");
-    final Class pathfinderGoalLookAtPlayer = ClassProxy.getClass("PathfinderGoalLookAtPlayer");
-    final Class pathfinderGoalRandomLookaround = ClassProxy.getClass("PathfinderGoalRandomLookaround");
-    final Class pathfinderGoal = ClassProxy.getClass("PathfinderGoal");
-    final Class craftWorld = ClassProxy.getClass("CraftWorld");
-    final Class craftLivingEntity = ClassProxy.getClass("entity.CraftLivingEntity");
-    final Class entityClass = ClassProxy.getClass("Entity");
+    final Class entityInsentientClass = ClassProxy.getClass("EntityInsentient");
+    final Class entityHumanClass = ClassProxy.getClass("EntityHuman");
+    final Class pathfinderGoalSelectorClass = ClassProxy.getClass("PathfinderGoalSelector");
+    final Class pathfinderGoalLookAtPlayerClass = ClassProxy.getClass("PathfinderGoalLookAtPlayer");
+    final Class pathfinderGoalRandomLookaroundClass = ClassProxy.getClass("PathfinderGoalRandomLookaround");
+    final Class pathfinderGoalClass = ClassProxy.getClass("PathfinderGoal");
+    final Class craftLivingEntityClass = ClassProxy.getClass("entity.CraftLivingEntity");
 
     public GriswoldNPC(String name, Location location, Profession profession, Class blueprintEntity) {
         this.name = name;
         this.loc = location;
         this.profession = profession;
+        this.profession.setNpc(this);
         this.blueprintEntity = blueprintEntity;
 
         this.loc.getWorld().loadChunk(this.loc.getChunk());
-        LivingEntity repairman = loc.getWorld().spawn(loc, this.blueprintEntity);
 
-        repairman.setCustomNameVisible(Griswold.namesVisible);
-        repairman.setCustomName(this.name);
-        entity = repairman;
+        LivingEntity npcEntity = loc.getWorld().spawn(loc, this.blueprintEntity);
 
+        npcEntity.setCustomNameVisible(Griswold.namesVisible);
+        npcEntity.setCustomName(this.name);
+        entity = npcEntity;
         this.overwriteAI();
-
 
         if (Griswold.debug) {
             Griswold.log.info(String.format(Lang.repairman_spawn, this.entity.getUniqueId(), this.loc.getX(), this.loc.getY(), this.loc.getZ()));
@@ -68,34 +62,77 @@ public class GriswoldNPC {
         } */
     }
 
-    public void interact(Interaction interaction) {
-
+    public void interact(PlayerInteractGriswoldNPCEvent event) {
+        String[] messages = this.profession.use(event).split("\n");
+        for (String message : messages) {
+            if (!message.equals("")) event.getPlayer().sendMessage(message);
+        }
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
     public void overwriteAI() {
         try {
-            Method getHandle = craftLivingEntity.getMethod("getHandle");
-            Object villager = getHandle.invoke(craftLivingEntity.cast(entity));
-            Field goalsField = entityInsentient.getDeclaredField("goalSelector"); // TODO: CAN BE ANY LivingEntity
+            Method getHandle = craftLivingEntityClass.getMethod("getHandle");
+            Object livingEntity = getHandle.invoke(craftLivingEntityClass.cast(entity));
+            Field goalsField = entityInsentientClass.getDeclaredField("goalSelector"); // TODO: CAN BE ANY LivingEntity
             goalsField.setAccessible(true);
-            Object goals = pathfinderGoalSelector.cast(goalsField.get(villager));
-            Field listField = pathfinderGoalSelector.getDeclaredField("b");
+            Object goals = pathfinderGoalSelectorClass.cast(goalsField.get(livingEntity));
+            Field listField = pathfinderGoalSelectorClass.getDeclaredField("b");
             listField.setAccessible(true);
             List list = (List) listField.get(goals);
             list.clear();
 
-            Method setGoal = pathfinderGoalSelector.getMethod("a", new Class[] { int.class, pathfinderGoal });
-            Constructor<?> lookAtPlayerConstructor = pathfinderGoalLookAtPlayer.getConstructor(entityInsentient, Class.class, float.class, float.class);
-            Constructor<?> randomLookAroundConstructor = pathfinderGoalRandomLookaround.getConstructor(entityInsentient);
+            Method setGoal = pathfinderGoalSelectorClass.getMethod("a", new Class[]{int.class, pathfinderGoalClass});
+            Constructor<?> lookAtPlayerConstructor = pathfinderGoalLookAtPlayerClass.getConstructor(entityInsentientClass, Class.class, float.class, float.class);
+            Constructor<?> randomLookAroundConstructor = pathfinderGoalRandomLookaroundClass.getConstructor(entityInsentientClass);
 
-            setGoal.invoke(goals, 1, lookAtPlayerConstructor.newInstance(villager, entityHuman, 12.0F, 1.0F));
-            setGoal.invoke(goals, 2, randomLookAroundConstructor.newInstance(villager));
+            setGoal.invoke(goals, 1, lookAtPlayerConstructor.newInstance(livingEntity, entityHumanClass, 12.0F, 1.0F));
+            setGoal.invoke(goals, 2, randomLookAroundConstructor.newInstance(livingEntity));
+
+            if (this.entity instanceof Skeleton) {
+                Skeleton s = (Skeleton) this.entity;
+                s.setSkeletonType(Skeleton.SkeletonType.WITHER);
+                s.getEquipment().setHelmet(new ItemStack(Material.COBBLESTONE));
+            } else if (this.entity instanceof Spider) {
+                // DO NOT RUN AWAY IN DAY
+                // NO ATTACK IN NIGHT
+            } else if (this.entity instanceof Ocelot) {
+                Ocelot ocelot = (Ocelot) this.entity;
+                ocelot.setCatType(Ocelot.Type.SIAMESE_CAT);
+            } else if (this.entity instanceof Zombie) {
+                Zombie z = (Zombie) this.entity;
+                z.setVillager(true);
+            } else if (this.entity instanceof Horse) {
+                Horse h = (Horse) this.entity;
+                h.setCarryingChest(true);
+                h.setColor(Horse.Color.CREAMY);
+                h.setStyle(Horse.Style.WHITEFIELD);
+                h.setVariant(Horse.Variant.UNDEAD_HORSE);
+            } else if (this.entity instanceof Enderman) {
+                Enderman e = (Enderman) this.entity;
+                e.setCarriedMaterial(new MaterialData(Material.COBBLESTONE));
+                e.setCanPickupItems(false);
+            } else if (this.entity instanceof Wolf) {
+                Wolf w = (Wolf) this.entity;
+                w.setAngry(false);
+                w.setCollarColor(DyeColor.CYAN);
+                w.setSitting(true);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
+    @Override
+    protected void finalize() throws Throwable {
+        /*
+        for (BukkitTask taks : runningTasks) {
+            taks.cancel();
+        }
+        */
+        super.finalize();
+    }
 
     public void remove() {
         this.entity.remove();
