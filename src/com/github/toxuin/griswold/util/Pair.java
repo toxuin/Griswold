@@ -1,17 +1,32 @@
 package com.github.toxuin.griswold.util;
 
-public class Pair {
-    public int x = 0;
-    public int z = 0;
-    public Pair (int x, int z) {
-        this.x = x;
-        this.z = z;
+public class Pair<L, R> {
+    private final L left;
+    private final R right;
+
+    public Pair(L left, R right) {
+        this.left = left;
+        this.right = right;
     }
 
-    public boolean equals(Pair pair) {
-        return this.x == pair.x && this.z == pair.z;
+    public L getLeft() { return left; }
+    public R getRight() { return right; }
+
+    @Override
+    public int hashCode() { return left.hashCode() ^ right.hashCode(); }
+
+    @Override
+    public boolean equals(Object other) {
+        if (other == null) return false;
+        if (!(other instanceof Pair)) return false;
+        Pair otherPair = (Pair) other;
+        return this.left.equals(otherPair.getLeft()) &&
+                this.right.equals(otherPair.getRight());
     }
+
+    @Override
     public String toString() {
-        return "Pair{x="+this.x+"z="+this.z+"}";
+        return "Pair{left<"+this.getLeft().getClass().getName()+">="+this.getLeft()+", " +
+               "right<"+this.getRight().getClass().getName()+">="+this.getRight()+"}";
     }
 }

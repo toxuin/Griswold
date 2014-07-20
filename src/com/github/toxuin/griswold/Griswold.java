@@ -3,6 +3,7 @@ package com.github.toxuin.griswold;
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
 import com.github.toxuin.griswold.professions.Blacksmith;
 import com.github.toxuin.griswold.professions.Profession;
+import com.github.toxuin.griswold.professions.Shopkeeper;
 import com.github.toxuin.griswold.util.ClassProxy;
 import com.github.toxuin.griswold.util.Lang;
 import com.github.toxuin.griswold.util.Metrics;
@@ -34,7 +35,7 @@ public class Griswold extends JavaPlugin implements Listener {
 	
 	private static FileConfiguration config = null;
 	private static File configFile = null;
-    private Map<GriswoldNPC, Pair> npcChunks = new HashMap<GriswoldNPC, Pair>();
+    private Map<GriswoldNPC, Pair<Integer, Integer>> npcChunks = new HashMap<GriswoldNPC, Pair<Integer, Integer>>();
 
     public static Griswold plugin;
 
@@ -141,7 +142,8 @@ public class Griswold extends JavaPlugin implements Listener {
         //      Enderman (teleports, walks)
         //      Slime (jumps away)
         //      Herobrine (steals diamonds and kicks dogs)
-    	GriswoldNPC npc = new GriswoldNPC(name, loc, new Blacksmith(), Villager.class);
+        Profession profession = (Griswold.economy != null) ? new Shopkeeper() : new Blacksmith();
+    	GriswoldNPC npc = new GriswoldNPC(name, loc, profession, Villager.class);
         registerNpc(npc);
 	}
 	
@@ -196,10 +198,10 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 	
 	public void registerNpc(GriswoldNPC npc) {
-        if (!npcChunks.containsKey(npc)) npcChunks.put(npc, new Pair(npc.loc.getChunk().getX(), npc.loc.getChunk().getZ()));
+        if (!npcChunks.containsKey(npc)) npcChunks.put(npc, new Pair<Integer, Integer>(npc.loc.getChunk().getX(), npc.loc.getChunk().getZ()));
 	}
 
-    public Map<GriswoldNPC, Pair> getNpcChunks() {
+    public Map<GriswoldNPC, Pair<Integer, Integer>> getNpcChunks() {
         return this.npcChunks;
     }
 	
@@ -363,6 +365,9 @@ public class Griswold extends JavaPlugin implements Listener {
 	}
 
     public GriswoldNPC getNPCByName(String name) {
+        for (GriswoldNPC npc : npcChunks.keySet()) {
+            if (npc.name.equals(name)) return npc;
+        }
         return null;
     }
 

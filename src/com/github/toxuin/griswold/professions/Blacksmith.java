@@ -339,7 +339,7 @@ public class Blacksmith implements Profession {
         this.npc = npc;
 
         if (this.npc.entity instanceof Villager) {
-            ((Villager) this.npc.entity).setProfession(Villager.Profession.PRIEST);
+            ((Villager) this.npc.entity).setProfession(Villager.Profession.BLACKSMITH);
         }
     }
 

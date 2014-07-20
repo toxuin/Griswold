@@ -23,7 +23,7 @@ import java.util.Map;
 public class EventListener implements Listener {
 
 	private final Griswold plugin;
-	private final Map<GriswoldNPC, Pair> npcChunks;
+	private final Map<GriswoldNPC, Pair<Integer, Integer>> npcChunks;
 
 	public EventListener(final Griswold plugin) {
 		this.plugin = plugin;
