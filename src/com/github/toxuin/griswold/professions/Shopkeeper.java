@@ -28,6 +28,7 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
     private Inventory inventory;
 
     public boolean canBuy = false;
+    public double buyMultiplier = 0.7;
 
     public Shopkeeper() {
         Griswold.plugin.getServer().getPluginManager().registerEvents(this, Griswold.plugin);
@@ -53,7 +54,7 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
         }
     }
 
-    private void buyItem(Player player, ItemStack item) {
+    private void playerBuyItem(Player player, ItemStack item) {
         double price = getPrice(item);
         if (Griswold.economy.getBalance(player) <= price) {
             player.sendMessage(String.format(Lang.name_format, npc.name) + Lang.chat_poor);
@@ -77,13 +78,13 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
             } else item.setAmount(64);
             inventory.setItem(inventory.first(item), item);
         }
-
+        redrawInventory();
         item.setItemMeta(null);
         giveItem(player, item);
     }
 
-    private boolean sellItem(Player player, ItemStack item) {
-        double price = getPrice(item);
+    private boolean playerSellItem(Player player, ItemStack item) {
+        double price = getPrice(item) * buyMultiplier;
         if (!inventory.contains(item)) {
             player.sendMessage(String.format(Lang.name_format, npc.name) + " I do not need this.");
             return false;
@@ -97,12 +98,22 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
             player.sendMessage(String.format(Lang.name_format, npc.name)+ChatColor.RED + Lang.chat_error);
             return false;
         }
+        redrawInventory();
         player.getInventory().remove(item);
         return true;
     }
 
     private double getPrice(ItemStack item) {
         return 16d;
+    }
+
+    private void redrawInventory() {
+        inventory.clear();
+        for (ItemStack item : storage.keySet()) {
+            int quantity = storage.get(item).getLeft();
+            if (quantity > 64) quantity = 64;
+            visualAddItem(item, quantity, storage.get(item).getRight(), -1); // TODO: SLOT HANDLING
+        }
     }
 
     /**
@@ -115,10 +126,16 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
      */
     private void addItem(ItemStack item, int quantity, double price, int slot) {
         if (item == null) return;
+        visualAddItem(item, quantity, price, slot);
+        storage.put(item, new Pair<Integer, Double>(quantity, price));
+    }
+
+    private void visualAddItem(ItemStack item, int quantity, double price, int slot) {
         ItemMeta meta = item.getItemMeta();
         List<String> lore = new ArrayList<String>();
         lore.add(ChatColor.GOLD + "Price: " + ChatColor.WHITE + price);
-        lore.add(ChatColor.GOLD + "In stock: " + (quantity == -1 ? ChatColor.MAGIC + "900" : ChatColor.WHITE + String.valueOf(quantity)));
+        lore.add(ChatColor.GOLD + "To sell: " + ChatColor.WHITE + Math.round(price * buyMultiplier));
+        lore.add(ChatColor.GOLD + "In stock: " + ChatColor.WHITE + (quantity == -1 ? ChatColor.MAGIC + "900" : String.valueOf(quantity)));
         meta.setLore(lore);
         if (quantity == -1) item.setAmount(1);
         item.setAmount(quantity >= 64 ? 64 : quantity);
@@ -127,7 +144,6 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
             // TRY TO ADD TO EXISTING STACK IF FULL
             inventory.addItem(item);
         } else inventory.setItem(slot, item);
-        storage.put(item, new Pair<Integer, Double>(quantity, price));
     }
 
     private void addItem(ItemStack item, int quantity, double price) {
@@ -157,10 +173,10 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
         if (event.getAction().equals(InventoryAction.MOVE_TO_OTHER_INVENTORY)) {
             if (event.getRawSlot() > event.getView().getTopInventory().getSize()) {
                 event.setCancelled(true);
-                sellItem((Player) event.getWhoClicked(), event.getCurrentItem());
+                playerSellItem((Player) event.getWhoClicked(), event.getCurrentItem());
             } else {
                 event.setCancelled(true);
-                buyItem((Player) event.getWhoClicked(), event.getCurrentItem());
+                playerBuyItem((Player) event.getWhoClicked(), event.getCurrentItem());
             }
             return;
 
@@ -173,7 +189,7 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
                 if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
                     event.setCancelled(true);
                     if (event.getWhoClicked() instanceof Player) {
-                        sellItem((Player) event.getWhoClicked(), event.getCurrentItem());
+                        playerSellItem((Player) event.getWhoClicked(), event.getCurrentItem());
                     }
                     break;
                 } else return;
@@ -185,7 +201,7 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
                 if (event.getRawSlot() < event.getView().getTopInventory().getSize()) {
                     event.setCancelled(true);
                     if (event.getWhoClicked() instanceof Player) {
-                        buyItem((Player) event.getWhoClicked(), event.getCurrentItem());
+                        playerBuyItem((Player) event.getWhoClicked(), event.getCurrentItem());
                     }
                     break;
                 }
