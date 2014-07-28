@@ -25,6 +25,9 @@ Simple!
 
 * Lightweight!
 
+### Build Status
+[![Build Status](https://travis-ci.org/toxuin/Griswold.png)](https://travis-ci.org/toxuin/Griswold)
+
 ##Roadmap:##
 
 * Making NPC to be other living thing other than villagers
