@@ -1,6 +1,7 @@
 package com.github.toxuin.griswold.npcs;
 
 import com.github.toxuin.griswold.Griswold;
+import com.github.toxuin.griswold.util.ConfigManager;
 import com.github.toxuin.griswold.util.Lang;
 import com.github.toxuin.griswold.events.PlayerInteractGriswoldNPCEvent;
 import com.github.toxuin.griswold.professions.Profession;
@@ -21,7 +22,7 @@ public class GriswoldNPC {
     public LivingEntity entity;
     public String name = "Repairman";
     public Location loc;
-    public Profession profession;
+    public Profession profession = null;
     Sound sound = Sound.VILLAGER_HAGGLE;
     private Random rnd = new Random();
 
@@ -33,36 +34,33 @@ public class GriswoldNPC {
     final Class pathfinderGoalClass = ClassProxy.getClass("PathfinderGoal");
     final Class craftLivingEntityClass = ClassProxy.getClass("entity.CraftLivingEntity");
 
-    public GriswoldNPC(String name, Location location, Profession profession, Class blueprintEntity) {
+    public GriswoldNPC(String name, Location location, Class blueprintEntity) {
         this.name = name;
         this.loc = location;
-        this.profession = profession;
-        this.profession.setNpc(this);
         this.blueprintEntity = blueprintEntity;
 
         this.loc.getWorld().loadChunk(this.loc.getChunk());
 
         LivingEntity npcEntity = loc.getWorld().spawn(loc, this.blueprintEntity);
 
-        npcEntity.setCustomNameVisible(Griswold.namesVisible);
         npcEntity.setCustomName(this.name);
         entity = npcEntity;
+        setNameVisible(ConfigManager.isNameVisible(name));
         this.overwriteAI();
 
-        if (Griswold.debug) {
+        if (ConfigManager.debug) {
             Griswold.log.info(String.format(Lang.repairman_spawn, this.entity.getUniqueId(), this.loc.getX(), this.loc.getY(), this.loc.getZ()));
         }
+    }
 
-        //if (!blueprintEntity.equals(Villager.class)) return;
-
-        /*if (this.type.equals(NPCType.ENCHANT) || this.type.equals(NPCType.DISENCHANT)) {
-            ((Villager) entity).setProfession(Villager.Profession.LIBRARIAN);
-        } else {
-            ((Villager) entity).setProfession(Villager.Profession.BLACKSMITH);
-        } */
+    public GriswoldNPC setProfession(Profession profession) {
+        this.profession = profession;
+        this.profession.setNpc(this);
+        return this;
     }
 
     public void interact(PlayerInteractGriswoldNPCEvent event) {
+        if (profession == null) return;
         String[] messages = this.profession.use(event).split("\n");
         for (String message : messages) {
             if (!message.equals("")) event.getPlayer().sendMessage(message);
@@ -74,7 +72,7 @@ public class GriswoldNPC {
         try {
             Method getHandle = craftLivingEntityClass.getMethod("getHandle");
             Object livingEntity = getHandle.invoke(craftLivingEntityClass.cast(entity));
-            Field goalsField = entityInsentientClass.getDeclaredField("goalSelector"); // TODO: CAN BE ANY LivingEntity
+            Field goalsField = entityInsentientClass.getDeclaredField("goalSelector");
             goalsField.setAccessible(true);
             Object goals = pathfinderGoalSelectorClass.cast(goalsField.get(livingEntity));
             Field listField = pathfinderGoalSelectorClass.getDeclaredField("b");
@@ -140,6 +138,11 @@ public class GriswoldNPC {
 
     public void setNameVisible(boolean nameVisible) {
         entity.setCustomNameVisible(nameVisible);
+        ConfigManager.setNameVisible(this.name, nameVisible);
+    }
+
+    public boolean isNameVisible() {
+        return entity.isCustomNameVisible();
     }
 
     public void makeSound() {

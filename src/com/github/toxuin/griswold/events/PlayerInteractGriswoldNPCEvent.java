@@ -2,6 +2,7 @@ package com.github.toxuin.griswold.events;
 
 import com.github.toxuin.griswold.Griswold;
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.ConfigManager;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -39,6 +40,6 @@ public class PlayerInteractGriswoldNPCEvent extends PlayerInteractEntityEvent {
                 (event.itemDamage == this.itemDamage) &&
                 (event.getPlayer().equals(this.getPlayer())) &&
                 (event.getRightClicked().equals(this.getRightClicked())) &&
-                (delta < Griswold.timeout));
+                (delta < ConfigManager.timeout));
     }
 }

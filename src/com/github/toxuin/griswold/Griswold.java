@@ -7,49 +7,37 @@ import com.github.toxuin.griswold.professions.Shopkeeper;
 import com.github.toxuin.griswold.util.ClassProxy;
 import com.github.toxuin.griswold.util.Lang;
 import com.github.toxuin.griswold.util.Metrics;
+import com.github.toxuin.griswold.util.Pair;
+import com.github.toxuin.griswold.util.ConfigManager;
+import com.github.toxuin.griswold.util.Metrics.Graph;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.*;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.toxuin.griswold.util.Metrics.Graph;
-import com.github.toxuin.griswold.util.Pair;
-
-import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Logger;
 
 public class Griswold extends JavaPlugin implements Listener {
-	public static File directory;
-	public static boolean debug = false;
-	public static int timeout = 5000;
-    public static Logger log;
-	
-	private static FileConfiguration config = null;
-	private static File configFile = null;
     private Map<GriswoldNPC, Pair<Integer, Integer>> npcChunks = new HashMap<GriswoldNPC, Pair<Integer, Integer>>();
 
     public static Griswold plugin;
-
+    public static Logger log;
     public static Economy economy = null;
     
     public static double version;
     public static String apiVersion;
-    public static String lang = "en_US";
-    public static boolean namesVisible = true;
 
     public void onEnable() {
         plugin = this;
         log = this.getLogger();
-		directory = this.getDataFolder();
+		ConfigManager.directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
         apiVersion = this.getServer().getClass().getPackage().getName().substring(
@@ -82,7 +70,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		    });
 		    metrics.start();
 		} catch (IOException e) {
-		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
+		    if (ConfigManager.debug) log.info("ERROR: failed to submit stats to MCStats");
 		}
 		
 		log.info("Enabled! Version: " + version);
@@ -96,39 +84,11 @@ public class Griswold extends JavaPlugin implements Listener {
 
 	public void reloadPlugin() {
 		despawnAll();
-		readConfig();
+        Lang.createLangFile();
+		ConfigManager.readConfig();
 	}
 	
-	public void createNpc(String name, Location loc) {
-        createNpc(name, loc, "all", "1");
-	}
-	
-	public void createNpc(String name, Location loc, String type, String cost) {
-		boolean found = false;
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-		for (GriswoldNPC rep : npcs) {
-			if (rep.name.equalsIgnoreCase(name)) found = true;
-		}
-		if (found) {
-			log.info(String.format(Lang.repairman_exists, name));
-			return;
-		}
-			
-		config.set("repairmen."+name+".world", loc.getWorld().getName());
-		config.set("repairmen."+name+".X", loc.getX());
-		config.set("repairmen."+name+".Y", loc.getY());
-		config.set("repairmen."+name+".Z", loc.getZ());
-        config.set("repairmen."+name+".sound", "mob.villager.haggle");
-		config.set("repairmen."+name+".type", type);
-		config.set("repairmen."+name+".cost", Double.parseDouble(cost));
-    	
-    	try {
-    		config.save(configFile);
-    	} catch (Exception e) {
-    		log.info(Lang.error_config);
-    		e.printStackTrace();
-    	}
-
+	public void createNpc(String name, Location loc, Profession type) {
         // SAFE TO USE SO FAR:
         //      IronGolem, Snowman, Villager, Whitch
         //      Ocelot, Zombie, Skeleton, Horse, Chicken
@@ -142,24 +102,10 @@ public class Griswold extends JavaPlugin implements Listener {
         //      Enderman (teleports, walks)
         //      Slime (jumps away)
         //      Herobrine (steals diamonds and kicks dogs)
-        Profession profession = (Griswold.economy != null) ? new Shopkeeper() : new Blacksmith();
-    	GriswoldNPC npc = new GriswoldNPC(name, loc, profession, Villager.class);
+
+    	GriswoldNPC npc = new GriswoldNPC(name, loc, Villager.class).setProfession(type);
         registerNpc(npc);
-	}
-	
-	public void removeNpc(String name) {
-		if (config.isConfigurationSection("repairmen."+name)){
-			config.set("repairmen."+name, null);
-			try {
-				config.save(configFile); 
-        	} catch (Exception e) {
-        		e.printStackTrace();
-        	}
-		} else {
-			log.info(Lang.error_remove);
-			return;
-		}
-		reloadPlugin();
+        ConfigManager.saveNpc(name, loc, type);
 	}
 	
 	public void listNpc(CommandSender sender) {
@@ -181,190 +127,20 @@ public class Griswold extends JavaPlugin implements Listener {
 		}
         npcChunks.clear();
 	}
-
-    public void toggleNames() {
-        namesVisible = !namesVisible;
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-        for (GriswoldNPC rep : npcs) {
-            rep.setNameVisible(namesVisible);
-        }
-
-        config.set("ShowNames", namesVisible);
-        try {
-            config.save(configFile);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 	
 	public void registerNpc(GriswoldNPC npc) {
         if (!npcChunks.containsKey(npc)) npcChunks.put(npc, new Pair<Integer, Integer>(npc.loc.getChunk().getX(), npc.loc.getChunk().getZ()));
 	}
 
     public Map<GriswoldNPC, Pair<Integer, Integer>> getNpcChunks() {
-        return this.npcChunks;
+        return npcChunks;
     }
-	
-	private void readConfig() {
 
-    	Lang.createLangFile();
-		
-		configFile = new File(directory, "config.yml");
-        config = YamlConfiguration.loadConfiguration(configFile);
-        
+    public void clearNpcChunks() {
         npcChunks.clear();
-        
-        if (configFile.exists()) {
-        	debug = config.getBoolean("Debug");
-        	timeout = config.getInt("Timeout");
-        	lang = config.getString("Language");
-            namesVisible = config.getBoolean("ShowNames");
-        	
-        	if (Double.parseDouble(config.getString("Version")) < version) {
-        		updateConfig(config.getString("Version"));
-        	} else if (Double.parseDouble(config.getString("Version")) == 0) {
-        		log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        		log.info("ERROR! YOUR CONFIG FILE IS CORRUPT!!! ERROR!");
-        		log.info("ERROR! ERROR! ERROR! ERROR! ERROR! ERROR! ERROR!");
-        	}
+    }
 
-        	Lang.checkLangVersion(lang);
-			Lang.init();
-
-	        Blacksmith.basicArmorPrice = config.getDouble("BasicArmorPrice");
-	        Blacksmith.basicToolsPrice = config.getDouble("BasicToolPrice");
-	        Blacksmith.enchantmentPrice = config.getDouble("BasicEnchantmentPrice");
-	        Blacksmith.addEnchantmentPrice = config.getDouble("PriceToAddEnchantment");
-	        Blacksmith.clearEnchantments = config.getBoolean("ClearOldEnchantments");
-	        Blacksmith.maxEnchantBonus = config.getInt("EnchantmentBonus");
-
-	        if (config.isConfigurationSection("repairmen")) {
-        		Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
-	        	for (String repairman : repairmen) {
-
-	        		Location loc = new Location(this.getServer().getWorld(config.getString("repairmen."+repairman+".world")),
-	        									config.getDouble("repairmen."+repairman+".X"),
-	        									config.getDouble("repairmen."+repairman+".Y"),
-	        									config.getDouble("repairmen."+repairman+".Z"));
-                    String sound = config.getString("repairmen." + repairman + ".sound");
-
-                    Profession profession = new Blacksmith();
-
-                    GriswoldNPC squidward = new GriswoldNPC(repairman, loc, profession, Villager.class);
-                    squidward.setSound(sound);
-                    if (squidward.profession instanceof Blacksmith) {
-                        String type = config.getString("repairmen."+repairman+".type");
-                        Blacksmith blacksmithy = (Blacksmith) squidward.profession;
-                        blacksmithy.priceMultiplier = config.getDouble("repairmen."+repairman+".cost") ;
-                        blacksmithy.canEnchant = (config.getBoolean("UseEnchantmentSystem") && (type.equals("all") || type.equals("enchant")));
-                        // TODO: WILL BE REMOVED
-                        if ((type.equals("all") || type.equals("both"))) {
-                            blacksmithy.canRepairTools = true;
-                            blacksmithy.canRepairArmor = true;
-                        } else if (type.equals("tools")) {
-                            blacksmithy.canRepairTools = true;
-                            blacksmithy.canRepairArmor = false;
-                        } else if (type.equals("armor")) {
-                            blacksmithy.canRepairTools = false;
-                            blacksmithy.canRepairArmor = true;
-                        }
-                    }
-
-	        		registerNpc(squidward);
-	        	}
-        	}
-	        log.info(Lang.config_loaded);
-
-        	if (debug) {
-        		log.info(String.format(Lang.debug_loaded, npcChunks.keySet().size()));
-        	}
-        } else {
-        	config.set("Timeout", 5000);
-        	config.set("Language", "en_US");
-            config.set("ShowNames", true);
-        	config.set("BasicArmorPrice", 10.0);
-        	config.set("BasicToolPrice", 10.0);
-        	config.set("BasicEnchantmentPrice", 30.0);
-	        config.set("UseEnchantmentSystem", true);
-        	config.set("PriceToAddEnchantment", 50.0);
-        	config.set("ClearOldEnchantments", true);
-        	config.set("EnchantmentBonus", 5);
-        	config.set("Debug", false);
-        	config.set("Version", this.getDescription().getVersion());
-        	try {
-        		config.save(configFile);
-        		log.info(Lang.default_config);
-        	} catch (Exception e) {
-        		log.info(Lang.error_create_config);
-        		e.printStackTrace();
-        	}
-        }
-	}
-	
-	private void updateConfig(String oldVersion) {
-		if (Double.parseDouble(oldVersion) < 0.05d) {
-			// ADDED IN 0.05
-			log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION OLDER THAN 0.5");
-
-			config.set("PriceToAddEnchantment", 50.0);
-	        config.set("ClearOldEnchantments", true);
-	        config.set("EnchantmentBonus", 5);
-
-	        config.set("Version", 0.05d);
-	        try {
-	            config.save(configFile);
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	        }
-		}
-
-		if (Double.parseDouble(oldVersion) == 0.05d) {
-			log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.5");
-			// ADDED IN 0.051
-			config.set("UseEnchantmentSystem", true);
-
-			config.set("Version", 0.051d);
-			try {
-				config.save(configFile);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-
-        if (Double.parseDouble(oldVersion) == 0.06d || Double.parseDouble(oldVersion) == 0.051d) {
-            log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.51/0.6");
-            // ADDED IN 0.07
-            config.set("ShowNames", true);
-
-            config.set("Version", 0.07d);
-            try {
-                config.save(configFile);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        if (Double.parseDouble(oldVersion) == 0.07d) {
-            log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.7*");
-            if (config.isConfigurationSection("repairmen")) {
-                Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
-                for (String repairman : repairmen) {
-                    if (config.getString("repairmen." + repairman + ".sound").equals("mob.villager.haggle")) {
-                        config.set("repairmen." + repairman + ".sound", "VILLAGER_HAGGLE");
-                    }
-                }
-            }
-            config.set("Version", 0.08d);
-
-            try {
-                config.save(configFile);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-	}
-
-    public GriswoldNPC getNPCByName(String name) {
+    public GriswoldNPC getNpcByName(String name) {
         for (GriswoldNPC npc : npcChunks.keySet()) {
             if (npc.name.equals(name)) return npc;
         }
@@ -377,7 +153,6 @@ public class Griswold extends JavaPlugin implements Listener {
 			reloadPlugin();
 			if (!setupEconomy()) log.info(Lang.economy_not_found);
 		}
-		
 	}
 
     private boolean setupEconomy() {

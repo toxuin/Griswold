@@ -1,6 +1,8 @@
 package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.professions.Profession;
+import com.github.toxuin.griswold.util.ConfigManager;
 import com.github.toxuin.griswold.util.Lang;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -37,8 +39,20 @@ public class CommandListener implements CommandExecutor {
             Player player = (Player) sender;
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
-            if (args.length < 4) plugin.createNpc(args[1], location);
-            else plugin.createNpc(args[1], location, args[2], args[3]);
+
+            if (Griswold.plugin.getNpcByName(args[1]) != null) {
+                player.sendMessage(String.format(Lang.repairman_exists, args[1]));
+                return true;
+            }
+
+            Profession profession = Profession.getByName(args[2]);
+            if (profession == null) {
+                player.sendMessage(Lang.error_profession_not_found + Profession.knownProfessions.keySet());
+                return true;
+            }
+
+            // TODO: COUNT THE PARAMETERS!
+            plugin.createNpc(args[1], location, profession);
             player.sendMessage(Lang.new_created);
             return true;
         }
@@ -50,7 +64,7 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
-            plugin.removeNpc(args[1]);
+            ConfigManager.removeNpc(args[1]);
             sender.sendMessage(String.format(Lang.deleted, args[1]));
             return true;
         }
@@ -69,9 +83,15 @@ public class CommandListener implements CommandExecutor {
         }
 
         // NAMES COMMAND
-        else if (args[0].equalsIgnoreCase("names")) {
-            plugin.toggleNames();
-            sender.sendMessage(Griswold.namesVisible ?Lang.names_on:Lang.names_off);
+        else if (args[0].equalsIgnoreCase("name")) {
+            if (args.length < 2) {
+                sender.sendMessage(Lang.error_few_arguments);
+                return true;
+            }
+            GriswoldNPC npc = plugin.getNpcByName(args[1]);
+            boolean isNameVisible = npc.isNameVisible();
+            npc.setNameVisible(!isNameVisible);
+            sender.sendMessage(!isNameVisible ?Lang.names_on:Lang.names_off);
             return true;
         }
 
@@ -82,7 +102,7 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
-            GriswoldNPC npc = plugin.getNPCByName(args[1]);
+            GriswoldNPC npc = plugin.getNpcByName(args[1]);
             if (npc != null) {
                 npc.setSound(args[2]);
                 sender.sendMessage(String.format(Lang.sound_changed, args[1]));

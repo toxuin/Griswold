@@ -2,6 +2,7 @@ package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.events.PlayerInteractGriswoldNPCEvent;
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.ConfigManager;
 import com.github.toxuin.griswold.util.Pair;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.EntityType;
@@ -84,7 +85,7 @@ public class EventListener implements Listener {
 				for (GriswoldNPC rep : npcChunks.keySet()) {
 					if (npcChunks.get(rep).equals(coords)) {
 						plugin.registerNpc(rep);
-						if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
+						if (ConfigManager.debug) Griswold.log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
 					}
 				}
 			}
@@ -94,14 +95,14 @@ public class EventListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	public void onNewChunkUnload(ChunkUnloadEvent event) {
 		if (npcChunks.isEmpty()) return;
-		Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
+		Pair coords = new Pair<Integer, Integer>(event.getChunk().getX(), event.getChunk().getZ());
 
 		for (Pair pair : npcChunks.values()) {
 			if (pair.equals(coords)) {
 				for (GriswoldNPC rep : npcChunks.keySet()) {
 					if (npcChunks.get(rep).equals(coords)) {
 						rep.entity.remove();
-						if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
+						if (ConfigManager.debug) Griswold.log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
 					}
 				}
 			}

@@ -3,6 +3,7 @@ package com.github.toxuin.griswold.professions;
 import com.github.toxuin.griswold.Griswold;
 import com.github.toxuin.griswold.events.PlayerInteractGriswoldNPCEvent;
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
+import com.github.toxuin.griswold.util.ConfigManager;
 import com.github.toxuin.griswold.util.Lang;
 import com.github.toxuin.griswold.util.Pair;
 import net.milkbowl.vault.economy.EconomyResponse;
@@ -22,7 +23,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
 
-public class Shopkeeper implements Profession, InventoryHolder, Listener {
+public class Shopkeeper extends Profession implements InventoryHolder, Listener {
     private GriswoldNPC npc;
     private Map<ItemStack, Pair<Integer, Double>> storage = new HashMap<ItemStack, Pair<Integer, Double>>();
     private Inventory inventory;
@@ -44,6 +45,7 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
     @Override
     public void setNpc(GriswoldNPC npc) {
         this.npc = npc;
+        loadConfig();
         Bukkit.createInventory(this, InventoryType.CREATIVE);
         inventory = Bukkit.createInventory(this, 54, npc.name+"'s shop");
 
@@ -220,6 +222,23 @@ public class Shopkeeper implements Profession, InventoryHolder, Listener {
         } else {
             player.getInventory().addItem(item);
         }
+    }
+
+    @Override
+    public String getName() {
+        return "Shopkeeper";
+    }
+
+    @Override
+    public void loadConfig() {
+        canBuy = ConfigManager.getProfessionBoolean(npc.name, "canBuyFromPlayers");
+        buyMultiplier = ConfigManager.getProfessionDouble(npc.name, "buyMultiplier");
+    }
+
+    @Override
+    public void saveConfig() {
+        ConfigManager.setProfessionParam(npc.name, "canBuyFromPlayers", canBuy);
+        ConfigManager.setProfessionParam(npc.name, "buyMultiplier", buyMultiplier);
     }
 
     @Override

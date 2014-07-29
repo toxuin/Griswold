@@ -29,10 +29,12 @@ public class Lang {
 	public static String error_enchanter_not_spawned = "ERROR: LANG NOT FOUND: error_enchanter_not_spawned";
     public static String error_npc_not_found = "ERROR: LANG NOT FOUND: error_npc_not_found";
 	public static String name_format = "ERROR: LANG NOT FOUND: name_format";
+    public static String error_profession_not_found = "ERROR: LANG NOT FOUND: error_profession_not_found";
 
     public static String names_on = "ERROR: LANG NOT FOUND: names_on";
     public static String names_off = "ERROR: LANG NOT FOUND: names_off";
     public static String sound_changed = "ERROR: LANG NOT FOUND: sound_changed";
+    public static String npc_cannot_do_anything = "ERROR: LANG NOT FOUND: npc_cannot_do_anything";
 
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
@@ -49,8 +51,8 @@ public class Lang {
 	public static String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
 	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
 
-	public static void init() {
-		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
+    public static void init() {
+		File langFile = new File(ConfigManager.directory, ConfigManager.lang + ".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         economy_not_found = language.getString("economy_not_found");
@@ -74,10 +76,12 @@ public class Lang {
 		error_enchanter_not_spawned = language.getString("error_enchanter_not_spawned");
         error_npc_not_found = language.getString("error_npc_not_found");
 		name_format = language.getString("name_format");
+        error_profession_not_found = language.getString("error_profession_not_found");
 
         names_on = language.getString("names_on");
         names_off = language.getString("names_off");
         sound_changed = language.getString("sound_changed");
+        npc_cannot_do_anything = language.getString("npc_cannot_do_anything");
 
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
@@ -95,11 +99,11 @@ public class Lang {
         chat_enchant_failed = language.getString("chat_enchant_failed");
         chat_needs_repair = language.getString("chat_needs_repair");
         
-        Logger.getLogger("Minecraft").info(String.format(lang_loaded, Griswold.lang+".yml"));
+        Logger.getLogger("Minecraft").info(String.format(lang_loaded, ConfigManager.lang + ".yml"));
 	}
 	
 	public static void createLangFile() {
-		File langFile = new File(Griswold.directory, "en_US.yml");
+		File langFile = new File(ConfigManager.directory, "en_US.yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (!langFile.exists()) {
@@ -108,26 +112,28 @@ public class Lang {
         	language.set("repairman_exists", "ERROR: repairman %s already exists!");
         	language.set("config_loaded", "Config loaded!");
         	language.set("error_config", "ERROR when writing to config.yml");
-        	language.set("error_remove", "Could not remove repairman: not found!");
-        	language.set("repairman_list", "Here are all the repairmen:");
-        	language.set("repairman_spawn", "SPAWNED REPAIRMAN ID:%s AT X:%s Y:%s Z:%s");
-        	language.set("debug_loaded", "DEBUG: loaded total %s repairmen.");
+            language.set("error_remove", "Could not remove NPC: not found!");
+            language.set("repairman_list", "Here are all the NPCs:");
+            language.set("repairman_spawn", "SPAWNED NPC ID:%s AT X:%s Y:%s Z:%s");
+            language.set("debug_loaded", "DEBUG: loaded total %s NPCs.");
         	language.set("default_config", "CREATED DEFAULT CONFIG");
         	language.set("error_create_config", "ERROR when creating config.yml");
         	language.set("lang_loaded", "Language file %s loaded!");
         	language.set("error_accesslevel", "You do not have enough permissions to do that.");
         	language.set("new_created", "New blacksmith created!");
         	language.set("deleted", "Blacksmith %s deleted.");
-        	language.set("despawned", "All blacksmiths despawned");
-        	language.set("respawned", "All blacksmiths respawned");
+            language.set("despawned", "All NPCs despawned");
+            language.set("respawned", "All NPCs respawned");
         	language.set("error_few_arguments", "Too few arguments.");
-	        language.set("error_enchanter_not_spawned", "Enchant system is off so repairman not spawned at %s, %s, %s");
+            language.set("error_enchanter_not_spawned", "Enchant system is off so enchanter NPC not spawned at %s, %s, %s");
             language.set("error_npc_not_found", "Could not find NPC with name %s");
 	        language.set("name_format", ChatColor.GOLD+"<%s>"+ChatColor.WHITE+" ");
+            language.set("error_profession_not_found", "Profession not found! Available professions: ");
 
-            language.set("names_on", "Now showing blacksmiths' names.");
-            language.set("names_off", "Now hiding blacksmiths' names.");
+            language.set("names_on", "Now showing NPCs' names.");
+            language.set("names_off", "Now hiding NPCs' names.");
             language.set("sound_changed", "Blacksmith %s has new sound now!");
+            language.set("npc_cannot_do_anything", "NPC %s CANNOT DO ANYTHING. CHECK YOUR CONFIG.");
 
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
@@ -156,7 +162,7 @@ public class Lang {
 	}
 	
 	public static void checkLangVersion(String locale) {
-		File langFile = new File(Griswold.directory, locale+".yml");
+		File langFile = new File(ConfigManager.directory, locale+".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
         
         if (language.getDouble("version") == 0) {
@@ -279,6 +285,23 @@ public class Lang {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+
+        if (language.getDouble("version") == 0.08d) {
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.08");
+            language.set("npc_cannot_do_anything", "NPC %s CANNOT DO ANYTHING. CHECK YOUR CONFIG.");
+            language.set("names_on", "Now showing NPCs' names.");
+            language.set("names_off", "Now hiding NPCs' names.");
+            language.set("error_remove", "Could not remove NPC: not found!");
+            language.set("repairman_list", "Here are all the NPCs:");
+            language.set("repairman_spawn", "SPAWNED NPC ID:%s AT X:%s Y:%s Z:%s");
+            language.set("debug_loaded", "DEBUG: loaded total %s NPCs.");
+            language.set("error_enchanter_not_spawned", "Enchant system is off so enchanter NPC not spawned at %s, %s, %s");
+            language.set("despawned", "All NPCs despawned");
+            language.set("respawned", "All NPCs respawned");
+            language.set("error_profession_not_found", "Profession not found! Available professions: ");
+
+            language.set("version", 0.081d);
         }
 	}
 }

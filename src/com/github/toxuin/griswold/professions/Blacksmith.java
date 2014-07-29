@@ -4,6 +4,7 @@ import com.github.toxuin.griswold.Griswold;
 import com.github.toxuin.griswold.events.PlayerInteractGriswoldNPCEvent;
 import com.github.toxuin.griswold.npcs.GriswoldNPC;
 import com.github.toxuin.griswold.util.ClassProxy;
+import com.github.toxuin.griswold.util.ConfigManager;
 import com.github.toxuin.griswold.util.Lang;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
@@ -19,7 +20,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public class Blacksmith implements Profession {
+public class Blacksmith extends Profession {
 
     private GriswoldNPC npc;
 
@@ -27,7 +28,7 @@ public class Blacksmith implements Profession {
     public boolean canRepairTools = true;
     public boolean canEnchant = true;
 
-    public static double basicToolsPrice = 10.0;
+    public static double basicToolPrice = 10.0;
     public static double basicArmorPrice = 10.0;
     public static double enchantmentPrice = 30.0;
 
@@ -116,7 +117,7 @@ public class Blacksmith implements Profession {
         repairableArmor.add(Material.DIAMOND_HELMET);
         repairableArmor.add(Material.DIAMOND_LEGGINGS);
 
-        File configFile = new File(Griswold.directory, "config.yml");
+        File configFile = new File(ConfigManager.directory, "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         if (configFile.exists()) {
             if (config.isConfigurationSection("CustomItems.Tools")) {
@@ -138,9 +139,8 @@ public class Blacksmith implements Profession {
         npc.makeSound();
 
         if (!canEnchant && !canRepairTools && !canRepairArmor) {
-            // TODO: LANG
-            Griswold.log.info("NPC " + event.npc.name + " CANNOT DO ANYTHING. CHECK YOUR CONFIG.");
-            return String.format(Lang.name_format, npc.name) + "I CANNOT DO ANYTHING";
+            Griswold.log.info(String.format(Lang.npc_cannot_do_anything, event.npc.name));
+            return (String.format(Lang.name_format, npc.name) + Lang.chat_noitem);
         }
 
         // EMPTY HAND
@@ -308,7 +308,7 @@ public class Blacksmith implements Profession {
             }
 
         } catch (Exception e) {
-            if (Griswold.debug) e.printStackTrace();
+            if (ConfigManager.debug) e.printStackTrace();
             return String.format(Lang.name_format, npc.name) + Lang.chat_enchant_failed;
         }
     }
@@ -316,7 +316,7 @@ public class Blacksmith implements Profession {
     private double getPrice(ItemStack item) {
         if (Griswold.economy == null) return 0.0;
         double price = 0;
-        if (repairableTools.contains(item.getType())) price = basicToolsPrice;
+        if (repairableTools.contains(item.getType())) price = basicToolPrice;
         else if (repairableArmor.contains(item.getType())) price = basicArmorPrice;
         price += item.getDurability();
         Map<Enchantment, Integer> enchantments = item.getEnchantments();
@@ -337,10 +337,43 @@ public class Blacksmith implements Profession {
     @Override
     public void setNpc(GriswoldNPC npc) {
         this.npc = npc;
-
+        loadConfig();
         if (this.npc.entity instanceof Villager) {
             ((Villager) this.npc.entity).setProfession(Villager.Profession.BLACKSMITH);
         }
+    }
+
+    @Override
+    public void loadConfig() {
+        canRepairArmor = ConfigManager.getProfessionBoolean(npc.name, "canRepairArmor");
+        canRepairTools = ConfigManager.getProfessionBoolean(npc.name, "canRepairTools");
+        canEnchant = ConfigManager.getProfessionBoolean(npc.name, "canEnchant");
+        basicToolPrice = ConfigManager.getProfessionDouble(npc.name, "basicToolPrice");
+        basicArmorPrice = ConfigManager.getProfessionDouble(npc.name, "basicArmorPrice");
+        enchantmentPrice = ConfigManager.getProfessionDouble(npc.name, "basicEnchantmentPrice");
+        addEnchantmentPrice = ConfigManager.getProfessionDouble(npc.name, "pricePerEnchantment");
+        maxEnchantBonus = ConfigManager.getProfessionInteger(npc.name, "enchantmentBonus");
+        clearEnchantments = ConfigManager.getProfessionBoolean(npc.name, "clearOldEnchantments");
+        priceMultiplier = ConfigManager.getProfessionDouble(npc.name, "costMultiplier");
+    }
+
+    @Override
+    public void saveConfig() {
+        ConfigManager.setProfessionParam(npc.name, "canRepairArmor", canRepairArmor);
+        ConfigManager.setProfessionParam(npc.name, "canRepairTools", canRepairTools);
+        ConfigManager.setProfessionParam(npc.name, "canEnchant", canEnchant);
+        ConfigManager.setProfessionParam(npc.name, "basicArmorPrice", basicArmorPrice);
+        ConfigManager.setProfessionParam(npc.name, "basicToolPrice", basicToolPrice);
+        ConfigManager.setProfessionParam(npc.name, "basicEnchantmentPrice", enchantmentPrice);
+        ConfigManager.setProfessionParam(npc.name, "pricePerEnchantment", addEnchantmentPrice);
+        ConfigManager.setProfessionParam(npc.name, "enchantmentBonus", maxEnchantBonus);
+        ConfigManager.setProfessionParam(npc.name, "clearEnchantments", clearEnchantments);
+        ConfigManager.setProfessionParam(npc.name, "costMultiplier", priceMultiplier);
+    }
+
+    @Override
+    public String getName() {
+        return "Blacksmith";
     }
 
     @Override
