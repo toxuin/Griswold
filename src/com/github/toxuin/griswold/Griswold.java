@@ -60,7 +60,14 @@ public class Griswold extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getCommand("blacksmith").setExecutor(new CommandListener(this));
 
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Starter(), 20);
+		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
+            @Override
+            public void run() {
+                reloadPlugin();
+                if (!setupEconomy()) log.info(Lang.economy_not_found);
+                if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin();
+            }
+        }, 20);
 
         interactor = new Interactor();
 
@@ -83,6 +90,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
 	public void onDisable() {
         interactor = null;
+        getCommand("blacksmith").setExecutor(null);
         despawnAll();
 		log.info("Disabled.");
 	}
@@ -369,15 +377,6 @@ public class Griswold extends JavaPlugin implements Listener {
                 e.printStackTrace();
             }
         }
-	}
-
-    private class Starter implements Runnable {
-		@Override
-		public void run() {
-			reloadPlugin();
-			if (!setupEconomy()) log.info(Lang.economy_not_found);
-		}
-		
 	}
 
     private boolean setupEconomy() {
