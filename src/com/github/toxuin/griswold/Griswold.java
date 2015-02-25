@@ -47,7 +47,7 @@ public class Griswold extends JavaPlugin implements Listener {
                      this.getServer().getClass().getPackage().getName().lastIndexOf('.') + 1);
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
-        if (ClassProxy.getClass("entity.CraftVillager") == null) {
+        if (ClassProxy.getClass("entity.CraftVillager") == null || ClassProxy.getClass("EnchantmentInstance") == null) {
             log.severe("PLUGIN NOT LOADED!!!");
             log.severe("ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
             log.severe("GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
