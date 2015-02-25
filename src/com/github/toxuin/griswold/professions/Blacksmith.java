@@ -41,7 +41,7 @@ public class Blacksmith extends Profession {
     private final List<Material> notEnchantable = new LinkedList<Material>();
 
     final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
-    final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
+    final Class enchantmentInstance = ClassProxy.getClass("WeightedRandomEnchant");
     final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
 
     private Vector<PlayerInteractGriswoldNPCEvent> interactions = new Vector<PlayerInteractGriswoldNPCEvent>();

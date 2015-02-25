@@ -14,6 +14,10 @@ public class ClassProxy {
 
     // RELATIVE TO net.minecraft.server.vX_X_RX.
     public static Class getClass(String className) {
+        if (className.equals("WeightedRandomEnchant") && Griswold.apiVersion.contains("v1_7")) {
+            className = "EnchantmentInstance";
+        }
+
         try {
             return Class.forName("net.minecraft.server." + Griswold.apiVersion + "." + className);
         } catch (ClassNotFoundException e) {
