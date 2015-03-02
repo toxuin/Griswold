@@ -108,11 +108,21 @@ All parameters are stored in config.yml and are reloadable without restarting th
 
 **EnchantmentBonus** is a number of "virtual bookshelves" around blacksmith. Greater the number - cooler are enchantments. Default - 5.
 
+**UseEnchantmentSystem** switches the whole enchantment routine on and off.
+
+**ShowNames** – shows names over NPC heads.
+
+**DuplicateFinder** – when a new NPC spawns it will check for possible duplicates that may be there because of server crash in the past. It is off by default, but you can set it to true if you have NPC duplicate issues.
+
+**DuplicateFinderRadius** is a radius where plugin will search for duplicate NPCs. Smaller means slightly less work for server and probably little bit safer (won't delete wrong guys). You don't usually want it to be more than 10 blocks anyways.
+
 You also can alternate price calculation by changing basic armor and tool prices and enchantment cost. Modify parameters **BasicArmorPrice**, **BasicToolPrice** and **BasicEnchantmentPrice**.
 
 Prices are calculated like this: repairman cost parameter \* (basic item type cost + (basic enchantment price \* number of enchantments \* sum'd enchantment levels)).
 
 This formula makes repairment of simple non-enchanted items quite cheap, items with 1-2 enchantments are at moderate cost and uber-enchanted items repairment cost a fortune.
+
+If you want to change sound that NPC are making on interact – you can use ingame command or change it in the config part of the NPC.
 
 All other config parameters are configurable in-game, so you don't have to bother about them. But if you want – they are quite self-explanatory.
 
