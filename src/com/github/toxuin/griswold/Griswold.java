@@ -37,6 +37,8 @@ public class Griswold extends JavaPlugin implements Listener {
     public static String apiVersion;
     static String lang = "en_US";
     public boolean namesVisible = true;
+    private boolean findDuplicates = false;
+    private int duplicateFinderRadius = 5;
 
     public void onEnable() {
         log = this.getLogger();
@@ -226,6 +228,25 @@ public class Griswold extends JavaPlugin implements Listener {
 
 		squidward.overwriteAI();
 
+        // FILTER DUPLICATES
+        if (findDuplicates) {
+            List<Entity> surrounders = squidward.loc.getWorld().getEntities();
+            for (Entity entity : surrounders) {
+                if (!squidward.entityClass.isInstance(entity)) continue;
+                if (entity.getLocation().distance(squidward.loc) <= duplicateFinderRadius) {
+                    if (entity.getName().equals(squidward.name)) entity.remove(); // 100% DUPLICATE
+
+                    boolean isNpc = false;
+                    for (Repairer rep : npcChunks.keySet()) {
+                        if (!rep.entity.equals(entity)) continue;
+                        isNpc = true;
+                    }
+                    if (!isNpc) entity.remove();
+                }
+            }
+        }
+
+
 		if (debug) {
 			log.info(String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
 		}
@@ -249,7 +270,9 @@ public class Griswold extends JavaPlugin implements Listener {
         	timeout = config.getInt("Timeout");
         	lang = config.getString("Language");
             namesVisible = config.getBoolean("ShowNames");
-        	
+            findDuplicates = config.getBoolean("DuplicateFinder");
+            duplicateFinderRadius = config.getInt("DuplicateFinderRadius");
+
         	if (Double.parseDouble(config.getString("Version")) < version) {
         		updateConfig(config.getString("Version"));
         	} else if (Double.parseDouble(config.getString("Version")) == 0) {
@@ -305,6 +328,8 @@ public class Griswold extends JavaPlugin implements Listener {
         	config.set("ClearOldEnchantments", true);
         	config.set("EnchantmentBonus", 5);
         	config.set("Debug", false);
+        	config.set("DuplicateFinder", true);
+        	config.set("DuplicateFinderRadius", 5);
         	config.set("Version", this.getDescription().getVersion());
         	try {
         		config.save(configFile);
@@ -369,7 +394,21 @@ public class Griswold extends JavaPlugin implements Listener {
                     }
                 }
             }
-            config.set("Version", 0.08d);
+            config.set("Version", 0.073d);
+
+            try {
+                config.save(configFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (Double.parseDouble(oldVersion) == 0.08d || Double.parseDouble(oldVersion) == 0.073d) { // ver 0.08 never existed! ^_^
+            log.info("UPDATING CONFIG "+config.getName()+" FROM VERSION 0.73");
+            config.set("DuplicateFinder", true);
+            config.set("DuplicateFinderRadius", 5);
+
+            config.set("Version", 0.075d);
 
             try {
                 config.save(configFile);
