@@ -69,7 +69,7 @@ public class EventListener implements Listener {
     }
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onNewChunkLoad(ChunkLoadEvent event) {
+	public void onChunkLoad(ChunkLoadEvent event) {
 		if (npcChunks.isEmpty()) return;
 		Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
 
@@ -86,7 +86,7 @@ public class EventListener implements Listener {
 	}
 
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-	public void onNewChunkUnload(ChunkUnloadEvent event) {
+	public void onChunkUnload(ChunkUnloadEvent event) {
 		if (npcChunks.isEmpty()) return;
 		Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
 
