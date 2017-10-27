@@ -92,7 +92,7 @@ public class Lang {
         chat_enchant_failed = language.getString("chat_enchant_failed");
         chat_needs_repair = language.getString("chat_needs_repair");
         
-        Logger.getLogger("Minecraft").info(String.format(lang_loaded, Griswold.lang+".yml"));
+        Griswold.log.info(String.format(lang_loaded, Griswold.lang+".yml"));
 	}
 	
 	public static void createLangFile() {
