@@ -1,13 +1,13 @@
 package com.github.toxuin.griswold;
 
-public class ClassProxy {
+class ClassProxy {
     // THIS WHOLE FILE IS ABSOLUTELY GAY
     // THANK FOR VERSIONED NMS PACKAGES, EvilSeph
     // THERE ARE PEOPLE WHO HATE YOU.
 
     // RELATIVE TO net.minecraft.server.vX_X_RX.
-    public static Class getClass(String className) {
-        if (className.equals("EnchantmentInstance") && Griswold.apiVersion.contains("v1_8")) {
+    static Class getClass(String className) {
+        if (className.equals("EnchantmentInstance") && Griswold.majorApiVersion > 8) { // class name changed after 1.7
             className = "WeightedRandomEnchant";
         }
 

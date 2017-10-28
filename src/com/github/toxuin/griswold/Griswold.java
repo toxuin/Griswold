@@ -35,6 +35,7 @@ public class Griswold extends JavaPlugin implements Listener {
     
     public static double version;
     public static String apiVersion;
+    public static Integer majorApiVersion;
     static String lang = "en_US";
     public boolean namesVisible = true;
     private boolean findDuplicates = false;
@@ -47,6 +48,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		version = Double.parseDouble(pdfFile.getVersion());
         apiVersion = this.getServer().getClass().getPackage().getName().substring(
                      this.getServer().getClass().getPackage().getName().lastIndexOf('.') + 1);
+        majorApiVersion = Integer.valueOf(apiVersion.substring(apiVersion.indexOf("_") + 1, apiVersion.lastIndexOf("_"))); // LOLOLO ; also fix for 2.1+
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
         if (ClassProxy.getClass("entity.CraftVillager") == null || ClassProxy.getClass("EnchantmentInstance") == null) {
@@ -62,13 +64,10 @@ public class Griswold extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getCommand("blacksmith").setExecutor(new CommandListener(this));
 
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-            @Override
-            public void run() {
+		this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
                 reloadPlugin();
                 if (!setupEconomy()) log.info(Lang.economy_not_found);
                 if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin();
-            }
         }, 20);
 
         interactor = new Interactor();
@@ -87,7 +86,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
 		}
 		
-		log.info("Enabled! Version: " + version);
+		log.info("Enabled! Version: " + version + " on api version " + apiVersion);
 	}
 
 	public void onDisable() {
