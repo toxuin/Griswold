@@ -2,15 +2,20 @@ package com.github.toxuin.griswold;
 
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Villager;
 import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.Listener;
-import org.bukkit.plugin.*;
+import org.bukkit.plugin.PluginDescriptionFile;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.github.toxuin.griswold.Metrics.Graph;
@@ -34,8 +39,8 @@ public class Griswold extends JavaPlugin implements Listener {
     public static Economy economy = null;
     
     public static double version;
-    public static String apiVersion;
-    public static Integer majorApiVersion;
+
+    public static ApiVersion apiVersion;
     static String lang = "en_US";
     public boolean namesVisible = true;
     private boolean findDuplicates = false;
@@ -46,9 +51,18 @@ public class Griswold extends JavaPlugin implements Listener {
 		directory = this.getDataFolder();
 		PluginDescriptionFile pdfFile = this.getDescription();
 		version = Double.parseDouble(pdfFile.getVersion());
-        apiVersion = this.getServer().getClass().getPackage().getName().substring(
-                     this.getServer().getClass().getPackage().getName().lastIndexOf('.') + 1);
-        majorApiVersion = Integer.valueOf(apiVersion.substring(apiVersion.indexOf("_") + 1, apiVersion.lastIndexOf("_"))); // LOLOLO ; also fix for 2.1+
+		apiVersion = new ApiVersion(this.getServer().getBukkitVersion(), Bukkit.getServer().getClass().getPackage().getName());
+
+		if (!apiVersion.isValid()) {
+		    log.severe("UNKNOWN SERVER API VERSION: " + this.getServer().getBukkitVersion());
+		    log.severe("PLUGIN WORK WILL BE UNSTABLE");
+		    log.severe("PLEASE REPORT THIS TO THE DEVELOPERS AT http://dev.bukkit.org/bukkit-plugins/griswold/");
+            log.severe("TELL HIM YOU SAW THIS:"
+                    + " MAJOR: " + apiVersion.getMajor()
+                    + " MINOR: " + apiVersion.getMinor()
+                    + " RELEASE: " + apiVersion.getRelease()
+                    + " BUILD: " + apiVersion.getBuild());
+        }
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
         if (ClassProxy.getClass("entity.CraftVillager") == null || ClassProxy.getClass("EnchantmentInstance") == null) {
@@ -231,6 +245,7 @@ public class Griswold extends JavaPlugin implements Listener {
         if (findDuplicates) {
             List<Entity> surrounders = squidward.loc.getWorld().getEntities();
             for (Entity entity : surrounders) {
+                if (squidward.entityClass == null) continue; // YOU'RE WEIRD
                 if (!squidward.entityClass.isInstance(entity)) continue;
                 if (entity.getLocation().distance(squidward.loc) <= duplicateFinderRadius) {
                     if (entity.getName().equals(squidward.name)) entity.remove(); // 100% DUPLICATE
