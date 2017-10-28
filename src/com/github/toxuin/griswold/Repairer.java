@@ -1,14 +1,14 @@
 package com.github.toxuin.griswold;
 
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.Entity;
-import org.bukkit.Location;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
-import java.util.List;
+import java.util.Collection;
 import java.util.Random;
 
 public class Repairer {
@@ -41,7 +41,7 @@ public class Repairer {
             Object goals = pathfinderGoalSelector.cast(goalsField.get(villager));
             Field listField = pathfinderGoalSelector.getDeclaredField("b");
             listField.setAccessible(true);
-            List list = (List) listField.get(goals);
+            Collection list = (Collection) listField.get(goals);
             list.clear();
 
             Method setGoal = pathfinderGoalSelector.getMethod("a", new Class[] { int.class, pathfinderGoal });
