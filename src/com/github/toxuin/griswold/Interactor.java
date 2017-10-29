@@ -15,6 +15,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
 
+import static com.github.toxuin.griswold.Griswold.log;
+
 class Interactor {
 	public static double basicToolsPrice = 10.0;
 	public static double basicArmorPrice = 10.0;
@@ -107,19 +109,53 @@ class Interactor {
         if (configFile.exists()) {
             if (config.isConfigurationSection("CustomItems.Tools")) {
                 Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
-                for (String itemId : tools) repairableTools.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info("Added "+tools.size()+" custom tools from config file");
+                for (String itemId : tools) {
+                    Material mat;
+                    if (isInteger(itemId)) {  // IS ITEM ID
+                        mat = Material.getMaterial(Integer.parseInt(itemId));
+                    } else { // IS ITEM NAME
+                        mat = Material.getMaterial(itemId);
+                    }
+                    if (mat == null) {
+                        log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Tools CONFIG: " + itemId);
+                        continue;
+                    }
+                    repairableTools.add(mat); // BY NAME
+				}
+                log.info("Added " + tools.size() + " custom tools from config file");
             }
 
             if (config.isConfigurationSection("CustomItems.Armor")) {
                 Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
-                for (String itemId : armor) repairableArmor.add(Material.getMaterial(Integer.parseInt(itemId)));
-                Griswold.log.info("Added " + armor.size() + " custom armors from config file");
+                for (String itemId : armor) {
+                    Material mat;
+                    if (isInteger(itemId)) {  // IS ITEM ID
+                        mat = Material.getMaterial(Integer.parseInt(itemId));
+                    } else { // IS ITEM NAME
+                        mat = Material.getMaterial(itemId);
+                    }
+                    if (mat == null) {
+                        log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Armor CONFIG: " + itemId);
+                        continue;
+                    }
+                    repairableArmor.add(mat);
+                }
+                log.info("Added " + armor.size() + " custom armors from config file");
             }
         }
 	}
-	
-	private final Set<Interaction> interactions = new HashSet<Interaction>();
+
+    private boolean isInteger(String number) {
+	    if (number == null) return false;
+        try {
+            int i = Integer.parseInt(number);
+        } catch(NumberFormatException e) {
+            return false;
+        }
+        return true;
+    }
+
+    private final Set<Interaction> interactions = new HashSet<Interaction>();
 
 	@SuppressWarnings("unchecked")
     public void interact(Player player, Repairer repairman) {
