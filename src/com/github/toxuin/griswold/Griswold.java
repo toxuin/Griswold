@@ -39,6 +39,7 @@ public class Griswold extends JavaPlugin implements Listener {
     public static Economy economy = null;
     
     public static double version;
+
     public static ApiVersion apiVersion;
     static String lang = "en_US";
     public boolean namesVisible = true;
@@ -77,13 +78,10 @@ public class Griswold extends JavaPlugin implements Listener {
         this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
         getCommand("blacksmith").setExecutor(new CommandListener(this));
 
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
-            @Override
-            public void run() {
+		this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
                 reloadPlugin();
                 if (!setupEconomy()) log.info(Lang.economy_not_found);
                 if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin();
-            }
         }, 20);
 
         interactor = new Interactor();
@@ -102,7 +100,7 @@ public class Griswold extends JavaPlugin implements Listener {
 		    if (debug) log.info("ERROR: failed to submit stats to MCStats");
 		}
 		
-		log.info("Enabled! Version: " + version);
+		log.info("Enabled! Version: " + version + " on api version " + apiVersion);
 	}
 
 	public void onDisable() {

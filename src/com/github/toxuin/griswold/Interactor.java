@@ -181,8 +181,15 @@ class Interactor {
                                         Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
                                         Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
                                         int bonus = (new Random()).nextInt(maxEnchantBonus);
-                                        Method b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
-                                        List<?> list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+                                        Method b;
+                                        List<?> list;
+                                        if(Griswold.majorApiVersion >= 9) {
+                                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
+                                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
+                                        } else {
+                                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
+                                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+                                        }
 
                                         EnchantmentStorageMeta bookmeta = null;
                                         ItemStack bookLeftovers = null;
