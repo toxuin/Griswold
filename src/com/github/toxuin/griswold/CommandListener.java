@@ -32,6 +32,10 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
+            if(!(sender instanceof Player)) {
+                sender.sendMessage("This command should be run as a player.");
+                return false;
+            }
             Player player = (Player) sender;
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
