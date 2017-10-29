@@ -170,160 +170,169 @@ class Interactor {
 			return;
 		}
 
-		if (checkCanRepair(player, repairman, item)) {
-			Interaction interaction = new Interaction(player.getUniqueId(), repairman.entity, item, item.getDurability(), System.currentTimeMillis());
-			
-			// INTERACTS SECOND TIME
-			
-			for (Interaction inter : interactions) {
-				if (interaction.equals(inter)) {
-					
-					if (item.getDurability() != 0 && (
-							repairman.type.equalsIgnoreCase("armor") || 
-							repairman.type.equalsIgnoreCase("tools") ||
-							repairman.type.equalsIgnoreCase("both") ||
-							repairman.type.equalsIgnoreCase("all")
-						)) {
-						 EconomyResponse r = null;
-						if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
-							if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
-				            if (Griswold.economy == null || r.transactionSuccess()) {
-								item.setDurability((short) 0);
-					            inter.valid = false; // INVALIDATE INTERACTION
-								player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_done);
-				            } else {
-					            inter.valid = false; // INVALIDATE INTERACTION
-				            	player.sendMessage(String.format(Lang.name_format, repairman.name)+ChatColor.RED+Lang.chat_error);
-				            }
-							return;
-						} else {
-							inter.valid = false; // INVALIDATE INTERACTION
-							player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_poor);
-							return;
-						}
-					} else if (enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all"))) {
-							price = addEnchantmentPrice;
-							EconomyResponse r = null;
-							if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
-								if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
-					            if (Griswold.economy == null || r.transactionSuccess()) {
-						            if (clearEnchantments) {
-							            for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
-								            item.removeEnchantment(enchantToDel);
-							            }
-						            }
+		if (!checkCanRepair(player, repairman, item)) {
+            player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_cannot);
+            return;
+        }
 
-                                    try {
-                                        Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
-                                        Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
-                                        int bonus = (new Random()).nextInt(maxEnchantBonus);
-                                        Method b;
-                                        List<?> list;
-                                        if (Griswold.apiVersion.getMajor() >=1 && Griswold.apiVersion.getMajor() >= 9) {
-                                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
-                                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
-                                        } else {
-                                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
-                                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
-                                        }
+        Interaction interaction = new Interaction(player.getUniqueId(), repairman.entity, item, item.getDurability(), System.currentTimeMillis());
 
-                                        EnchantmentStorageMeta bookmeta = null;
-                                        ItemStack bookLeftovers = null;
-                                        if (item.getType().equals(Material.BOOK)) {
-                                            if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
-                                            player.getInventory().remove(item);
-                                            item = new ItemStack(Material.ENCHANTED_BOOK);
-                                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
-                                        } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
-                                        }
+        // INTERACTS SECOND TIME
 
-                                        if (list != null) {
-                                            for (Object obj : list) {
-                                                Object instance = enchantmentInstance.cast(obj);
-                                                Field enchantmentField = enchantmentInstance.getField("enchantment");
-                                                Field levelField = enchantmentInstance.getField("level");
-                                                Object enchantment = enchantmentField.get(instance);
-                                                Field idField = enchantment.getClass().getField("id");
-                                                if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
-                                                    bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
-                                                } else {
-                                                    item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
-                                                }
-                                            }
+        for (Interaction inter : interactions) {
+            if (interaction.equals(inter)) {
 
-                                            if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                                                item.setItemMeta(bookmeta);
-                                                player.getInventory().setItemInHand(item);
-                                                if (bookLeftovers!=null) {
-                                                    if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
-                                                        player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
-                                                    } else player.getInventory().addItem(bookLeftovers);
-                                                }
-                                            }
+                if (item.getDurability() != 0 && (
+                        repairman.type.equalsIgnoreCase("armor") ||
+                        repairman.type.equalsIgnoreCase("tools") ||
+                        repairman.type.equalsIgnoreCase("both") ||
+                        repairman.type.equalsIgnoreCase("all")
+                    )) {
+                    EconomyResponse r = null;
+                    if (!(Griswold.economy == null || Griswold.economy.getBalance(player) >= price)) {
+                        inter.valid = false; // INVALIDATE INTERACTION
+                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
+                        return;
+                    }
+                    
+                    if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
+                    if (Griswold.economy == null || r.transactionSuccess()) {
+                        item.setDurability((short) 0);
+                        inter.valid = false; // INVALIDATE INTERACTION
+                        player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_done);
+                    } else {
+                        inter.valid = false; // INVALIDATE INTERACTION
+                        player.sendMessage(String.format(Lang.name_format, repairman.name)+ChatColor.RED+Lang.chat_error);
+                    }
+                    return;
 
-                                            inter.valid = false; // INVALIDATE INTERACTION
-                                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
-                                        } else {
-                                            inter.valid = false; // INVALIDATE INTERACTION
-                                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
-                                        }
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-									return;
-							
-					            } else {
-						            inter.valid = false; // INVALIDATE INTERACTION
-									player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_poor);
-									return;
-								}
-							}
-					} else {
-						inter.valid = false; // INVALIDATE INTERACTION
-		            	player.sendMessage(String.format(Lang.name_format, repairman.name)+ChatColor.RED+Lang.chat_error);
-					}
-				}
-			}
-			
-			// INTERACTS FIRST TIME
-			
-			if (interactions.size() > 10) interactions.clear(); // THIS SUCKS, I KNOW
+                } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")))) {
+                    inter.valid = false; // INVALIDATE INTERACTION
+                    player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
+                    return;
+                }
+                price = addEnchantmentPrice;
+                EconomyResponse r = null;
+                if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
+                    if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
+                    if (!(Griswold.economy == null || r.transactionSuccess())) {
+                        inter.valid = false; // INVALIDATE INTERACTION
+                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
+                        return;
+                    }
 
-			if (item.getDurability() != 0) {
-				// NEEDS REPAIR
-				if (!repairman.type.equalsIgnoreCase("enchant")) {
-					// CAN REPAIR
-					interactions.add(interaction);
-					if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
-							Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
-					else player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_free);
-					player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_agreed);
-				} else {
-					// CANNOT REPAIR
-					player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_needs_repair);
-				}
-			} else {
-				// NEEDS ENCHANT
-				if (enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) )) { // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
-					price = addEnchantmentPrice;
-					if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) { // CAN ENCHANT
-						interactions.add(interaction);
-						if (Griswold.economy != null) player.sendMessage(String.format(String.format(Lang.name_format, repairman.name)+
-								Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
-						else player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_enchant_free);
-						player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_agreed);
-					} else { // CANNOT ENCHANT
-						player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
-					}
-				} else { // ENCHANTS DISABLED
-					player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
-				}
-			}
-		} else {
-			player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_cannot);
-		}
-	}
+                    if (clearEnchantments) {
+                        for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
+                            item.removeEnchantment(enchantToDel);
+                        }
+                    }
+
+                    try {
+                        Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
+                        Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
+                        int bonus = (new Random()).nextInt(maxEnchantBonus);
+                        Method b;
+                        List<?> list;
+                        if (Griswold.apiVersion.getMajor() >=1 && Griswold.apiVersion.getMajor() >= 9) {
+                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
+                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
+                        } else {
+                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
+                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+                        }
+
+                        EnchantmentStorageMeta bookmeta = null;
+                        ItemStack bookLeftovers = null;
+                        if (item.getType().equals(Material.BOOK)) {
+                            if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
+                            player.getInventory().remove(item);
+                            item = new ItemStack(Material.ENCHANTED_BOOK);
+                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                        } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
+                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                        }
+
+                        if (list == null) {
+                            inter.valid = false; // INVALIDATE INTERACTION
+                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
+                            return;
+                        }
+
+                        for (Object obj : list) {
+                            Object instance = enchantmentInstance.cast(obj);
+                            Field enchantmentField = enchantmentInstance.getField("enchantment");
+                            Field levelField = enchantmentInstance.getField("level");
+                            Object enchantment = enchantmentField.get(instance);
+                            Field idField = enchantment.getClass().getField("id");
+                            if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
+                                bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
+                            } else {
+                                item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
+                            }
+                        }
+
+                        if (item.getType().equals(Material.ENCHANTED_BOOK)) {
+                            item.setItemMeta(bookmeta);
+                            player.getInventory().setItemInHand(item);
+                            if (bookLeftovers!=null) {
+                                if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
+                                    player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
+                                } else player.getInventory().addItem(bookLeftovers);
+                            }
+                        }
+
+                        inter.valid = false; // INVALIDATE INTERACTION
+                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    return;
+                }
+            }
+        }
+
+        // INTERACTS FIRST TIME
+
+        if (interactions.size() > 10) interactions.clear(); // THIS SUCKS, I KNOW
+
+        if (item.getDurability() != 0) {
+            // NEEDS REPAIR
+            if (!repairman.type.equalsIgnoreCase("enchant")) {
+                // CANNOT REPAIR
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_needs_repair);
+                return;
+            }
+
+            // CAN REPAIR
+            interactions.add(interaction);
+            if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
+                    Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
+            else player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_free);
+            player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_agreed);
+        } else {
+            // NEEDS ENCHANT
+            if (!(enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) ))) {
+                // ENCHANTS DISABLED
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+                return;
+            }
+
+            // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
+            price = addEnchantmentPrice;
+            if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) {
+                // CANNOT ENCHANT
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+                return;
+            }
+            // CAN ENCHANT
+            interactions.add(interaction);
+            if (Griswold.economy != null) player.sendMessage(String.format(String.format(Lang.name_format, repairman.name)+
+                    Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
+            else player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_free);
+            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_agreed);
+        }
+    }
 
 	private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
 		if (repairman.type.equalsIgnoreCase("all")) {
