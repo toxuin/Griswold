@@ -14,28 +14,29 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.logging.Level;
 
 import static com.github.toxuin.griswold.Griswold.log;
 
 class Interactor {
-	public static double basicToolsPrice = 10.0;
-	public static double basicArmorPrice = 10.0;
-	public static double enchantmentPrice = 30.0;
-	
-	public static boolean enableEnchants = true;
-	public static double addEnchantmentPrice = 50.0;
-	public static int maxEnchantBonus = 5;
-	public static boolean clearEnchantments = false;
+    static double basicToolsPrice = 10.0;
+    static double basicArmorPrice = 10.0;
+    static double enchantmentPrice = 30.0;
 
-	private final List<Material> repairableTools = new LinkedList<Material>();
-	private final List<Material> repairableArmor = new LinkedList<Material>();
-	private final List<Material> notEnchantable = new LinkedList<Material>();
+    static boolean enableEnchants = true;
+    static double addEnchantmentPrice = 50.0;
+    static int maxEnchantBonus = 5;
+    static boolean clearEnchantments = false;
 
-    final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
-    final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
-    final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
+    private final List<Material> repairableTools = new LinkedList<>();
+    private final List<Material> repairableArmor = new LinkedList<>();
+    private final List<Material> notEnchantable = new LinkedList<>();
 
-	public Interactor() {
+    private final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
+    private final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
+    private final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
+
+    Interactor() {
         repairableTools.add(Material.IRON_AXE);
         repairableTools.add(Material.IRON_PICKAXE);
         repairableTools.add(Material.IRON_SWORD);
@@ -106,191 +107,195 @@ class Interactor {
 
         File configFile = new File(Griswold.directory, "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        if (configFile.exists()) {
-            if (config.isConfigurationSection("CustomItems.Tools")) {
-                Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
-                for (String itemId : tools) {
-                    Material mat;
-                    if (isInteger(itemId)) {  // IS ITEM ID
-                        mat = Material.getMaterial(Integer.parseInt(itemId));
-                    } else { // IS ITEM NAME
-                        mat = Material.getMaterial(itemId);
-                    }
-                    if (mat == null) {
-                        log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Tools CONFIG: " + itemId);
-                        continue;
-                    }
-                    repairableTools.add(mat); // BY NAME
-				}
-                log.info("Added " + tools.size() + " custom tools from config file");
-            }
 
-            if (config.isConfigurationSection("CustomItems.Armor")) {
-                Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
-                for (String itemId : armor) {
-                    Material mat;
-                    if (isInteger(itemId)) {  // IS ITEM ID
-                        mat = Material.getMaterial(Integer.parseInt(itemId));
-                    } else { // IS ITEM NAME
-                        mat = Material.getMaterial(itemId);
-                    }
-                    if (mat == null) {
-                        log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Armor CONFIG: " + itemId);
-                        continue;
-                    }
-                    repairableArmor.add(mat);
+        if (configFile.exists()) loadConfigItems(config);
+    }
+
+    private void loadConfigItems(final YamlConfiguration config) {
+        if (config.isConfigurationSection("CustomItems.Tools")) {
+            Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
+            for (String itemId : tools) {
+                Material mat;
+                if (isInteger(itemId)) {  // IS ITEM ID
+                    mat = Material.getMaterial(Integer.parseInt(itemId));
+                } else { // IS ITEM NAME
+                    mat = Material.getMaterial(itemId);
                 }
-                log.info("Added " + armor.size() + " custom armors from config file");
+                if (mat == null) {
+                    log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Tools CONFIG: " + itemId);
+                    continue;
+                }
+                repairableTools.add(mat); // BY NAME
             }
+            log.info("Added " + tools.size() + " custom tools from config file");
         }
-	}
+
+        if (config.isConfigurationSection("CustomItems.Armor")) {
+            Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
+            for (String itemId : armor) {
+                Material mat;
+                if (isInteger(itemId)) {  // IS ITEM ID
+                    mat = Material.getMaterial(Integer.parseInt(itemId));
+                } else { // IS ITEM NAME
+                    mat = Material.getMaterial(itemId);
+                }
+                if (mat == null) {
+                    log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Armor CONFIG: " + itemId);
+                    continue;
+                }
+                repairableArmor.add(mat);
+            }
+            log.info("Added " + armor.size() + " custom armors from config file");
+        }
+    }
 
     private boolean isInteger(String number) {
-	    if (number == null) return false;
+        if (number == null) return false;
         try {
             int i = Integer.parseInt(number);
-        } catch(NumberFormatException e) {
+        } catch (NumberFormatException e) {
             return false;
         }
         return true;
     }
 
-    private final Set<Interaction> interactions = new HashSet<Interaction>();
+    private final Set<Interaction> interactions = new HashSet<>();
 
-	@SuppressWarnings("unchecked")
+    @SuppressWarnings("unchecked")
     public void interact(Player player, Repairer repairman) {
-		ItemStack item = player.getItemInHand();
+        final ItemStack item = player.getItemInHand();
 
         repairman.haggle();
-		
-		double price = Math.round(getPrice(repairman, item));
 
-		if (item.getType() == Material.AIR) {
-			player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_noitem);
-			return;
-		}
+        double price = Math.round(getPrice(repairman, item));
 
-		if (!checkCanRepair(player, repairman, item)) {
-            player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_cannot);
+        if (item.getType() == Material.AIR) {
+            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_noitem);
+            return;
+        }
+
+        if (!checkCanRepair(player, repairman, item)) {
+            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_cannot);
             return;
         }
 
         Interaction interaction = new Interaction(player.getUniqueId(), repairman.entity, item, item.getDurability(), System.currentTimeMillis());
 
         // INTERACTS SECOND TIME
-
         for (Interaction inter : interactions) {
-            if (interaction.equals(inter)) {
+            if (!interaction.equals(inter)) continue;
 
-                if (item.getDurability() != 0 && (
-                        repairman.type.equalsIgnoreCase("armor") ||
-                        repairman.type.equalsIgnoreCase("tools") ||
-                        repairman.type.equalsIgnoreCase("both") ||
-                        repairman.type.equalsIgnoreCase("all")
-                    )) {
-                    EconomyResponse r = null;
-                    if (!(Griswold.economy == null || Griswold.economy.getBalance(player) >= price)) {
-                        inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
-                        return;
-                    }
-                    
-                    if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
-                    if (Griswold.economy == null || r.transactionSuccess()) {
-                        item.setDurability((short) 0);
-                        inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_done);
-                    } else {
-                        inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.name)+ChatColor.RED+Lang.chat_error);
-                    }
-                    return;
-
-                } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")))) {
+            if (item.getDurability() != 0 && (
+                    repairman.type.equalsIgnoreCase("armor") ||
+                            repairman.type.equalsIgnoreCase("tools") ||
+                            repairman.type.equalsIgnoreCase("both") ||
+                            repairman.type.equalsIgnoreCase("all")
+            )) {
+                EconomyResponse r;
+                if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
                     inter.valid = false; // INVALIDATE INTERACTION
-                    player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
+                    player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
                     return;
                 }
-                price = addEnchantmentPrice;
-                EconomyResponse r = null;
-                if (Griswold.economy == null || Griswold.economy.getBalance(player) >= price) {
-                    if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
-                    if (!(Griswold.economy == null || r.transactionSuccess())) {
+
+                if (Griswold.economy != null) {
+                    r = Griswold.economy.withdrawPlayer(player, price);
+                    if (!r.transactionSuccess()) {
                         inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
+                        player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
                         return;
                     }
+                }
+                item.setDurability((short) 0);
+                inter.valid = false; // INVALIDATE INTERACTION
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_done);
 
-                    if (clearEnchantments) {
-                        for (Enchantment enchantToDel : item.getEnchantments().keySet()) {
-                            item.removeEnchantment(enchantToDel);
-                        }
-                    }
+            } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")))) {
+                inter.valid = false; // INVALIDATE INTERACTION
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
+                return;
+            }
+            price = addEnchantmentPrice;
+            EconomyResponse r = null;
+            if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
+                return;
+            }
 
-                    try {
-                        Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
-                        Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
-                        int bonus = (new Random()).nextInt(maxEnchantBonus);
-                        Method b;
-                        List<?> list;
-                        if (Griswold.apiVersion.getMajor() >=1 && Griswold.apiVersion.getMajor() >= 9) {
-                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
-                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
-                        } else {
-                            b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
-                            list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
-                        }
+            if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
+            if (Griswold.economy != null && r.transactionSuccess()) {
+                inter.valid = false; // INVALIDATE INTERACTION
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_poor);
+                return;
+            }
 
-                        EnchantmentStorageMeta bookmeta = null;
-                        ItemStack bookLeftovers = null;
-                        if (item.getType().equals(Material.BOOK)) {
-                            if (item.getAmount() > 1) bookLeftovers = new ItemStack(Material.BOOK, item.getAmount()-1);
-                            player.getInventory().remove(item);
-                            item = new ItemStack(Material.ENCHANTED_BOOK);
-                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
-                        } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                            bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
-                        }
+            if (clearEnchantments) item.getEnchantments().forEach((enchantToDel, integer) ->
+                    item.removeEnchantment(enchantToDel));
 
-                        if (list == null) {
-                            inter.valid = false; // INVALIDATE INTERACTION
-                            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
-                            return;
-                        }
 
-                        for (Object obj : list) {
-                            Object instance = enchantmentInstance.cast(obj);
-                            Field enchantmentField = enchantmentInstance.getField("enchantment");
-                            Field levelField = enchantmentInstance.getField("level");
-                            Object enchantment = enchantmentField.get(instance);
-                            Field idField = enchantment.getClass().getField("id");
-                            if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
-                                bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
-                            } else {
-                                item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
-                            }
-                        }
+            try {
+                Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
+                Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
+                int bonus = (new Random()).nextInt(maxEnchantBonus);
+                Method b;
+                List<?> list;
+                if (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMajor() >= 9) {
+                    b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
+                    list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
+                } else {
+                    b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
+                    list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
+                }
 
-                        if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                            item.setItemMeta(bookmeta);
-                            player.getInventory().setItemInHand(item);
-                            if (bookLeftovers!=null) {
-                                if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
-                                    player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
-                                } else player.getInventory().addItem(bookLeftovers);
-                            }
-                        }
+                EnchantmentStorageMeta bookmeta = null;
+                ItemStack bookLeftovers = null;
+                if (item.getType().equals(Material.BOOK)) {
+                    if (item.getAmount() > 1)
+                        bookLeftovers = new ItemStack(Material.BOOK, item.getAmount() - 1);
+                    player.getInventory().remove(item);
+                    item.setType(Material.ENCHANTED_BOOK);
+                    item.setAmount(1);
+                    bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
+                    bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                }
 
-                        inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                if (list == null) {
+                    inter.valid = false; // INVALIDATE INTERACTION
+                    player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
                     return;
                 }
+
+                for (Object obj : list) {
+                    Object instance = enchantmentInstance.cast(obj);
+                    Field enchantmentField = enchantmentInstance.getField("enchantment");
+                    Field levelField = enchantmentInstance.getField("level");
+                    Object enchantment = enchantmentField.get(instance);
+                    Field idField = enchantment.getClass().getField("id");
+                    if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
+                        bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
+                    } else {
+                        item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
+                    }
+                }
+
+                if (item.getType().equals(Material.ENCHANTED_BOOK)) {
+                    item.setItemMeta(bookmeta);
+                    player.getInventory().setItemInHand(item);
+                    if (bookLeftovers != null) {
+                        if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
+                            player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
+                        } else player.getInventory().addItem(bookLeftovers);
+                    }
+                }
+
+                inter.valid = false; // INVALIDATE INTERACTION
+                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
+
+            } catch (Exception e) {
+                Griswold.log.log(Level.SEVERE, "ERROR ERROR ERROR", e);
             }
         }
+
 
         // INTERACTS FIRST TIME
 
@@ -306,13 +311,14 @@ class Interactor {
 
             // CAN REPAIR
             interactions.add(interaction);
-            if (Griswold.economy != null) player.sendMessage(String.format(ChatColor.GOLD+"<"+repairman.name+"> "+ChatColor.WHITE+
-                    Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
-            else player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_free);
-            player.sendMessage(String.format(Lang.name_format, repairman.name)+Lang.chat_agreed);
+            if (Griswold.economy != null)
+                player.sendMessage(String.format(ChatColor.GOLD + "<" + repairman.name + "> " + ChatColor.WHITE +
+                        Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
+            else player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_free);
+            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_agreed);
         } else {
             // NEEDS ENCHANT
-            if (!(enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType()) ))) {
+            if (!(enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
                 // ENCHANTS DISABLED
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
@@ -327,61 +333,62 @@ class Interactor {
             }
             // CAN ENCHANT
             interactions.add(interaction);
-            if (Griswold.economy != null) player.sendMessage(String.format(String.format(Lang.name_format, repairman.name)+
-                    Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
+            if (Griswold.economy != null)
+                player.sendMessage(String.format(String.format(Lang.name_format, repairman.name) +
+                        Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
             else player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_free);
             player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_agreed);
         }
     }
 
-	private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
-		if (repairman.type.equalsIgnoreCase("all")) {
-			if (item.getDurability() != 0) {
-				if (repairableArmor.contains(item.getType())) {
-					// check for armor perm
-					return player.hasPermission("griswold.armor");
-				} else {
-					return (repairableTools.contains(item.getType()) &&       // check tools perm
-							player.hasPermission("griswold.tools"));
-				}
-			} else {
-				return player.hasPermission("griswold.enchant");
-			}
-		} else if (repairman.type.equalsIgnoreCase("both")) {
-			if (repairableArmor.contains(item.getType())) {
-				return player.hasPermission("griswold.armor");
-			} else {
-				return (repairableTools.contains(item.getType()) &&
-						player.hasPermission("griswold.tools"));
-			}
-		} else if (repairman.type.equalsIgnoreCase("tools")) {
-			return player.hasPermission("griswold.tools");
-		} else if (repairman.type.equalsIgnoreCase("armor")) {
-			return player.hasPermission("griswold.armor");
-		} else if (repairman.type.equalsIgnoreCase("enchant")) {
-			return player.hasPermission("griswold.enchant");
-		}
-		return false;
-	}
+    private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
+        if (repairman.type.equalsIgnoreCase("all")) {
+            if (item.getDurability() != 0) {
+                if (repairableArmor.contains(item.getType())) {
+                    // check for armor perm
+                    return player.hasPermission("griswold.armor");
+                } else {
+                    return (repairableTools.contains(item.getType()) &&       // check tools perm
+                            player.hasPermission("griswold.tools"));
+                }
+            } else {
+                return player.hasPermission("griswold.enchant");
+            }
+        } else if (repairman.type.equalsIgnoreCase("both")) {
+            if (repairableArmor.contains(item.getType())) {
+                return player.hasPermission("griswold.armor");
+            } else {
+                return (repairableTools.contains(item.getType()) &&
+                        player.hasPermission("griswold.tools"));
+            }
+        } else if (repairman.type.equalsIgnoreCase("tools")) {
+            return player.hasPermission("griswold.tools");
+        } else if (repairman.type.equalsIgnoreCase("armor")) {
+            return player.hasPermission("griswold.armor");
+        } else if (repairman.type.equalsIgnoreCase("enchant")) {
+            return player.hasPermission("griswold.enchant");
+        }
+        return false;
+    }
 
-	private double getPrice(Repairer repairman, ItemStack item) {
-		if (Griswold.economy == null) return 0.0;
-		double price = 0;
-		if (repairableTools.contains(item.getType())) price = basicToolsPrice;
-		else if (repairableTools.contains(item.getType())) price = basicArmorPrice;
+    private double getPrice(Repairer repairman, ItemStack item) {
+        if (Griswold.economy == null) return 0.0;
+        double price = 0;
+        if (repairableTools.contains(item.getType())) price = basicToolsPrice;
+        else if (repairableTools.contains(item.getType())) price = basicArmorPrice;
 
-		price += item.getDurability();
+        price += item.getDurability();
 
-		Map<Enchantment, Integer> enchantments = item.getEnchantments();
+        Map<Enchantment, Integer> enchantments = item.getEnchantments();
 
-		if (!enchantments.isEmpty()) {
-			for (int i = 0; i<enchantments.size(); i++) {
-				Object[] enchantsLevels = enchantments.values().toArray();
-				price = price + enchantmentPrice * Integer.parseInt(enchantsLevels[i].toString());
-			}
-		}
-		return price * repairman.cost;
-	}
+        if (!enchantments.isEmpty()) {
+            for (int i = 0; i < enchantments.size(); i++) {
+                Object[] enchantsLevels = enchantments.values().toArray();
+                price = price + enchantmentPrice * Integer.parseInt(enchantsLevels[i].toString());
+            }
+        }
+        return price * repairman.cost;
+    }
 
     protected void finalize() throws Throwable {
         repairableArmor.clear();
@@ -392,28 +399,40 @@ class Interactor {
 }
 
 class Interaction {
-	private final UUID player;
-	private final Entity repairman;
-	private final ItemStack item;
-	private final int damage;
-	private final long time;
-	boolean valid;
-	public Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
-		this.item = item;
-		this.damage = dmg;
-		this.player = playerId;
-		this.repairman = repairman;
-		this.time = time;
-		this.valid = true;
-	}
+    private final UUID player;
+    private final Entity repairman;
+    private final ItemStack item;
+    private final int damage;
+    private final long time;
+    boolean valid;
 
-	public boolean equals(Interaction inter) {
-		int delta = (int) (time-inter.time);
-		return ((inter.item.equals(item)) &&
-				(inter.valid) &&
-				(inter.damage == damage) &&
-				(inter.player.equals(player)) &&
-				(inter.repairman.equals(repairman)) &&
-				(delta < Griswold.timeout));
-	}
+    Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
+        this.item = item;
+        this.damage = dmg;
+        this.player = playerId;
+        this.repairman = repairman;
+        this.time = time;
+        this.valid = true;
+    }
+
+    boolean equals(Interaction inter) {
+        int delta = (int) (time - inter.time);
+        return ((inter.item.equals(item)) &&
+                (inter.valid) &&
+                (inter.damage == damage) &&
+                (inter.player.equals(player)) &&
+                (inter.repairman.equals(repairman)) &&
+                (delta < Griswold.timeout));
+    }
+
+    @Override
+    public int hashCode() {
+        int result = player != null ? player.hashCode() : 0;
+        result = 31 * result + (repairman != null ? repairman.hashCode() : 0);
+        result = 31 * result + (item != null ? item.hashCode() : 0);
+        result = 31 * result + damage;
+        result = 31 * result + (int) (time ^ (time >>> 32));
+        result = 31 * result + (valid ? 1 : 0);
+        return result;
+    }
 }
