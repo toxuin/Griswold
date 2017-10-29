@@ -183,7 +183,7 @@ class Interactor {
                                         int bonus = (new Random()).nextInt(maxEnchantBonus);
                                         Method b;
                                         List<?> list;
-                                        if(Griswold.majorApiVersion >= 9) {
+                                        if (Griswold.apiVersion.getMajor() >=1 && Griswold.apiVersion.getMajor() >= 9) {
                                             b =  enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
                                             list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
                                         } else {
