@@ -77,7 +77,9 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 
         this.getServer().getPluginManager().registerEvents(new EventListener(this), this);
-        getCommand("blacksmith").setExecutor(new CommandListener(this));
+        final CommandListener cmdListener = new CommandListener(this);
+        getCommand("blacksmith").setExecutor(cmdListener);
+        getCommand("blacksmith").setTabCompleter(cmdListener);
 
         this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
             reloadPlugin();
