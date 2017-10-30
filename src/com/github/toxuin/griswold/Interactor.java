@@ -209,6 +209,7 @@ class Interactor {
                 item.setDurability((short) 0);
                 inter.valid = false; // INVALIDATE INTERACTION
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_done);
+                return;
 
             } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")))) {
                 inter.valid = false; // INVALIDATE INTERACTION
@@ -238,7 +239,7 @@ class Interactor {
                 int bonus = (new Random()).nextInt(maxEnchantBonus);
                 Method b;
                 List<?> list;
-                if (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMajor() >= 9) {
+                if (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 9) {
                     b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
                     list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
                 } else {
@@ -290,9 +291,10 @@ class Interactor {
 
                 inter.valid = false; // INVALIDATE INTERACTION
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
+                return;
 
             } catch (Exception e) {
-                Griswold.log.log(Level.SEVERE, "ERROR ERROR ERROR", e);
+                Griswold.log.log(Level.SEVERE, "AN EXCEPTON OCCURRED, REPORT THIS STACKTRACE TO DEVELOPERS", e);
             }
         }
 
@@ -303,7 +305,7 @@ class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if (!repairman.type.equalsIgnoreCase("enchant")) {
+            if (!repairman.type.equalsIgnoreCase("enchant") && !repairman.type.equalsIgnoreCase("all")) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_needs_repair);
                 return;
@@ -326,7 +328,7 @@ class Interactor {
 
             // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
             price = addEnchantmentPrice;
-            if (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")) {
+            if (!repairman.type.equalsIgnoreCase("enchant") && !repairman.type.equalsIgnoreCase("all")) {
                 // CANNOT ENCHANT
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
