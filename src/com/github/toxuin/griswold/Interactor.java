@@ -14,6 +14,7 @@ import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.logging.Level;
 
 import static com.github.toxuin.griswold.Griswold.log;
@@ -390,6 +391,25 @@ class Interactor {
             }
         }
         return price * repairman.cost;
+    }
+
+    private void applyRandomEnchantment(ItemStack item) {
+        List<Enchantment> candidates = new ArrayList<>();
+
+        Arrays.asList(Enchantment.values()).forEach((ench) -> { // I guess collections are overrated in bukkit
+            if (ench.canEnchantItem(item)) candidates.add(ench);
+        });
+
+        item.getEnchantments().keySet().forEach((applied) ->
+                candidates.removeIf((candidate) -> candidate.conflictsWith(applied)));
+
+        Collections.shuffle(candidates);
+
+        final Enchantment ench = candidates.get(0);
+        final int level = (ench.getStartLevel() == ench.getMaxLevel()) ? ench.getMaxLevel() :
+                ThreadLocalRandom.current().nextInt(ench.getStartLevel(), ench.getMaxLevel());
+
+        item.addEnchantment(ench, level);
     }
 
     protected void finalize() throws Throwable {
