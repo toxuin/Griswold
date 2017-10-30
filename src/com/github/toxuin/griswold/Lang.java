@@ -4,7 +4,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
-import java.util.logging.Logger;
 
 public class Lang {
 	public static String economy_not_found = "ERROR: LANG NOT FOUND: economy_not_found";
@@ -46,6 +45,8 @@ public class Lang {
 	public static String chat_noitem = "ERROR: LANG NOT FOUND: chat_noitem";
 	public static String chat_enchant_failed = "ERROR: LANG NOT FOUND: chat_enchant_failed";
 	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
+	public static String chat_hidden = "ERROR: LANG NOT FOUND: chat_hidden";
+	public static String chat_unhidden = "ERROR: LANG NOT FOUND: chat_unhidden";
 	
 	public static void init() {
 		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
@@ -91,6 +92,9 @@ public class Lang {
         chat_noitem = language.getString("chat_noitem");
         chat_enchant_failed = language.getString("chat_enchant_failed");
         chat_needs_repair = language.getString("chat_needs_repair");
+
+        chat_hidden = language.getString("chat_hidden");
+		chat_unhidden = language.getString("chat_unhidden");
         
         Griswold.log.info(String.format(lang_loaded, Griswold.lang+".yml"));
 	}
@@ -140,6 +144,9 @@ public class Lang {
         	language.set("chat_noitem", ChatColor.AQUA+"*Shakes your hand*"+ChatColor.WHITE+" Hello! Glad to meet you!");
         	language.set("chat_enchant_failed", "Ehm... Looks like nothing happened with your item.");
         	language.set("chat_needs_repair", "This item needs a repair first. No, I can not repair it.");
+
+        	language.set("chat_hidden", "Repairman hidden.");
+			language.set("chat_unhidden", "Repairman spawned back.");
         	
         	language.set("version", Griswold.version);
         	
@@ -264,5 +271,7 @@ public class Lang {
                 e.printStackTrace();
             }
         }
+
+        // TODO: Add chat_hidden and chat_unhidden here?
 	}
 }

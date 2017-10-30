@@ -32,11 +32,7 @@ public class CommandListener implements CommandExecutor {
                 return true;
             }
 
-            if(!(sender instanceof Player)) {
-                sender.sendMessage("This command should be run as a player.");
-                return false;
-            }
-            Player player = (Player) sender;
+            Player player = (Player) sender; // check performed in can() method
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
             if (args.length < 4) plugin.createRepairman(args[1], location);
@@ -86,6 +82,34 @@ public class CommandListener implements CommandExecutor {
 
             plugin.setSound(args[1], args[2]);
             sender.sendMessage(String.format(Lang.sound_changed, args[1]));
+            return true;
+        }
+
+        // HIDE COMMAND
+        else if (args[0].equalsIgnoreCase("hide")) {
+            if(args.length < 2) {
+                sender.sendMessage(Lang.error_few_arguments);
+                return true;
+            }
+            plugin.despawn(args[1]);
+            sender.sendMessage(Lang.chat_hidden);
+            return true;
+        }
+
+        // UNHIDE COMMAND
+        else if (args[0].equalsIgnoreCase("unhide")) {
+            if(args.length < 2) {
+                sender.sendMessage(Lang.error_few_arguments);
+                return true;
+            }
+            try {
+                plugin.spawnRepairman(args[1]);
+                sender.sendMessage(Lang.chat_unhidden);
+                return true;
+            } catch (IllegalArgumentException ignored) {
+                sender.sendMessage(Lang.chat_error);
+                return true;
+            }
         }
 
         return false;
@@ -95,7 +119,8 @@ public class CommandListener implements CommandExecutor {
 		if (!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
 				command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("list") ||
 				command.equalsIgnoreCase("despawn") || command.equalsIgnoreCase("names") ||
-				command.equalsIgnoreCase("sound"))) {
+				command.equalsIgnoreCase("sound") || command.equalsIgnoreCase("hide") ||
+                command.equalsIgnoreCase("unhide"))) {
 			// UNKNOWN COMMAND.
 			return true;
 		}
