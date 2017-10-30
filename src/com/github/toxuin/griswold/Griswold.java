@@ -8,7 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftVillager;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Villager;
@@ -20,8 +20,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -250,24 +250,14 @@ public class Griswold extends JavaPlugin implements Listener {
         squidward.overwriteAI();
 
         // FILTER DUPLICATES
-        if (findDuplicates) {
-            List<Entity> surrounders = squidward.loc.getWorld().getEntities();
-            for (Entity entity : surrounders) {
-                if (squidward.entityClass == null) continue; // YOU'RE WEIRD
-                if (!squidward.entityClass.isInstance(entity)) continue;
-                if (entity.getLocation().distance(squidward.loc) <= duplicateFinderRadius) {
-                    if (entity.getName().equals(squidward.name)) entity.remove(); // 100% DUPLICATE
-
-                    boolean isNpc = false;
-                    for (Repairer rep : npcChunks.keySet()) {
-                        if (!rep.entity.equals(entity)) continue;
-                        isNpc = true;
-                    }
-                    if (!isNpc) entity.remove();
-                }
-            }
-        }
-
+        if (findDuplicates)
+            Arrays.asList(squidward.loc.getChunk().getEntities()).forEach((doppelganger) -> {
+                if (squidward.entityClass == null) return; // YOU'RE WEIRD
+                if (!doppelganger.getClass().equals(CraftVillager.class)) return; // are you even villager?
+                if (squidward.entity.equals(doppelganger)) return; // prevent suiciding
+                if (!(doppelganger.getLocation().distance(squidward.loc) <= duplicateFinderRadius)) return;
+                if (doppelganger.getName().equals(squidward.name)) doppelganger.remove(); // 100% DUPLICATE
+            });
 
         if (debug) {
             log.info(String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
