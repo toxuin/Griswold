@@ -2,13 +2,13 @@ package com.github.toxuin.griswold;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
-public class CommandListener implements CommandExecutor {
+import java.util.ArrayList;
+import java.util.List;
+
+public class CommandListener implements CommandExecutor, TabCompleter {
     private Griswold plugin;
 
     public CommandListener(Griswold griswold) {
@@ -16,8 +16,14 @@ public class CommandListener implements CommandExecutor {
     }
 
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
-        if (args.length == 0) { sender.sendMessage(Lang.error_few_arguments); return false; }
-        if (!can(sender, args[0])) { sender.sendMessage(ChatColor.RED+Lang.error_accesslevel); return true; }
+        if (args.length == 0) {
+            sender.sendMessage(Lang.error_few_arguments);
+            return false;
+        }
+        if (!can(sender, args[0])) {
+            sender.sendMessage(ChatColor.RED + Lang.error_accesslevel);
+            return true;
+        }
 
         // RELOAD COMMAND
         if (args[0].equalsIgnoreCase("reload")) {
@@ -69,7 +75,7 @@ public class CommandListener implements CommandExecutor {
         // NAMES COMMAND
         else if (args[0].equalsIgnoreCase("names")) {
             plugin.toggleNames();
-            sender.sendMessage(plugin.namesVisible?Lang.names_on:Lang.names_off);
+            sender.sendMessage(plugin.namesVisible ? Lang.names_on : Lang.names_off);
             return true;
         }
 
@@ -87,7 +93,7 @@ public class CommandListener implements CommandExecutor {
 
         // HIDE COMMAND
         else if (args[0].equalsIgnoreCase("hide")) {
-            if(args.length < 2) {
+            if (args.length < 2) {
                 sender.sendMessage(Lang.error_few_arguments);
                 return true;
             }
@@ -98,7 +104,7 @@ public class CommandListener implements CommandExecutor {
 
         // UNHIDE COMMAND
         else if (args[0].equalsIgnoreCase("unhide")) {
-            if(args.length < 2) {
+            if (args.length < 2) {
                 sender.sendMessage(Lang.error_few_arguments);
                 return true;
             }
@@ -115,20 +121,103 @@ public class CommandListener implements CommandExecutor {
         return false;
     }
 
-	private boolean can(CommandSender sender, String command) {
-		if (!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
-				command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("list") ||
-				command.equalsIgnoreCase("despawn") || command.equalsIgnoreCase("names") ||
-				command.equalsIgnoreCase("sound") || command.equalsIgnoreCase("hide") ||
+    private boolean can(CommandSender sender, String command) {
+        if (!(command.equalsIgnoreCase("reload") || command.equalsIgnoreCase("create") ||
+                command.equalsIgnoreCase("remove") || command.equalsIgnoreCase("list") ||
+                command.equalsIgnoreCase("despawn") || command.equalsIgnoreCase("names") ||
+                command.equalsIgnoreCase("sound") || command.equalsIgnoreCase("hide") ||
                 command.equalsIgnoreCase("unhide"))) {
-			// UNKNOWN COMMAND.
-			return true;
-		}
+            // UNKNOWN COMMAND.
+            return true;
+        }
 
-		if (!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
-			return false;
-		}
+        if (!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
+            return false;
+        }
 
         return sender instanceof ConsoleCommandSender || sender.hasPermission("griswold.admin");
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command cmd, String commandLabel, String[] args) {
+        List<String> completions = new ArrayList<>();
+
+        // NO ARGS
+        if (args.length == 1) {
+            completions.add("reload");
+            completions.add("create");
+            completions.add("remove");
+            completions.add("list");
+            completions.add("despawn");
+            completions.add("names");
+            completions.add("sound");
+            completions.add("hide");
+            completions.add("unhide");
+            return completions;
+        }
+
+        // NO PERMS
+        if (!can(sender, args[1])) {
+            return completions;
+        }
+
+        // RELOAD COMMAND
+        if (args[0].equalsIgnoreCase("reload")) {
+            return completions;
+        }
+
+        // CREATE COMMAND
+        else if (args[0].equalsIgnoreCase("create")) {
+            sender.sendMessage(String.valueOf(args.length));
+            if (args.length < 3) {
+                completions.add("<name>");
+                return completions;
+            } else if(args.length == 3) {
+                completions.add("tools");
+                completions.add("armor");
+                completions.add("both");
+                completions.add("enchant");
+                completions.add("all");
+                return completions;
+            }
+        }
+
+        // REMOVE COMMAND
+        else if (args[0].equalsIgnoreCase("remove")) {
+            return completions;
+        }
+
+        // LIST COMMAND
+        else if (args[0].equalsIgnoreCase("list")) {
+            return completions;
+        }
+
+        // DESPAWN
+        else if (args[0].equalsIgnoreCase("despawn")) {
+            return completions;
+        }
+
+        // NAMES COMMAND
+        else if (args[0].equalsIgnoreCase("names")) {
+            return completions;
+        }
+
+        // SOUND COMMAND
+        else if (args[0].equalsIgnoreCase("sound")) {
+            return completions;
+        }
+
+        // HIDE COMMAND
+        else if (args[0].equalsIgnoreCase("hide")) {
+            return completions;
+        }
+
+        // UNHIDE COMMAND
+        else if (args[0].equalsIgnoreCase("unhide")) {
+            return completions;
+        }
+
+        return completions;
+
     }
 }
