@@ -5,6 +5,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -155,31 +156,32 @@ public class CommandListener implements CommandExecutor, TabCompleter {
 
         // NO ARGS
         if (args.length == 1) {
-            completions.add("reload");
-            completions.add("create");
-            completions.add("remove");
-            completions.add("list");
-            completions.add("despawn");
-            completions.add("names");
-            completions.add("sound");
-            completions.add("hide");
-            completions.add("unhide");
+            List<String> commands = new ArrayList<>();
+            commands.add("reload");
+            commands.add("create");
+            commands.add("remove");
+            commands.add("list");
+            commands.add("despawn");
+            commands.add("names");
+            commands.add("sound");
+            commands.add("hide");
+            commands.add("unhide");
+            StringUtil.copyPartialMatches(args[0], commands, completions);
             return completions;
         }
 
         // NO PERMS
-        if (!can(sender, args[1])) {
+        if (args.length == 2 && !args[1].isEmpty() && !can(sender, args[1])) {
             return completions;
         }
 
         // RELOAD COMMAND
-        if (args[0].equalsIgnoreCase("reload")) {
+        if (args[0].startsWith("reload")) {
             return completions;
         }
 
         // CREATE COMMAND
-        else if (args[0].equalsIgnoreCase("create")) {
-            sender.sendMessage(String.valueOf(args.length));
+        else if (args[0].startsWith("create")) {
             if (args.length < 3) {
                 completions.add("<name>");
                 return completions;
@@ -194,37 +196,37 @@ public class CommandListener implements CommandExecutor, TabCompleter {
         }
 
         // REMOVE COMMAND
-        else if (args[0].equalsIgnoreCase("remove")) {
+        else if (args[0].startsWith("remove")) {
             return completions;
         }
 
         // LIST COMMAND
-        else if (args[0].equalsIgnoreCase("list")) {
+        else if (args[0].startsWith("list")) {
             return completions;
         }
 
         // DESPAWN
-        else if (args[0].equalsIgnoreCase("despawn")) {
+        else if (args[0].startsWith("despawn")) {
             return completions;
         }
 
         // NAMES COMMAND
-        else if (args[0].equalsIgnoreCase("names")) {
+        else if (args[0].startsWith("names")) {
             return completions;
         }
 
         // SOUND COMMAND
-        else if (args[0].equalsIgnoreCase("sound")) {
+        else if (args[0].startsWith("sound")) {
             return completions;
         }
 
         // HIDE COMMAND
-        else if (args[0].equalsIgnoreCase("hide")) {
+        else if (args[0].startsWith("hide")) {
             return completions;
         }
 
         // UNHIDE COMMAND
-        else if (args[0].equalsIgnoreCase("unhide")) {
+        else if (args[0].startsWith("unhide")) {
             return completions;
         }
 
