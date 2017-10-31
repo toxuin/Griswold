@@ -1,5 +1,8 @@
 language: java
 jdk:
-  - openjdk7
   - oraclejdk8
 install: ./bukkit-build/buildtools.sh
+env:
+  - BUKKIT_VER=1.8
+  - BUKKIT_VER=1.12.1
+  - BUKKIT_VER=latest
