@@ -8,13 +8,13 @@ import java.util.Arrays;
 
 import static com.github.toxuin.griswold.Griswold.log;
 
-public class ClassProxy {
+class ClassProxy {
     // THIS WHOLE FILE IS ABSOLUTELY GAY
     // THANK FOR VERSIONED NMS PACKAGES, EvilSeph
     // THERE ARE PEOPLE WHO HATE YOU.
 
     // RELATIVE TO net.minecraft.server.vX_X_RX.
-    public static Class getClass(String className) {
+    static Class getClass(String className) {
         // class name changed after 1.7
         if (className.equals("EnchantmentInstance") && (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() > 8)) {
             className = "WeightedRandomEnchant";
@@ -32,16 +32,21 @@ public class ClassProxy {
     }
 
     // DEBUGGING METHODS
+    @SuppressWarnings("unused")
     static void listMethods(Class className) {
         for (Method m : className.getDeclaredMethods()) {
             log.info(m.getName() + ", ARGS: " + Arrays.toString(m.getParameterTypes()));
         }
     }
+
+    @SuppressWarnings("unused")
     static void listConstructors(Class className) {
         for (Constructor c : className.getDeclaredConstructors()) {
             log.info("Constructor for " + className.getName() + ": " + Arrays.toString(c.getParameterTypes()));
         }
     }
+
+    @SuppressWarnings("unused")
     static void listFields(Class className) {
         for (Field f : className.getFields()) {
             log.info(f.getName() + ": " + f.getType().getCanonicalName());

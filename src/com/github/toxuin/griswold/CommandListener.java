@@ -1,5 +1,6 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.util.RepairerType;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.*;
@@ -11,7 +12,7 @@ import java.util.List;
 public class CommandListener implements CommandExecutor, TabCompleter {
     private Griswold plugin;
 
-    public CommandListener(Griswold griswold) {
+    CommandListener(Griswold griswold) {
         this.plugin = griswold;
     }
 
@@ -41,8 +42,15 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             Player player = (Player) sender; // check performed in can() method
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
-            if (args.length < 4) plugin.createRepairman(args[1], location);
-            else plugin.createRepairman(args[1], location, args[2], args[3]);
+            if (args.length < 4) {
+                plugin.createRepairman(args[1], location);
+            } else {
+                if(!RepairerType.present(args[2])) {
+                    player.sendMessage(Lang.chat_type_error);
+                    return true;
+                }
+                plugin.createRepairman(args[1], location, args[2], args[3]);
+            }
             player.sendMessage(Lang.new_created);
             return true;
         }
@@ -172,7 +180,7 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             if (args.length < 3) {
                 completions.add("<name>");
                 return completions;
-            } else if(args.length == 3) {
+            } else if (args.length == 3) {
                 completions.add("tools");
                 completions.add("armor");
                 completions.add("both");
