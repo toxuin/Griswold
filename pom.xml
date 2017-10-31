@@ -9,7 +9,6 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <BukkitVersion>1.12.2-R0.1-SNAPSHOT</BukkitVersion>
         <VaultVersion>1.5.6</VaultVersion>
     </properties>
 
@@ -18,7 +17,7 @@
             <groupId>org.bukkit</groupId>
             <artifactId>craftbukkit</artifactId>
             <scope>system</scope>
-            <version>${BukkitVersion}</version>
+            <version>1.X-SNAPSHOT</version>
             <systemPath>${basedir}/bukkit-build/bukkit.jar</systemPath>
         </dependency>
 

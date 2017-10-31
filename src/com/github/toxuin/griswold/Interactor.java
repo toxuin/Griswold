@@ -164,7 +164,7 @@ class Interactor {
 
     @SuppressWarnings("unchecked")
     public void interact(Player player, Repairer repairman) {
-        final ItemStack item = player.getItemInHand();
+        final ItemStack item = player.getInventory().getItemInMainHand();
 
         repairman.haggle();
 
