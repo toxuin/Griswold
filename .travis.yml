@@ -7,3 +7,6 @@ env:
   - BUKKIT_VER=1.8
   - BUKKIT_VER=1.12.1
   - BUKKIT_VER=latest
+cache:
+  directories:
+      - bukkit-build
