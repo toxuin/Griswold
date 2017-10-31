@@ -19,7 +19,7 @@
             <artifactId>craftbukkit</artifactId>
             <scope>system</scope>
             <version>${BukkitVersion}</version>
-            <systemPath>${basedir}/put-bukkit-here/bukkit.jar</systemPath>
+            <systemPath>${basedir}/bukkit-build/bukkit.jar</systemPath>
         </dependency>
 
         <dependency>
