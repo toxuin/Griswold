@@ -8,7 +8,6 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftVillager;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Villager;
@@ -255,9 +254,14 @@ public class Griswold extends JavaPlugin implements Listener {
         if (findDuplicates)
             Arrays.asList(squidward.loc.getChunk().getEntities()).forEach((doppelganger) -> {
                 if (squidward.entityClass == null) return; // YOU'RE WEIRD
-                if (!doppelganger.getClass().equals(CraftVillager.class)) return; // are you even villager?
-                if (squidward.entity.equals(doppelganger)) return; // prevent suiciding
                 if (!(doppelganger.getLocation().distance(squidward.loc) <= duplicateFinderRadius)) return;
+                Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
+                if (craftVillagerClass == null) {
+                    log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
+                    return;
+                }
+                if (!craftVillagerClass.isInstance(doppelganger)) return; // are you even villager?
+                if (squidward.entity.equals(doppelganger)) return; // prevent suiciding
                 if (doppelganger.getName().equals(squidward.name)) doppelganger.remove(); // 100% DUPLICATE
             });
 
@@ -425,12 +429,12 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 
         if (Double.parseDouble(oldVersion) == 0.07d) {
-            log.info("UPDATING CONFIG " + config.getName() + " FROM VERSION 0.7*");
+            log.info("UPDATING CONFIG " + config.getName() + " FROM VERSION 0.7");
             if (config.isConfigurationSection("repairmen")) {
                 Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
                 for (String repairman : repairmen) {
                     if (config.getString("repairmen." + repairman + ".sound").equals("mob.villager.haggle")) {
-                        config.set("repairmen." + repairman + ".sound", "VILLAGER_HAGGLE");
+                        config.set("repairmen." + repairman + ".sound", "ENTITY_VILLAGER_TRADING");
                     }
                 }
             }
@@ -443,12 +447,12 @@ public class Griswold extends JavaPlugin implements Listener {
             }
         }
 
-        if (Double.parseDouble(oldVersion) == 0.08d || Double.parseDouble(oldVersion) == 0.073d) { // ver 0.08 never existed! ^_^
+        if (Double.parseDouble(oldVersion) == 0.073d) {
             log.info("UPDATING CONFIG " + config.getName() + " FROM VERSION 0.73");
             config.set("DuplicateFinder", true);
             config.set("DuplicateFinderRadius", 5);
 
-            config.set("Version", 0.075d);
+            config.set("Version", 0.076d);
 
             try {
                 config.save(configFile);

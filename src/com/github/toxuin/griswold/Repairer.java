@@ -17,7 +17,7 @@ public class Repairer {
     public Location loc;
     public String type = "all";
     public double cost = 1;
-    public String sound = "mob.villager.haggle";
+    public String sound = "ENTITY_VILLAGER_TRADING";
     private Random rnd = new Random();
 
     final Class entityInsentient = ClassProxy.getClass("EntityInsentient");
@@ -44,7 +44,7 @@ public class Repairer {
             Collection list = (Collection) listField.get(goals);
             list.clear();
 
-            Method setGoal = pathfinderGoalSelector.getMethod("a", new Class[] { int.class, pathfinderGoal });
+            Method setGoal = pathfinderGoalSelector.getMethod("a", int.class, pathfinderGoal);
             Constructor<?> lookAtPlayerConstructor = pathfinderGoalLookAtPlayer.getConstructor(entityInsentient, Class.class, float.class, float.class);
             Constructor<?> randomLookAroundConstructor = pathfinderGoalRandomLookaround.getConstructor(entityInsentient);
 
@@ -57,6 +57,7 @@ public class Repairer {
 
     @SuppressWarnings("unchecked")
     public void haggle() {
+        if (craftEntity == null) return;
         if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && craftEntity.isInstance(this.entity)) {
             try {
                 Sound snd = Sound.valueOf(sound);
@@ -67,22 +68,5 @@ public class Repairer {
             }
         }
 
-    }
-
-    // DEBUGGING METHODS
-    static void listMethods(Class className) {
-        for (Method m : className.getDeclaredMethods()) {
-            Griswold.log.info(m.getName() + ", ARGS: " + Arrays.toString(m.getParameterTypes()));
-        }
-    }
-    static void listConstructors(Class className) {
-        for (Constructor c : className.getDeclaredConstructors()) {
-            Griswold.log.info("Constructor for " + className.getName() + ": " + Arrays.toString(c.getParameterTypes()));
-        }
-    }
-    static void listFields(Class className) {
-        for (Field f : className.getFields()) {
-            Griswold.log.info(f.getName() + ": " + f.getType().getCanonicalName());
-        }
     }
 }

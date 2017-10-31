@@ -272,6 +272,17 @@ public class Lang {
             }
         }
 
-        // TODO: Add chat_hidden and chat_unhidden here?
+		if (language.getDouble("version") == 0.073d) {
+			Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.073");
+			language.set("chat_hidden", "Repairman hidden.");
+			language.set("chat_unhidden", "Repairman spawned back.");
+			language.set("version", 0.076d);
+
+			try {
+				language.save(langFile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
