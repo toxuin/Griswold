@@ -33,6 +33,7 @@ public class Lang {
 
 	public static String chat_done = "ERROR: LANG NOT FOUND: chat_done";
 	public static String chat_error = "ERROR: LANG NOT FOUND: chat_error";
+	public static String chat_type_error = "ERROR: LANG NOT FOUND: chat_type_error";
 	public static String chat_poor = "ERROR: LANG NOT FOUND: chat_poor";
 	public static String chat_norepair = "ERROR: LANG NOT FOUND: chat_norepair";
 	public static String chat_free = "ERROR: LANG NOT FOUND: chat_free";
@@ -79,6 +80,7 @@ public class Lang {
 
         chat_done = language.getString("chat_done");
         chat_error = language.getString("chat_error");
+		chat_type_error = language.getString("chat_type_error");
         chat_poor = language.getString("chat_poor");
         chat_free = language.getString("chat_free");
         chat_norepair = language.getString("chat_norepair");
@@ -131,6 +133,7 @@ public class Lang {
 
         	language.set("chat_done", "Looks great! Good as new!");
         	language.set("chat_error", "Whoops, something's gone wrong!");
+			language.set("chat_type_error", "Whoops, wrong repairman type! Possiable are: tools, armor, both, enchant, all");
         	language.set("chat_poor", "You have no money, that's sad!");
         	language.set("chat_free", "I will repair your item for free today!");
         	language.set("chat_norepair", "Hmm, looks like it does not need any repair.");
@@ -276,6 +279,7 @@ public class Lang {
 			Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.073");
 			language.set("chat_hidden", "Repairman hidden.");
 			language.set("chat_unhidden", "Repairman spawned back.");
+			language.set("chat_type_error", "Whoops, wrong repairman type! Possiable are: tools, armor, both, enchant, all");
 			language.set("version", 0.076d);
 
 			try {

@@ -1,11 +1,12 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.util.Interaction;
+import com.github.toxuin.griswold.util.RepairerType;
 import net.milkbowl.vault.economy.EconomyResponse;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
@@ -163,7 +164,7 @@ class Interactor {
     private final Set<Interaction> interactions = new HashSet<>();
 
     @SuppressWarnings("unchecked")
-    public void interact(Player player, Repairer repairman) {
+    void interact(Player player, Repairer repairman) {
         final ItemStack item = player.getInventory().getItemInMainHand();
 
         repairman.haggle();
@@ -187,10 +188,10 @@ class Interactor {
             if (!interaction.equals(inter)) continue;
 
             if (item.getDurability() != 0 && (
-                    repairman.type.equalsIgnoreCase("armor") ||
-                            repairman.type.equalsIgnoreCase("tools") ||
-                            repairman.type.equalsIgnoreCase("both") ||
-                            repairman.type.equalsIgnoreCase("all")
+                    repairman.getType().equals(RepairerType.ARMOR) ||
+                            repairman.getType().equals(RepairerType.TOOLS) ||
+                            repairman.getType().equals(RepairerType.BOTH) ||
+                            repairman.getType().equals(RepairerType.ALL)
             )) {
                 EconomyResponse r;
                 if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
@@ -212,7 +213,7 @@ class Interactor {
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_done);
                 return;
 
-            } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.type.equalsIgnoreCase("enchant") || repairman.type.equalsIgnoreCase("all")))) {
+            } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.getType().equals(RepairerType.ENCHANT) || repairman.getType().equals(RepairerType.ALL)))) {
                 inter.valid = false; // INVALIDATE INTERACTION
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
                 return;
@@ -306,7 +307,7 @@ class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if (!repairman.type.equalsIgnoreCase("enchant") && !repairman.type.equalsIgnoreCase("all")) {
+            if (!repairman.getType().equals(RepairerType.ENCHANT)&& !repairman.getType().equals(RepairerType.ALL)) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_needs_repair);
                 return;
@@ -329,7 +330,7 @@ class Interactor {
 
             // ENCHANTS ENABLED AND THINGY IS ENCHANTABLE
             price = addEnchantmentPrice;
-            if (!repairman.type.equalsIgnoreCase("enchant") && !repairman.type.equalsIgnoreCase("all")) {
+            if (!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL)) {
                 // CANNOT ENCHANT
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
@@ -345,7 +346,7 @@ class Interactor {
     }
 
     private boolean checkCanRepair(Player player, Repairer repairman, ItemStack item) {
-        if (repairman.type.equalsIgnoreCase("all")) {
+        if (repairman.getType().equals(RepairerType.ALL)) {
             if (item.getDurability() != 0) {
                 if (repairableArmor.contains(item.getType())) {
                     // check for armor perm
@@ -357,18 +358,18 @@ class Interactor {
             } else {
                 return player.hasPermission("griswold.enchant");
             }
-        } else if (repairman.type.equalsIgnoreCase("both")) {
+        } else if (repairman.getType().equals(RepairerType.BOTH)) {
             if (repairableArmor.contains(item.getType())) {
                 return player.hasPermission("griswold.armor");
             } else {
                 return (repairableTools.contains(item.getType()) &&
                         player.hasPermission("griswold.tools"));
             }
-        } else if (repairman.type.equalsIgnoreCase("tools")) {
+        } else if (repairman.getType().equals(RepairerType.TOOLS)) {
             return player.hasPermission("griswold.tools");
-        } else if (repairman.type.equalsIgnoreCase("armor")) {
+        } else if (repairman.getType().equals(RepairerType.ARMOR)) {
             return player.hasPermission("griswold.armor");
-        } else if (repairman.type.equalsIgnoreCase("enchant")) {
+        } else if (repairman.getType().equals(RepairerType.ENCHANT)) {
             return player.hasPermission("griswold.enchant");
         }
         return false;
@@ -390,7 +391,7 @@ class Interactor {
                 price = price + enchantmentPrice * Integer.parseInt(enchantsLevels[i].toString());
             }
         }
-        return price * repairman.cost;
+        return price * repairman.getCost();
     }
 
     private void applyRandomEnchantment(ItemStack item) {
@@ -420,41 +421,3 @@ class Interactor {
     }
 }
 
-class Interaction {
-    private final UUID player;
-    private final Entity repairman;
-    private final ItemStack item;
-    private final int damage;
-    private final long time;
-    boolean valid;
-
-    Interaction(UUID playerId, Entity repairman, ItemStack item, int dmg, long time) {
-        this.item = item;
-        this.damage = dmg;
-        this.player = playerId;
-        this.repairman = repairman;
-        this.time = time;
-        this.valid = true;
-    }
-
-    boolean equals(Interaction inter) {
-        int delta = (int) (time - inter.time);
-        return ((inter.item.equals(item)) &&
-                (inter.valid) &&
-                (inter.damage == damage) &&
-                (inter.player.equals(player)) &&
-                (inter.repairman.equals(repairman)) &&
-                (delta < Griswold.timeout));
-    }
-
-    @Override
-    public int hashCode() {
-        int result = player != null ? player.hashCode() : 0;
-        result = 31 * result + (repairman != null ? repairman.hashCode() : 0);
-        result = 31 * result + (item != null ? item.hashCode() : 0);
-        result = 31 * result + damage;
-        result = 31 * result + (int) (time ^ (time >>> 32));
-        result = 31 * result + (valid ? 1 : 0);
-        return result;
-    }
-}
