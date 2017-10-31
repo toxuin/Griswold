@@ -255,7 +255,7 @@ public class Griswold extends JavaPlugin implements Listener {
             Arrays.asList(squidward.loc.getChunk().getEntities()).forEach((doppelganger) -> {
                 if (squidward.entityClass == null) return; // YOU'RE WEIRD
                 if (!(doppelganger.getLocation().distance(squidward.loc) <= duplicateFinderRadius)) return;
-                Class craftVillagerClass = ClassProxy.getClass("CraftVillager");
+                Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
                 if (craftVillagerClass == null) {
                     log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
                     return;
