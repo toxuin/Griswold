@@ -181,7 +181,7 @@ class Interactor {
             return;
         }
 
-        Interaction interaction = new Interaction(player.getUniqueId(), repairman.entity, item, item.getDurability(), System.currentTimeMillis());
+        Interaction interaction = new Interaction(player.getUniqueId(), repairman.getEntity(), item, item.getDurability(), System.currentTimeMillis());
 
         // INTERACTS SECOND TIME
         for (Interaction inter : interactions) {
