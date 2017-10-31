@@ -7,7 +7,7 @@ Show your stuff to blacksmith and he'll tell you how much he wants for the job. 
 
 Simple!
 
-##Features:##
+## Features:
 
 * Command-free native minecraft game experience.
 
@@ -28,7 +28,7 @@ Simple!
 ### Build Status
 [![Build Status](https://travis-ci.org/toxuin/Griswold.png)](https://travis-ci.org/toxuin/Griswold)
 
-##Roadmap:##
+## Roadmap:
 
 * Making NPC to be other living thing other than villagers
 
@@ -36,7 +36,7 @@ Simple!
 
 * Your suggestions
 
-##Give author a dollar!##
+## Give author a dollar!
 
 I started to develop for Minecraft more than two years from now and only did it in my spare time. I still don't have a legit Minecraft account. Having one would be helpfull to give support in-person on online-mode servers. So if you want me to come to your server or just want to say "Thanks, Tony!" – feel free to use the button below. I will buy myself a minecraft account from these money.
 
@@ -46,7 +46,7 @@ I started to develop for Minecraft more than two years from now and only did it 
 
 * [Buy him a Minecraft copy!](https://www.paypal.com/cgi-bin/webscr?business=3YDH29HLTFR7E&item_number=github&cmd=_xclick&currency_code=CAD&amount=1&item_name=A%20Minecraft%20copy%20for%20Tony)
 
-##Permissions:##
+## Permissions:
 
 * **griswold.admin** - lets you create and remove repairmen
 
@@ -56,7 +56,7 @@ I started to develop for Minecraft more than two years from now and only did it 
 
 * **griswold.enchant** - lets users to enchant their gear at repairmen
 
-##Commands:##
+## Commands:
 
 These commands are for administrative purposes, users don't need them.
 
@@ -70,7 +70,7 @@ These commands are for administrative purposes, users don't need them.
 
 * **/blacksmith names** – toggles names above their heads.
 
-* **/blacksmith sound name bukkit_sound_id** – sets the interaction sound for the repairman. Use standard bukkit Sound names (you can find those [here](http://jd.bukkit.org/rb/apidocs/org/bukkit/Sound.html)). You can set sound to "mute" to be silent.
+* **/blacksmith sound name bukkit_sound_id** – sets the interaction sound for the repairman. Use standard bukkit Sound names (you can find those [here](https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)). You can set sound to "mute" to be silent.
 
 * **/blacksmith reload** - reloads config, despawns and then respawns all the repairmen.
 
@@ -78,7 +78,7 @@ All commands require griswold.admin permission and fallbacks to OP if something 
 
 /blacksmith command has an alias – /bsmith to avoid conflicts with other plugins.
 
-##NPC Types:##
+## NPC Types:
 
 When you use /blacksmith create command you can specify a type of NPC. Available types are:
 
@@ -90,7 +90,7 @@ When you use /blacksmith create command you can specify a type of NPC. Available
 
 * "**enchant**"  – these guys are just enchanters and cannot repair things.
 
-##Config:##
+## Config:
 
 All parameters are stored in config.yml and are reloadable without restarting the server (**/blacksmith reload**). 
 
@@ -126,28 +126,28 @@ If you want to change sound that NPC are making on interact – you can use inga
 
 All other config parameters are configurable in-game, so you don't have to bother about them. But if you want – they are quite self-explanatory.
 
-###How to add a custom item###
+### How to add a custom item
 
 You have to create a new entry in config with name CustomItems. This entry will contain two more entries: Tools and Armor. Under those you add your items in "'id': name" format.
 Yes, it sounds complicated, but it is not! Here, look at my sample config:
 
     CustomItems:
       Tools:
-        '261': Bow
-        '259': Flint and steel
+        'BOW': Bow
+        'FLINT_AND_STEEL': Flint and steel
       Armor:
-        '12': Random armor
-        '69': Some other armor
+        'LEATHER_CHESTPLATE': Leather Armor
+        'CHAINMAIL_CHESTPLATE': Some other armor
 
-You can just copy-paste it in your config at the very end of it and change the IDs. Names after ":" are just for your convenience and are not used anywhere in the plugin.
+You can just copy-paste it in your config at the very end of it and change the IDs. Names after ":" are just for your convenience and are not used anywhere in the code.
 
-##Support links##
+## Support links
 
 * [Plugin page on dev.bukkit.org](http://dev.bukkit.org/bukkit-plugins/griswold/)
 * [Russian discussion and support](http://rubukkit.org/threads/15343/)
 * Feel free to suggest something or report bugs in Issues
 * Your pull-requests are always welcome!
 
-##Stats:##
+## Stats:
 
 ![Griswold stats](http://mcstats.org/signature/griswold.png)
