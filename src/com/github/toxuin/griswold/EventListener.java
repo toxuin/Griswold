@@ -30,7 +30,7 @@ public class EventListener implements Listener {
         if (npcChunks.isEmpty()) return;
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
-            if (event.getEntity().equals(rep.entity)) {
+            if (event.getEntity().equals(rep.getEntity())) {
                 event.setDamage(0d);
                 event.setCancelled(true);
             }
@@ -48,7 +48,7 @@ public class EventListener implements Listener {
 
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
-            if (event.getRightClicked().equals(rep.entity)) {
+            if (event.getRightClicked().equals(rep.getEntity())) {
                 plugin.interactor.interact(event.getPlayer(), rep);
                 event.setCancelled(true);
             }
@@ -61,7 +61,7 @@ public class EventListener implements Listener {
         if (event.getEntity() instanceof Zombie) {
             Set<Repairer> npcs = npcChunks.keySet();
             for (Repairer rep : npcs) {
-                if (rep.entity.equals(event.getTarget())) {
+                if (rep.getEntity().equals(event.getTarget())) {
                     event.setCancelled(true);
                     return;
                 }
@@ -78,7 +78,7 @@ public class EventListener implements Listener {
             if (pair.equals(coords)) {
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
-                        plugin.spawnRepairman(rep);
+                        rep.spawn();
                         if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
                     }
                 }
@@ -95,7 +95,7 @@ public class EventListener implements Listener {
             if (pair.equals(coords)) {
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
-                        rep.entity.remove();
+                        rep.despawn();
                         if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
                     }
                 }

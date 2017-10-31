@@ -2,7 +2,6 @@ package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.Metrics.Graph;
 import com.github.toxuin.griswold.util.Pair;
-import com.github.toxuin.griswold.util.RepairerType;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -10,10 +9,6 @@ import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Villager;
-import org.bukkit.entity.Villager.Profession;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -21,7 +16,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -33,9 +27,9 @@ public class Griswold extends JavaPlugin implements Listener {
     public static int timeout = 5000;
     public static Logger log;
 
-    private static FileConfiguration config = null;
+    static FileConfiguration config = null;
     private static File configFile = null;
-    private Map<Repairer, Pair> npcChunks = new HashMap<>();
+    static Map<Repairer, Pair> npcChunks = new HashMap<>();
     Interactor interactor;
 
     static Economy economy = null;
@@ -44,9 +38,9 @@ public class Griswold extends JavaPlugin implements Listener {
 
     static ApiVersion apiVersion;
     static String lang = "en_US";
-    boolean namesVisible = true;
-    private boolean findDuplicates = false;
-    private int duplicateFinderRadius = 5;
+    static boolean namesVisible = true;
+    static boolean findDuplicates = false;
+    static int duplicateFinderRadius = 5;
 
     public void onEnable() {
         log = this.getLogger();
@@ -151,7 +145,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
         Repairer meGusta = new Repairer(name, loc, Repairer.getDefaultSound(), type, Double.parseDouble(cost));
 
-        spawnRepairman(meGusta);
+        meGusta.spawn();
     }
 
     void removeRepairman(String name) {
@@ -182,26 +176,14 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void despawnAll() {
-        Set<Repairer> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
-            rep.entity.remove();
-        }
+        Griswold.npcChunks.keySet().forEach(Repairer::despawn);
         npcChunks.clear();
-    }
-
-    void despawn(final String squidward) {
-        npcChunks.keySet().forEach((rep) -> {
-            if (rep.name.equalsIgnoreCase(squidward)) rep.entity.remove();
-        });
     }
 
     void toggleNames() {
         namesVisible = !namesVisible;
-        Set<Repairer> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
-            LivingEntity entity = (LivingEntity) rep.entity;
-            entity.setCustomNameVisible(namesVisible);
-        }
+
+        npcChunks.keySet().forEach((rep) -> rep.toggleName(namesVisible));
 
         config.set("ShowNames", namesVisible);
         try {
@@ -221,83 +203,8 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-    void spawnRepairman(Repairer squidward) {
-        Location loc = squidward.getLocation();
-        if (loc == null) {
-            log.info("ERROR: LOCATION IS NULL");
-            return;
-        }
-        if (squidward.getType().equals(RepairerType.ENCHANT) && !Interactor.enableEnchants) {
-            log.info(String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
-            return;
-        }
-        LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
-        repairman.setCustomNameVisible(namesVisible);
-        repairman.setCustomName(squidward.name);
-        if (squidward.getType().equals(RepairerType.ENCHANT)) {
-            ((Villager) repairman).setProfession(Profession.LIBRARIAN);
-        } else {
-            ((Villager) repairman).setProfession(Profession.BLACKSMITH);
-        }
-
-        squidward.entity = repairman;
-
-        if (!npcChunks.containsKey(squidward))
-            npcChunks.put(squidward, new Pair(loc.getChunk().getX(), loc.getChunk().getZ()));
-
-        //loc.getWorld().loadChunk(loc.getChunk());
-
-        squidward.overwriteAI();
-
-        // FILTER DUPLICATES
-        if (findDuplicates)
-            Arrays.asList(squidward.getLocation().getChunk().getEntities()).forEach((doppelganger) -> {
-                if (squidward.entityClass == null) return; // YOU'RE WEIRD
-                if (!(doppelganger.getLocation().distance(squidward.getLocation()) <= duplicateFinderRadius)) return;
-                Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
-                if (craftVillagerClass == null) {
-                    log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
-                    return;
-                }
-                if (!craftVillagerClass.isInstance(doppelganger)) return; // are you even villager?
-                if (squidward.entity.equals(doppelganger)) return; // prevent suiciding
-                if (doppelganger.getName().equals(squidward.name)) doppelganger.remove(); // 100% DUPLICATE
-            });
-
-        if (debug) {
-            log.info(String.format(Lang.repairman_spawn, squidward.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
-        }
-    }
-
-    /**
-     * Spawn a repairman by name from config
-     *
-     * @param name MeGusta's name
-     */
-    void spawnRepairman(final String name) {
-        Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
-        if (!repairmen.contains(name)) throw new IllegalArgumentException("Repairman with name " + name + " not found");
-
-
-        Location loc = new Location(this.getServer().getWorld(config.getString("repairmen." + name + ".world")),
-                config.getDouble("repairmen." + name + ".X"),
-                config.getDouble("repairmen." + name + ".Y"),
-                config.getDouble("repairmen." + name + ".Z"));
-        String sound = config.getString("repairmen." + name + ".sound");
-        String type = config.getString("repairmen." + name + ".type");
-        double cost = config.getDouble("repairmen." + name + ".cost");
-
-        Repairer squidward = new Repairer(name, loc, sound, type, cost);
-
-        squidward.getLocation().getWorld().loadChunk(squidward.getLocation().getChunk()); // TODO: do it one place, less code?
-
-        spawnRepairman(squidward);
-
-
-    }
-
     Map<Repairer, Pair> getNpcChunks() {
-        return this.npcChunks;
+        return npcChunks;
     }
 
     private void readConfig() {
@@ -350,9 +257,8 @@ public class Griswold extends JavaPlugin implements Listener {
 
                     Repairer squidward = new Repairer(repairman, loc, sound, type, cost);
 
-                    squidward.getLocation().getWorld().loadChunk(squidward.getLocation().getChunk());
-
-                    spawnRepairman(squidward);
+                    squidward.loadChunk();
+                    squidward.spawn();
                 }
             }
             log.info(Lang.config_loaded);

@@ -1,25 +1,35 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.util.Pair;
 import com.github.toxuin.griswold.util.RepairerType;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Villager;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Random;
+import java.util.Set;
 
 public class Repairer {
 
-    public Entity entity;
+    private Entity entity;
     public String name = "Repairman";
     private Location loc;
     private RepairerType type = RepairerType.ALL;
     private double cost = 1.0d;
     private static final String DEFAULT_SOUND = "ENTITY_VILLAGER_TRADING";
     private String sound = "ENTITY_VILLAGER_TRADING";
+    private boolean spawned;
+
     private Random rnd = new Random();
 
     final Class entityInsentient = ClassProxy.getClass("EntityInsentient");
@@ -39,10 +49,11 @@ public class Repairer {
         this.sound = sound;
         this.type = RepairerType.fromString(type);
         this.cost = cost;
+        this.spawned = false;
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
-    public void overwriteAI() {
+    private void overwriteAI() {
         try {
             Method getHandle = craftVillager.getMethod("getHandle");
             Object villager = getHandle.invoke(craftVillager.cast(entity));
@@ -66,7 +77,7 @@ public class Repairer {
     }
 
     @SuppressWarnings("unchecked")
-    public void haggle() {
+    void haggle() {
         if (craftEntity == null) return;
         if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && craftEntity.isInstance(this.entity)) {
             try {
@@ -77,7 +88,79 @@ public class Repairer {
                 sound = null;
             }
         }
+    }
 
+    void loadChunk() {
+        getLocation().getWorld().loadChunk(getLocation().getChunk());
+    }
+
+    void spawn() {
+        if(spawned) return;
+        Location loc = getLocation();
+        if (loc == null) {
+            Griswold.log.info("ERROR: LOCATION IS NULL");
+            return;
+        }
+        if (getType().equals(RepairerType.ENCHANT) && !Interactor.enableEnchants) {
+            Griswold.log.info(String.format(Lang.error_enchanter_not_spawned, loc.getX(), loc.getY(), loc.getZ()));
+            return;
+        }
+        LivingEntity repairman = (LivingEntity) loc.getWorld().spawn(loc, EntityType.VILLAGER.getEntityClass());
+        repairman.setCustomNameVisible(Griswold.namesVisible);
+        repairman.setCustomName(name);
+        if (getType().equals(RepairerType.ENCHANT)) {
+            ((Villager) repairman).setProfession(Villager.Profession.LIBRARIAN);
+        } else {
+            ((Villager) repairman).setProfession(Villager.Profession.BLACKSMITH);
+        }
+
+        this.entity = repairman;
+
+        if (!Griswold.npcChunks.containsKey(this))
+            Griswold.npcChunks.put(this, new Pair(loc.getChunk().getX(), loc.getChunk().getZ()));
+
+        this.overwriteAI();
+
+        // FILTER DUPLICATES
+        if (Griswold.findDuplicates)
+            Arrays.asList(getLocation().getChunk().getEntities()).forEach((doppelganger) -> {
+                if (this.entityClass == null) return; // YOU'RE WEIRD
+                if (!(doppelganger.getLocation().distance(getLocation()) <= Griswold.duplicateFinderRadius)) return;
+                Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
+                if (craftVillagerClass == null) {
+                    Griswold.log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
+                    return;
+                }
+                if (!craftVillagerClass.isInstance(doppelganger)) return; // are you even villager?
+                if (this.entity.equals(doppelganger)) return; // prevent suiciding
+                if (doppelganger.getName().equals(this.name)) doppelganger.remove(); // 100% DUPLICATE
+            });
+
+        if (Griswold.debug) {
+            Griswold.log.info(String.format(Lang.repairman_spawn, this.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
+        }
+        spawned = true;
+    }
+
+    public void despawn() {
+        if(!spawned) return;
+        Griswold.npcChunks.keySet().forEach((rep) -> {
+            if (rep.equals(this)) rep.getEntity().remove();
+        });
+        spawned = false;
+    }
+
+    public void toggleName(boolean toggle) {
+        LivingEntity entity = (LivingEntity) this.entity;
+        entity.setCustomNameVisible(toggle);
+    }
+
+    public Entity getEntity() {
+        return entity;
+    }
+
+    public void setEntity(Entity entity) {
+        this.entity = entity;
     }
 
     public String getName() {
@@ -122,5 +205,50 @@ public class Repairer {
 
     public void setSound(String sound) {
         this.sound = sound;
+    }
+
+    public static Repairer getByName(final String name) throws IllegalArgumentException {
+        for(Repairer r : Griswold.npcChunks.keySet()) if(r.getName().equals(name)) return r;
+        FileConfiguration config = Griswold.config;
+        Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
+        if (!repairmen.contains(name)) throw new IllegalArgumentException("Repairman with name " + name + " not found");
+
+
+        Location loc = new Location(Bukkit.getWorld(config.getString("repairmen." + name + ".world")),
+                config.getDouble("repairmen." + name + ".X"),
+                config.getDouble("repairmen." + name + ".Y"),
+                config.getDouble("repairmen." + name + ".Z"));
+        String sound = config.getString("repairmen." + name + ".sound");
+        String type = config.getString("repairmen." + name + ".type");
+        double cost = config.getDouble("repairmen." + name + ".cost");
+
+        return new Repairer(name, loc, sound, type, cost);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Repairer repairer = (Repairer) o;
+
+        if (Double.compare(repairer.cost, cost) != 0) return false;
+        if (name != null ? !name.equals(repairer.name) : repairer.name != null) return false;
+        if (loc != null ? !loc.equals(repairer.loc) : repairer.loc != null) return false;
+        if (type != repairer.type) return false;
+        return sound != null ? sound.equals(repairer.sound) : repairer.sound == null;
+    }
+
+    @Override
+    public int hashCode() {
+        int result;
+        long temp;
+        result = name != null ? name.hashCode() : 0;
+        result = 31 * result + (loc != null ? loc.hashCode() : 0);
+        result = 31 * result + (type != null ? type.hashCode() : 0);
+        temp = Double.doubleToLongBits(cost);
+        result = 31 * result + (int) (temp ^ (temp >>> 32));
+        result = 31 * result + (sound != null ? sound.hashCode() : 0);
+        return result;
     }
 }

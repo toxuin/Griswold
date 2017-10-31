@@ -83,7 +83,7 @@ public class CommandListener implements CommandExecutor, TabCompleter {
         // NAMES COMMAND
         else if (args[0].equalsIgnoreCase("names")) {
             plugin.toggleNames();
-            sender.sendMessage(plugin.namesVisible ? Lang.names_on : Lang.names_off);
+            sender.sendMessage(Griswold.namesVisible ? Lang.names_on : Lang.names_off);
             return true;
         }
 
@@ -105,8 +105,12 @@ public class CommandListener implements CommandExecutor, TabCompleter {
                 sender.sendMessage(Lang.error_few_arguments);
                 return true;
             }
-            plugin.despawn(args[1]);
-            sender.sendMessage(Lang.chat_hidden);
+            try {
+                Repairer.getByName(args[1]).despawn();
+                sender.sendMessage(Lang.chat_hidden);
+            } catch (IllegalArgumentException ignored) {
+                sender.sendMessage(Lang.error_remove);
+            }
             return true;
         }
 
@@ -117,13 +121,12 @@ public class CommandListener implements CommandExecutor, TabCompleter {
                 return true;
             }
             try {
-                plugin.spawnRepairman(args[1]);
+                Repairer.getByName(args[1]).spawn();
                 sender.sendMessage(Lang.chat_unhidden);
-                return true;
             } catch (IllegalArgumentException ignored) {
                 sender.sendMessage(Lang.chat_error);
-                return true;
             }
+            return true;
         }
 
         return false;
