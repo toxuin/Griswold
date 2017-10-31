@@ -10,13 +10,11 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.logging.Level;
 
 import static com.github.toxuin.griswold.Griswold.log;
 
@@ -164,6 +162,7 @@ class Interactor {
     private final Set<Interaction> interactions = new HashSet<>();
 
     @SuppressWarnings("unchecked")
+        //noinspection Duplicates
     void interact(Player player, Repairer repairman) {
         final ItemStack item = player.getInventory().getItemInMainHand();
 
@@ -218,6 +217,8 @@ class Interactor {
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + ChatColor.RED + Lang.chat_error);
                 return;
             }
+
+            // ENCHANTMENTS
             price = addEnchantmentPrice;
             EconomyResponse r = null;
             if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
@@ -234,70 +235,32 @@ class Interactor {
             if (clearEnchantments) item.getEnchantments().forEach((enchantToDel, integer) ->
                     item.removeEnchantment(enchantToDel));
 
-
-            try {
-                Method asNMSCopy = craftItemStack.getMethod("asNMSCopy", ItemStack.class);
-                Object vanillaItem = asNMSCopy.invoke(null, (item.getType().equals(Material.ENCHANTED_BOOK)) ? new ItemStack(Material.BOOK) : item);
-                int bonus = (new Random()).nextInt(maxEnchantBonus);
-                Method b;
-                List<?> list;
-                if (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 9) {
-                    b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class, boolean.class);
-                    list = (List) b.invoke(null, new Random(), vanillaItem, bonus, false);
-                } else {
-                    b = enchantmentManager.getDeclaredMethod("b", Random.class, vanillaItem.getClass(), int.class);
-                    list = (List) b.invoke(null, new Random(), vanillaItem, bonus);
-                }
-
-                EnchantmentStorageMeta bookmeta = null;
+            if (item.getType().equals(Material.BOOK) || item.getType().equals(Material.ENCHANTED_BOOK)) {
+                // BOOKS
+                ItemMeta bookmeta = item.getItemMeta();
+                ;
                 ItemStack bookLeftovers = null;
-                if (item.getType().equals(Material.BOOK)) {
-                    if (item.getAmount() > 1)
-                        bookLeftovers = new ItemStack(Material.BOOK, item.getAmount() - 1);
-                    player.getInventory().remove(item);
-                    item.setType(Material.ENCHANTED_BOOK);
+
+                if (item.getAmount() > 1) {
+                    bookLeftovers = new ItemStack(Material.BOOK, item.getAmount() - 1);
                     item.setAmount(1);
-                    bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
-                } else if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                    bookmeta = (EnchantmentStorageMeta) item.getItemMeta();
+                    bookLeftovers.setItemMeta(bookmeta);
                 }
 
-                if (list == null) {
-                    inter.valid = false; // INVALIDATE INTERACTION
-                    player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_failed);
-                    return;
+                if (item.getType().equals(Material.BOOK)) item.setType(Material.ENCHANTED_BOOK);
+                applyRandomEnchantment(item, true);
+
+                if (bookLeftovers != null) {
+                    if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
+                        player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
+                    } else player.getInventory().addItem(bookLeftovers);
                 }
+            } else applyRandomEnchantment(item, false);
 
-                for (Object obj : list) {
-                    Object instance = enchantmentInstance.cast(obj);
-                    Field enchantmentField = enchantmentInstance.getField("enchantment");
-                    Field levelField = enchantmentInstance.getField("level");
-                    Object enchantment = enchantmentField.get(instance);
-                    Field idField = enchantment.getClass().getField("id");
-                    if (item.getType().equals(Material.ENCHANTED_BOOK) && bookmeta != null) {
-                        bookmeta.addStoredEnchant(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()), true);
-                    } else {
-                        item.addEnchantment(Enchantment.getById(Integer.parseInt(idField.get(enchantment).toString())), Integer.parseInt(levelField.get(instance).toString()));
-                    }
-                }
 
-                if (item.getType().equals(Material.ENCHANTED_BOOK)) {
-                    item.setItemMeta(bookmeta);
-                    player.getInventory().setItemInMainHand(item);
-                    if (bookLeftovers != null) {
-                        if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
-                            player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);
-                        } else player.getInventory().addItem(bookLeftovers);
-                    }
-                }
-
-                inter.valid = false; // INVALIDATE INTERACTION
-                player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
-                return;
-
-            } catch (Exception e) {
-                Griswold.log.log(Level.SEVERE, "AN EXCEPTON OCCURRED, REPORT THIS STACKTRACE TO DEVELOPERS", e);
-            }
+            inter.valid = false; // INVALIDATE INTERACTION
+            player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_enchant_success);
+            return;
         }
 
 
@@ -307,7 +270,7 @@ class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if (!repairman.getType().equals(RepairerType.ENCHANT)&& !repairman.getType().equals(RepairerType.ALL)) {
+            if (!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL)) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.name) + Lang.chat_needs_repair);
                 return;
@@ -394,11 +357,11 @@ class Interactor {
         return price * repairman.getCost();
     }
 
-    private void applyRandomEnchantment(ItemStack item) {
+    private void applyRandomEnchantment(ItemStack item, boolean isBook) {
         List<Enchantment> candidates = new ArrayList<>();
 
         Arrays.asList(Enchantment.values()).forEach((ench) -> { // I guess collections are overrated in bukkit
-            if (ench.canEnchantItem(item)) candidates.add(ench);
+            if (ench.canEnchantItem(item) || isBook) candidates.add(ench);
         });
 
         item.getEnchantments().keySet().forEach((applied) ->
@@ -410,7 +373,13 @@ class Interactor {
         final int level = (ench.getStartLevel() == ench.getMaxLevel()) ? ench.getMaxLevel() :
                 ThreadLocalRandom.current().nextInt(ench.getStartLevel(), ench.getMaxLevel());
 
-        item.addEnchantment(ench, level);
+        if (!isBook) {
+            item.addEnchantment(ench, level);
+            return;
+        }
+        EnchantmentStorageMeta meta = (EnchantmentStorageMeta) item.getItemMeta();
+        meta.addStoredEnchant(ench, level, true);
+        item.setItemMeta(meta);
     }
 
     protected void finalize() throws Throwable {
