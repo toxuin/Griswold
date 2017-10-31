@@ -282,7 +282,7 @@ class Interactor {
 
                 if (item.getType().equals(Material.ENCHANTED_BOOK)) {
                     item.setItemMeta(bookmeta);
-                    player.getInventory().setItemInHand(item);
+                    player.getInventory().setItemInMainHand(item);
                     if (bookLeftovers != null) {
                         if (player.getInventory().firstEmpty() == -1) { // INVENTORY FULL, DROP TO PLAYER
                             player.getWorld().dropItemNaturally(player.getLocation(), bookLeftovers);

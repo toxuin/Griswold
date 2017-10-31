@@ -15,10 +15,8 @@
     <dependencies>
         <dependency>
             <groupId>org.bukkit</groupId>
-            <artifactId>craftbukkit</artifactId>
-            <scope>system</scope>
-            <version>1.X-SNAPSHOT</version>
-            <systemPath>${basedir}/bukkit-build/bukkit.jar</systemPath>
+            <artifactId>bukkit</artifactId>
+            <version>1.12.2-R0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
