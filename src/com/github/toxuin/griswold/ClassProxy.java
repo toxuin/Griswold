@@ -16,7 +16,7 @@ class ClassProxy {
     // RELATIVE TO net.minecraft.server.vX_X_RX.
     static Class getClass(String className) {
         // class name changed after 1.7
-        if (className.equals("EnchantmentInstance") && (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() > 8)) {
+        if (className.equals("EnchantmentInstance") && (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 8)) {
             className = "WeightedRandomEnchant";
         }
 

@@ -22,7 +22,7 @@ import java.util.Set;
 public class Repairer {
 
     private Entity entity;
-    public String name = "Repairman";
+    private String name = "Repairman";
     private Location loc;
     private RepairerType type = RepairerType.ALL;
     private double cost = 1.0d;
