@@ -79,7 +79,7 @@ public class EventListener implements Listener {
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         rep.spawn();
-                        if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.name + ", HIS CHUNK LOADED");
+                        if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.getName() + ", HIS CHUNK LOADED");
                     }
                 }
             }
@@ -96,7 +96,7 @@ public class EventListener implements Listener {
                 for (Repairer rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         rep.despawn();
-                        if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.name + ", HIS CHUNK GOT UNLOADED");
+                        if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.getName() + ", HIS CHUNK GOT UNLOADED");
                     }
                 }
             }

@@ -121,7 +121,7 @@ public class Griswold extends JavaPlugin implements Listener {
         boolean found = false;
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
-            if (rep.name.equalsIgnoreCase(name)) found = true;
+            if (rep.getName().equalsIgnoreCase(name)) found = true;
         }
         if (found) {
             log.info(String.format(Lang.repairman_exists, name)); // TODO: report to user???
@@ -165,10 +165,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
     void listRepairmen(CommandSender sender) {
         StringBuilder result = new StringBuilder();
-        Set<Repairer> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
-            result.append(rep.name).append(", ");
-        }
+        npcChunks.keySet().forEach(rep -> result.append(rep.getName()).append(", "));
         if (!result.toString().equals("")) {
             sender.sendMessage(ChatColor.GREEN + Lang.repairman_list);
             sender.sendMessage(result.toString());
@@ -196,7 +193,7 @@ public class Griswold extends JavaPlugin implements Listener {
     void setSound(String name, String sound) {
         Set<Repairer> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
-            if (rep.name.equals(name)) {
+            if (rep.getName().equals(name)) {
                 rep.setSound(sound);
                 return;
             }
