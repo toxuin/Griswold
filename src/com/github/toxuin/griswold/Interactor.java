@@ -164,7 +164,7 @@ class Interactor {
     @SuppressWarnings("unchecked, deprecation")
         //noinspection Duplicates
     void interact(Player player, Repairer repairman) {
-        final ItemStack item = (Griswold.apiVersion.getMajor() >=1 && Griswold.apiVersion.getMinor() >= 9)
+        final ItemStack item = (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 9)
                 ? player.getInventory().getItemInMainHand()
                 : player.getInventory().getItemInHand();
 
@@ -336,6 +336,7 @@ class Interactor {
         } else if (repairman.getType().equals(RepairerType.ENCHANT)) {
             return player.hasPermission("griswold.enchant");
         }
+        if (item.getItemMeta().isUnbreakable()) return false;
         return false;
     }
 
