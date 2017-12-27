@@ -286,7 +286,9 @@ class Interactor {
             player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_agreed);
         } else {
             // NEEDS ENCHANT
-            if (!(enableEnchants && !notEnchantable.contains(item.getType()) && (repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
+            if (!enableEnchants || notEnchantable.contains(item.getType())
+                    || !repairableTools.contains(item.getType()) || !repairableArmor.contains(item.getType())
+                    || item.getItemMeta().isUnbreakable()) {
                 // ENCHANTS DISABLED
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
@@ -336,7 +338,6 @@ class Interactor {
         } else if (repairman.getType().equals(RepairerType.ENCHANT)) {
             return player.hasPermission("griswold.enchant");
         }
-        if (item.getItemMeta().isUnbreakable()) return false;
         return false;
     }
 

@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.github.toxuin</groupId>
     <artifactId>griswold</artifactId>
-    <version>0.078</version>
+    <version>0.079</version>
     <name>Griswold</name>
     <description>Creates a man who repairs stuff.</description>
     <packaging>jar</packaging>
