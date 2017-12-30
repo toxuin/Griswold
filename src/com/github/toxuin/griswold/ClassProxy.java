@@ -31,24 +31,36 @@ class ClassProxy {
         }
     }
 
+    static boolean checkObjectHasMethod(Object obj, String targetMethod) {
+        Class className = obj.getClass();
+        Method[] methods = className.getDeclaredMethods();
+        for (Method m : methods) {
+            if (m.getName().equals(targetMethod)) return true;
+        }
+        return false;
+    }
+
     // DEBUGGING METHODS
     @SuppressWarnings("unused")
     static void listMethods(Class className) {
-        for (Method m : className.getDeclaredMethods()) {
+        Method[] methods = className.getDeclaredMethods();
+        for (Method m : methods) {
             log.info(m.getName() + ", ARGS: " + Arrays.toString(m.getParameterTypes()));
         }
     }
 
     @SuppressWarnings("unused")
     static void listConstructors(Class className) {
-        for (Constructor c : className.getDeclaredConstructors()) {
+        Constructor[] constructors = className.getDeclaredConstructors();
+        for (Constructor c : constructors) {
             log.info("Constructor for " + className.getName() + ": " + Arrays.toString(c.getParameterTypes()));
         }
     }
 
     @SuppressWarnings("unused")
     static void listFields(Class className) {
-        for (Field f : className.getFields()) {
+        Field[] fields = className.getFields();
+        for (Field f : fields) {
             log.info(f.getName() + ": " + f.getType().getCanonicalName());
         }
     }
