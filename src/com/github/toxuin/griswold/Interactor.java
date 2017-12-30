@@ -331,7 +331,7 @@ class Interactor {
         } else {
             // NEEDS ENCHANT
             if (!enableEnchants || notEnchantable.contains(item.getType()) || enchantBlacklist.contains(item.getType())
-                    || !repairableTools.contains(item.getType()) || !repairableArmor.contains(item.getType())) {
+                    || (!(repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
                 // ENCHANTS DISABLED
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
