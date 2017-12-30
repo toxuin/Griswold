@@ -48,11 +48,12 @@ public class Lang {
 	public static String chat_needs_repair = "ERROR: LANG NOT FOUND: chat_needs_repair";
 	public static String chat_hidden = "ERROR: LANG NOT FOUND: chat_hidden";
 	public static String chat_unhidden = "ERROR: LANG NOT FOUND: chat_unhidden";
-	
+	public static String chat_unbreakable = "ERROR: LANG NOT FOUND: chat_unbreakable";
+
 	public static void init() {
 		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
-        
+
         economy_not_found = language.getString("economy_not_found");
         insufficient_params = language.getString("insufficient_params");
         repairman_exists = language.getString("repairman_exists");
@@ -87,7 +88,7 @@ public class Lang {
         chat_cost = language.getString("chat_cost");
         chat_agreed = language.getString("chat_agreed");
         chat_cannot = language.getString("chat_cannot");
-        
+
         chat_enchant_cost = language.getString("chat_enchant_cost");
         chat_enchant_free = language.getString("chat_enchant_free");
         chat_enchant_success = language.getString("chat_enchant_success");
@@ -97,10 +98,12 @@ public class Lang {
 
         chat_hidden = language.getString("chat_hidden");
 		chat_unhidden = language.getString("chat_unhidden");
-        
+
+		chat_unbreakable = language.getString("chat_unbreakable");
+
         Griswold.log.info(String.format(lang_loaded, Griswold.lang+".yml"));
 	}
-	
+
 	public static void createLangFile() {
 		File langFile = new File(Griswold.directory, "en_US.yml");
         YamlConfiguration language = YamlConfiguration.loadConfiguration(langFile);
@@ -150,6 +153,8 @@ public class Lang {
 
         	language.set("chat_hidden", "Repairman hidden.");
 			language.set("chat_unhidden", "Repairman spawned back.");
+
+			language.set("chat_unbreakable", "This item can never get damaged! There's no need for a repair!");
         	
         	language.set("version", Griswold.version);
         	
@@ -281,6 +286,18 @@ public class Lang {
 			language.set("chat_unhidden", "Repairman spawned back.");
 			language.set("chat_type_error", "Whoops, wrong repairman type! Possiable are: tools, armor, both, enchant, all");
 			language.set("version", 0.076d);
+
+			try {
+				language.save(langFile);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (language.getDouble("version") >= 0.073d && language.getDouble("version") < 0.079d) {
+			Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.073-0.078");
+			language.set("chat_unbreakable", "This item can never get damaged! There's no need for a repair!");
+			language.set("version", 0.079d);
 
 			try {
 				language.save(langFile);
