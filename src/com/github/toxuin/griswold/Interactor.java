@@ -182,6 +182,11 @@ class Interactor {
             return;
         }
 
+        if (item.getItemMeta().isUnbreakable()) {
+            player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_unbreakable);
+            return;
+        }
+
         Interaction interaction = new Interaction(player.getUniqueId(), repairman.getEntity(), item, item.getDurability(), System.currentTimeMillis());
 
         // INTERACTS SECOND TIME
@@ -287,8 +292,7 @@ class Interactor {
         } else {
             // NEEDS ENCHANT
             if (!enableEnchants || notEnchantable.contains(item.getType())
-                    || !repairableTools.contains(item.getType()) || !repairableArmor.contains(item.getType())
-                    || item.getItemMeta().isUnbreakable()) {
+                    || !repairableTools.contains(item.getType()) || !repairableArmor.contains(item.getType())) {
                 // ENCHANTS DISABLED
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
