@@ -143,7 +143,8 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (!command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
+        if (command.equalsIgnoreCase("create") && !(sender instanceof Player)) {
+            sender.sendMessage(ChatColor.RED + "You have to be a player to do that...");
             return false;
         }
 

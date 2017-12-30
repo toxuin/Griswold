@@ -28,18 +28,19 @@ class Interactor {
     static int maxEnchantBonus = 5;
     static boolean clearEnchantments = false;
 
-    private final List<Material> repairableTools = new LinkedList<>();
-    private final List<Material> repairableArmor = new LinkedList<>();
-    private final List<Material> notEnchantable = new LinkedList<>();
+    private final Set<Material> repairableTools = new HashSet<>();
+    private final Set<Material> repairableArmor = new HashSet<>();
+    private final Set<Material> notEnchantable = new HashSet<>();
 
-    private final List<Material> repairBlacklist = new LinkedList<>();
-    private final List<Material> enchantBlacklist = new LinkedList<>();
+    private final Set<Material> repairBlacklist = new HashSet<>();
+    private final Set<Material> enchantBlacklist = new HashSet<>();
 
     private final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
     private final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
     private final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
 
-    Interactor() {
+
+    private void loadDefaultItems() {
         repairableTools.add(Material.IRON_AXE);
         repairableTools.add(Material.IRON_PICKAXE);
         repairableTools.add(Material.IRON_SWORD);
@@ -107,14 +108,22 @@ class Interactor {
         repairableArmor.add(Material.DIAMOND_CHESTPLATE);
         repairableArmor.add(Material.DIAMOND_HELMET);
         repairableArmor.add(Material.DIAMOND_LEGGINGS);
+    }
+
+    void loadConfigItems() {
+        repairableArmor.clear();
+        repairableTools.clear();
+        notEnchantable.clear();
+        repairBlacklist.clear();
+        enchantBlacklist.clear();
+
+        loadDefaultItems();
 
         File configFile = new File(Griswold.directory, "config.yml");
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 
-        if (configFile.exists()) loadConfigItems(config);
-    }
+        if (!configFile.exists()) return;
 
-    private void loadConfigItems(final YamlConfiguration config) {
         if (config.isConfigurationSection("CustomItems.Tools")) {
             Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
             for (String itemId : tools) {
@@ -150,8 +159,6 @@ class Interactor {
             }
             log.info("Added " + armor.size() + " custom armors from config file");
         }
-
-        Object val = config.get("ItemBlacklist.Repair");
 
         if (config.isList("ItemBlacklist.Repair")) {
             List<String> blacklistedItems = config.getStringList("ItemBlacklist.Repair");

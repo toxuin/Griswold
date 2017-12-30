@@ -76,13 +76,13 @@ public class Griswold extends JavaPlugin implements Listener {
         getCommand("blacksmith").setExecutor(cmdListener);
         getCommand("blacksmith").setTabCompleter(cmdListener);
 
+        interactor = new Interactor();
+
         this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
             reloadPlugin();
             if (!setupEconomy()) log.info(Lang.economy_not_found);
             if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin(); // this is fucking gold
         }, 20);
-
-        interactor = new Interactor();
 
         try {
             Metrics metrics = new Metrics(this);
@@ -240,6 +240,8 @@ public class Griswold extends JavaPlugin implements Listener {
             Interactor.maxEnchantBonus = config.getInt("EnchantmentBonus");
 
             Interactor.enableEnchants = config.getBoolean("UseEnchantmentSystem");
+
+            if (interactor != null) interactor.loadConfigItems();
 
             if (config.isConfigurationSection("repairmen")) {
                 Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
