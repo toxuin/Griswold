@@ -220,7 +220,10 @@ class Interactor {
             return;
         }
 
-        if (item.getItemMeta().isUnbreakable()) {
+        // CHECK FOR SERVER SUPPORT OF UNBREAKABLE ITEMS. 1.8.3 DOES NOT HAVE THEM
+        boolean serverHasUnbreakableItems = ClassProxy.checkObjectHasMethod(item.getItemMeta(), "isUnbreakable");
+
+        if (serverHasUnbreakableItems && item.getItemMeta().isUnbreakable()) {
             player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_unbreakable);
             return;
         }
