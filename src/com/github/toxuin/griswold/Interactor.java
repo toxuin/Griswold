@@ -32,6 +32,9 @@ class Interactor {
     private final List<Material> repairableArmor = new LinkedList<>();
     private final List<Material> notEnchantable = new LinkedList<>();
 
+    private final List<Material> repairBlacklist = new LinkedList<>();
+    private final List<Material> enchantBlacklist = new LinkedList<>();
+
     private final Class craftItemStack = ClassProxy.getClass("inventory.CraftItemStack");
     private final Class enchantmentInstance = ClassProxy.getClass("EnchantmentInstance");
     private final Class enchantmentManager = ClassProxy.getClass("EnchantmentManager");
@@ -146,6 +149,34 @@ class Interactor {
                 repairableArmor.add(mat);
             }
             log.info("Added " + armor.size() + " custom armors from config file");
+        }
+
+        Object val = config.get("ItemBlacklist.Repair");
+
+        if (config.isList("ItemBlacklist.Repair")) {
+            List<String> blacklistedItems = config.getStringList("ItemBlacklist.Repair");
+            for (String itemId: blacklistedItems) {
+                Material mat = Material.getMaterial(itemId);
+                if (mat == null) {
+                    log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR ItemBlacklist.Repair CONFIG: " + itemId);
+                    continue;
+                }
+                log.info("ADDING " + mat.toString() + " TO REPAIR BLACKLIST...");
+                repairBlacklist.add(mat);
+            }
+        }
+
+        if (config.isList("ItemBlacklist.Enchant")) {
+            List<String> blacklistedItems = config.getStringList("ItemBlacklist.Enchant");
+            for (String itemId : blacklistedItems) {
+                Material mat = Material.getMaterial(itemId);
+                if (mat == null) {
+                    log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR ItemsBlacklist.Enchant CONFIG: " + itemId);
+                    continue;
+                }
+                log.info("ADDING " + mat.toString() + " TO ENCHANT BLACKLIST...");
+                enchantBlacklist.add(mat);
+            }
         }
     }
 
@@ -276,7 +307,8 @@ class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if (!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL)) {
+            if ((!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL))
+                    || (repairBlacklist.contains(item.getType()))) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_needs_repair);
                 return;
@@ -291,7 +323,7 @@ class Interactor {
             player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_agreed);
         } else {
             // NEEDS ENCHANT
-            if (!enableEnchants || notEnchantable.contains(item.getType())
+            if (!enableEnchants || notEnchantable.contains(item.getType()) || enchantBlacklist.contains(item.getType())
                     || !repairableTools.contains(item.getType()) || !repairableArmor.contains(item.getType())) {
                 // ENCHANTS DISABLED
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
@@ -392,6 +424,8 @@ class Interactor {
     protected void finalize() throws Throwable {
         repairableArmor.clear();
         repairableTools.clear();
+        repairBlacklist.clear();
+        enchantBlacklist.clear();
         notEnchantable.clear();
         super.finalize();
     }
