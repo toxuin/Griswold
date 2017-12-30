@@ -141,6 +141,26 @@ Yes, it sounds complicated, but it is not! Here, look at my sample config:
 
 You can just copy-paste it in your config at the very end of it and change the IDs. Names after ":" are just for your convenience and are not used anywhere in the code.
 
+### How to blacklist items
+
+You can prohibit players to repair certain items and also, separately, prohibit them from adding enchantments to certain items.
+
+This is achieved through ItemBlacklist.Repair and ItemBlacklist.Enchant config sections, respectively. 
+
+Here is an example of such config:
+
+    ItemBlacklist:
+      Enchant:
+        - DIAMOND_SWORD
+        - GOLD_SPADE
+      Repair:
+        - GOLD_SPADE
+        - DIAMOND_SWORD
+
+By default, this setting is not in your config and you have to add it manually.
+
+You can copy-paste this snippet to the end of your config.
+
 ## Support links
 
 * [Plugin page on dev.bukkit.org](http://dev.bukkit.org/bukkit-plugins/griswold/)
