@@ -107,7 +107,7 @@ public class CommandListener implements CommandExecutor, TabCompleter {
                 return true;
             }
             try {
-                Repairer.getByName(args[1]).despawn();
+                GriswoldNPC.getByName(args[1]).despawn();
                 sender.sendMessage(Lang.chat_hidden);
             } catch (IllegalArgumentException ignored) {
                 sender.sendMessage(Lang.error_remove);
@@ -122,7 +122,7 @@ public class CommandListener implements CommandExecutor, TabCompleter {
                 return true;
             }
             try {
-                Repairer.getByName(args[1]).spawn();
+                GriswoldNPC.getByName(args[1]).spawn();
                 sender.sendMessage(Lang.chat_unhidden);
             } catch (IllegalArgumentException ignored) {
                 sender.sendMessage(Lang.chat_error);

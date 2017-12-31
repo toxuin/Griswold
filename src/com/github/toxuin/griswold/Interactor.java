@@ -18,7 +18,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static com.github.toxuin.griswold.Griswold.log;
 
-class Interactor {
+public class Interactor {
     static double basicToolsPrice = 10.0;
     static double basicArmorPrice = 10.0;
     static double enchantmentPrice = 30.0;
@@ -201,7 +201,7 @@ class Interactor {
 
     @SuppressWarnings("unchecked, deprecation")
         //noinspection Duplicates
-    void interact(Player player, Repairer repairman) {
+    public void interact(Player player, Repairer repairman) {
         final ItemStack item = (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 9)
                 ? player.getInventory().getItemInMainHand()
                 : player.getInventory().getItemInHand();

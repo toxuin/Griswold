@@ -32,4 +32,4 @@ permissions:
         description: Allows you to add enchantments
         default: op
 
-softdepend: [Vault]
+softdepend: [Vault, Citizens]

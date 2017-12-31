@@ -11,6 +11,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <VaultVersion>1.5.6</VaultVersion>
         <BukkitVersion>1.12.2-R0.1-SNAPSHOT</BukkitVersion>
+        <CitizensApiVersion>2.0.16-SNAPSHOT</CitizensApiVersion>
     </properties>
 
     <dependencies>
@@ -26,6 +27,12 @@
             <version>${VaultVersion}</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>net.citizensnpcs</groupId>
+            <artifactId>citizensapi</artifactId>
+            <version>${CitizensApiVersion}</version>
+        </dependency>
     </dependencies>
 
     <repositories>
@@ -36,6 +43,10 @@
         <repository>
             <id>vault-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases</url>
+        </repository>
+        <repository>
+            <id>citizens-repo</id>
+            <url>http://repo.citizensnpcs.co</url>
         </repository>
     </repositories>
 
