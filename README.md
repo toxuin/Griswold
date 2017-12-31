@@ -1,6 +1,8 @@
 Griswold
 =========
 
+[![Join the chat at https://gitter.im/toxuin/Griswold](https://badges.gitter.im/toxuin/Griswold.svg)](https://gitter.im/toxuin/Griswold?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Bukkit Plugin: NPCs now can repair and enchant your stuff! – Without any commands!
 
 Show your stuff to blacksmith and he'll tell you how much he wants for the job. If you agree – just pass him the item. Users have no commands (because they don't need them)!
