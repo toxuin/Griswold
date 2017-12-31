@@ -117,6 +117,10 @@ public class Griswold extends JavaPlugin implements Listener {
         createRepairman(name, loc, "all", "1");
     }
 
+    void createRepairman(String name, Location loc, String type) {
+        createRepairman(name, loc, type, "1");
+    }
+
     void createRepairman(String name, Location loc, String type, String cost) {
         boolean found = false;
         Set<Repairer> npcs = npcChunks.keySet();
