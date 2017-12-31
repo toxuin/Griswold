@@ -49,6 +49,7 @@ public class Lang {
 	public static String chat_hidden = "ERROR: LANG NOT FOUND: chat_hidden";
 	public static String chat_unhidden = "ERROR: LANG NOT FOUND: chat_unhidden";
 	public static String chat_unbreakable = "ERROR: LANG NOT FOUND: chat_unbreakable";
+	public static String chat_noenchant = "ERROR: LANG NOT FOUND: chat_noenchant";
 
 	public static void init() {
 		File langFile = new File(Griswold.directory,Griswold.lang+".yml");
@@ -100,6 +101,7 @@ public class Lang {
 		chat_unhidden = language.getString("chat_unhidden");
 
 		chat_unbreakable = language.getString("chat_unbreakable");
+        chat_noenchant = language.getString("chat_noenchant");
 
         Griswold.log.info(String.format(lang_loaded, Griswold.lang+".yml"));
 	}
@@ -140,6 +142,7 @@ public class Lang {
         	language.set("chat_poor", "You have no money, that's sad!");
         	language.set("chat_free", "I will repair your item for free today!");
         	language.set("chat_norepair", "Hmm, looks like it does not need any repair.");
+			language.set("chat_noenchant", "What is this? I cannot enchant this.");
         	language.set("chat_cost", "Hmm! I will repair this for %s %s");
         	language.set("chat_agreed", "Agreed? Yes? Pass it to me if agreed.");
         	language.set("chat_cannot", "I can not repair this kind of things.");
@@ -305,5 +308,16 @@ public class Lang {
 				e.printStackTrace();
 			}
 		}
+
+		if (language.getDouble("version") == 0.079d) {
+            Griswold.log.info("UPGRADING LANG FILE "+locale+" FROM VERSION 0.079");
+            language.set("chat_noenchant", "What is this? I cannot enchant this.");
+            language.set("version", 0.080d);
+            try {
+                language.save(langFile);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
 	}
 }

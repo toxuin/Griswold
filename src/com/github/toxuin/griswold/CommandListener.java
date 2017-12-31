@@ -43,10 +43,16 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             Player player = (Player) sender; // check performed in can() method
             Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
-            if (args.length < 4) {
+            if (args.length < 3) {
                 plugin.createRepairman(args[1], location);
+            } else if (args.length < 4) {
+                if (!RepairerType.present(args[2])) {
+                    player.sendMessage(Lang.chat_type_error);
+                    return true;
+                }
+                plugin.createRepairman(args[1], location, args[2]);
             } else {
-                if(!RepairerType.present(args[2])) {
+                if (!RepairerType.present(args[2])) {
                     player.sendMessage(Lang.chat_type_error);
                     return true;
                 }
@@ -99,6 +105,17 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             sender.sendMessage(String.format(Lang.sound_changed, args[1]));
             return true;
         }
+
+        /*
+        // DAMAGE COMMAND, ONLY FOR TESTING!
+        else if (args[0].equalsIgnoreCase("dmg")) {
+            if (!(sender instanceof Player)) return false;
+            Player player = (Player) sender;
+            // ItemStack item = player.getInventory().getItemInMainHand();
+            ItemStack item = player.getItemInHand();
+            item.setDurability((short) 17);
+        }
+        */
 
         // HIDE COMMAND
         else if (args[0].equalsIgnoreCase("hide")) {

@@ -317,8 +317,7 @@ class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if ((!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL))
-                    || (repairBlacklist.contains(item.getType()))) {
+            if (!checkCanRepair(player, repairman, item) || repairBlacklist.contains(item.getType()) || repairman.getType().equals(RepairerType.ENCHANT)) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_needs_repair);
                 return;
@@ -335,8 +334,8 @@ class Interactor {
             // NEEDS ENCHANT
             if (!enableEnchants || notEnchantable.contains(item.getType()) || enchantBlacklist.contains(item.getType())
                     || (!(repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
-                // ENCHANTS DISABLED
-                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+                // UNKNOWN ITEM
+                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_noenchant); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
             }
 
@@ -378,11 +377,11 @@ class Interactor {
                         player.hasPermission("griswold.tools"));
             }
         } else if (repairman.getType().equals(RepairerType.TOOLS)) {
-            return player.hasPermission("griswold.tools");
+            return player.hasPermission("griswold.tools") && repairableTools.contains(item.getType());
         } else if (repairman.getType().equals(RepairerType.ARMOR)) {
-            return player.hasPermission("griswold.armor");
+            return player.hasPermission("griswold.armor") && repairableArmor.contains(item.getType());
         } else if (repairman.getType().equals(RepairerType.ENCHANT)) {
-            return player.hasPermission("griswold.enchant");
+            return player.hasPermission("griswold.enchant") && !notEnchantable.contains(item.getType());
         }
         return false;
     }
