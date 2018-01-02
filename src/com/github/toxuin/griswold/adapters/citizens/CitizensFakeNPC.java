@@ -3,6 +3,7 @@ package com.github.toxuin.griswold.adapters.citizens;
 import com.github.toxuin.griswold.Repairer;
 import com.github.toxuin.griswold.util.RepairerType;
 import net.citizensnpcs.api.npc.NPC;
+import net.citizensnpcs.api.trait.Trait;
 import org.bukkit.entity.Entity;
 
 public class CitizensFakeNPC extends Repairer {
@@ -19,17 +20,24 @@ public class CitizensFakeNPC extends Repairer {
 
     @Override
     public double getCost() {
-        this.citizensNPC.getTrait(GriswoldTrait.class);
-        GriswoldTrait trait = this.citizensNPC.getTrait(GriswoldTrait.class);
+        NPC npc = this.citizensNPC;
+        GriswoldTrait trait = null;
+        for (Trait t : npc.getTraits()) {
+            if (t instanceof GriswoldTrait) trait = (GriswoldTrait) t;
+        }
         if (trait != null) return trait.getCost();
         return 1;
     }
 
     @Override
     public void setCost(double cost) {
-        this.citizensNPC.getTrait(GriswoldTrait.class);
-        GriswoldTrait trait = this.citizensNPC.getTrait(GriswoldTrait.class);
-        if (trait != null) trait.setCost(cost);
+        NPC npc = this.citizensNPC;
+        GriswoldTrait trait = null;
+        for (Trait t : npc.getTraits()) {
+            if (t instanceof GriswoldTrait) trait = (GriswoldTrait) t;
+        }
+        if (trait == null) return;
+        trait.setCost(cost);
     }
 
     void setCitizensNPC(NPC npc) {
