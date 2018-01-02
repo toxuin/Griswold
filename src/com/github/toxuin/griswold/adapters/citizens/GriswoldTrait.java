@@ -22,7 +22,7 @@ public abstract class GriswoldTrait extends Trait {
         interactor = griswold.getInteractor();
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void rightCliked(NPCRightClickEvent event) {
         NPC npc = event.getNPC();
         if (!npc.equals(this.getNPC())) return;
