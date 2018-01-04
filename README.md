@@ -13,6 +13,8 @@ Simple!
 
 * Multiworld support.
 
+* [Citizens](https://www.spigotmc.org/resources/citizens.13811/) support.
+
 * Mod items support!
 
 * Repairing does not clear enchantments on enchanted items!
@@ -126,6 +128,19 @@ If you want to change sound that NPC are making on interact – you can use inga
 
 All other config parameters are configurable in-game, so you don't have to bother about them. But if you want – they are quite self-explanatory.
 
+### Citizens integration
+
+You can add traits to your npcs to act like respective Griswold NPC types.
+
+Following traits can be added:
+- griswold_tools
+- griswold_armor
+- griswold_both
+- griswold_enchant
+- griswold_all
+
+Please don't add multiple traits at once, lol.
+
 ### How to add a custom item
 
 You have to create a new entry in config with name CustomItems. This entry will contain two more entries: Tools and Armor. Under those you add your items in "'id': name" format.
@@ -164,6 +179,7 @@ You can copy-paste this snippet to the end of your config.
 ## Support links
 
 * [Plugin page on dev.bukkit.org](http://dev.bukkit.org/bukkit-plugins/griswold/)
+* [Plugin page on spigotmc.org](http://spigotmc.org/resources/griswold.49036/)
 * [Russian discussion and support](http://rubukkit.org/threads/15343/)
 * Feel free to suggest something or report bugs in Issues
 * Your pull-requests are always welcome!
