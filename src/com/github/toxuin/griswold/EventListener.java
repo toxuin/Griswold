@@ -17,7 +17,7 @@ import java.util.Set;
 public class EventListener implements Listener {
 
     private final Griswold plugin;
-    private final Map<Repairer, Pair> npcChunks;
+    private final Map<GriswoldNPC, Pair> npcChunks;
 
     EventListener(final Griswold plugin) {
         this.plugin = plugin;
@@ -28,7 +28,7 @@ public class EventListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
         if (npcChunks.isEmpty()) return;
-        Set<Repairer> npcs = npcChunks.keySet();
+        Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (event.getEntity().equals(rep.getEntity())) {
                 event.setDamage(0d);
@@ -46,7 +46,7 @@ public class EventListener implements Listener {
             return;
         }
 
-        Set<Repairer> npcs = npcChunks.keySet();
+        Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (event.getRightClicked().equals(rep.getEntity())) {
                 plugin.interactor.interact(event.getPlayer(), rep);
@@ -59,7 +59,7 @@ public class EventListener implements Listener {
     @EventHandler
     public void onZombieTarget(EntityTargetLivingEntityEvent event) {
         if (event.getEntity() instanceof Zombie) {
-            Set<Repairer> npcs = npcChunks.keySet();
+            Set<GriswoldNPC> npcs = npcChunks.keySet();
             for (Repairer rep : npcs) {
                 if (rep.getEntity().equals(event.getTarget())) {
                     event.setCancelled(true);
@@ -76,7 +76,7 @@ public class EventListener implements Listener {
 
         for (Pair pair : npcChunks.values()) {
             if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
+                for (GriswoldNPC rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         rep.spawn();
                         if (Griswold.debug) Griswold.log.info("SPAWNED NPC " + rep.getName() + ", HIS CHUNK LOADED");
@@ -93,7 +93,7 @@ public class EventListener implements Listener {
 
         for (Pair pair : npcChunks.values()) {
             if (pair.equals(coords)) {
-                for (Repairer rep : npcChunks.keySet()) {
+                for (GriswoldNPC rep : npcChunks.keySet()) {
                     if (npcChunks.get(rep).equals(coords)) {
                         rep.despawn();
                         if (Griswold.debug) Griswold.log.info("DESPAWNED NPC " + rep.getName() + ", HIS CHUNK GOT UNLOADED");

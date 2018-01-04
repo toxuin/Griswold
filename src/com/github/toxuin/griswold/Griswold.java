@@ -1,6 +1,7 @@
 package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.Metrics.Graph;
+import com.github.toxuin.griswold.adapters.citizens.CitizensAdapter;
 import com.github.toxuin.griswold.util.Pair;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -10,6 +11,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginDescriptionFile;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 public class Griswold extends JavaPlugin implements Listener {
+    public static final String PLUGIN_NAME = "Griswold";
     static File directory;
     static boolean debug = false;
     public static int timeout = 5000;
@@ -29,7 +32,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
     static FileConfiguration config = null;
     private static File configFile = null;
-    static Map<Repairer, Pair> npcChunks = new HashMap<>();
+    static Map<GriswoldNPC, Pair> npcChunks = new HashMap<>();
     Interactor interactor;
 
     static Economy economy = null;
@@ -41,6 +44,8 @@ public class Griswold extends JavaPlugin implements Listener {
     static boolean namesVisible = true;
     static boolean findDuplicates = false;
     static int duplicateFinderRadius = 5;
+
+    CitizensAdapter citizensAdapter;
 
     public void onEnable() {
         log = this.getLogger();
@@ -84,10 +89,24 @@ public class Griswold extends JavaPlugin implements Listener {
             if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin(); // this is fucking gold
         }, 20);
 
+        Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
+        if (citizens != null && citizens.isEnabled()) {
+            citizensAdapter = new CitizensAdapter();
+            log.info("Registered Griswold traits with Citizens");
+        }
+
         try {
             Metrics metrics = new Metrics(this);
-            Graph graph = metrics.createGraph("Number of NPCs");
-            graph.addPlotter(new Metrics.Plotter("Total") {
+            Graph citizensGraph = metrics.createGraph("Using Citizens2");
+            citizensGraph.addPlotter(new Metrics.Plotter() {
+                @Override
+                public int getValue() {
+                    return citizensAdapter == null ? 0 : 1;
+                }
+            });
+
+            Graph numberOfNpcGraph = metrics.createGraph("Number of NPCs");
+            numberOfNpcGraph.addPlotter(new Metrics.Plotter("Total") {
                 @Override
                 public int getValue() {
                     return npcChunks.keySet().size();
@@ -105,6 +124,7 @@ public class Griswold extends JavaPlugin implements Listener {
         interactor = null;
         getCommand("blacksmith").setExecutor(null);
         despawnAll();
+        if (citizensAdapter != null) citizensAdapter.deregisterTraits();
         log.info("Disabled.");
     }
 
@@ -123,7 +143,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
     void createRepairman(String name, Location loc, String type, String cost) {
         boolean found = false;
-        Set<Repairer> npcs = npcChunks.keySet();
+        Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (rep.getName().equalsIgnoreCase(name)) found = true;
         }
@@ -147,8 +167,7 @@ public class Griswold extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
 
-        Repairer meGusta = new Repairer(name, loc, Repairer.getDefaultSound(), type, Double.parseDouble(cost));
-
+        GriswoldNPC meGusta = new GriswoldNPC(name, loc, Repairer.getDefaultSound(), type, Double.parseDouble(cost));
         meGusta.spawn();
     }
 
@@ -177,7 +196,7 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void despawnAll() {
-        Griswold.npcChunks.keySet().forEach(Repairer::despawn);
+        Griswold.npcChunks.keySet().forEach(GriswoldNPC::despawn);
         npcChunks.clear();
     }
 
@@ -195,7 +214,7 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void setSound(String name, String sound) {
-        Set<Repairer> npcs = npcChunks.keySet();
+        Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (rep.getName().equals(name)) {
                 rep.setSound(sound);
@@ -204,7 +223,7 @@ public class Griswold extends JavaPlugin implements Listener {
         }
     }
 
-    Map<Repairer, Pair> getNpcChunks() {
+    Map<GriswoldNPC, Pair> getNpcChunks() {
         return npcChunks;
     }
 
@@ -258,7 +277,7 @@ public class Griswold extends JavaPlugin implements Listener {
                     String type = config.getString("repairmen." + repairman + ".type");
                     double cost = config.getDouble("repairmen." + repairman + ".cost");
 
-                    Repairer squidward = new Repairer(repairman, loc, sound, type, cost);
+                    GriswoldNPC squidward = new GriswoldNPC(repairman, loc, sound, type, cost);
 
                     squidward.loadChunk();
                     squidward.spawn();
@@ -380,5 +399,9 @@ public class Griswold extends JavaPlugin implements Listener {
             economy = economyProvider.getProvider();
         }
         return (economy != null);
+    }
+
+    public Interactor getInteractor() {
+        return interactor;
     }
 }
