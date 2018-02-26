@@ -1,6 +1,7 @@
 Griswold
 =========
 
+[![Build Status](https://travis-ci.org/toxuin/Griswold.png)](https://travis-ci.org/toxuin/Griswold)
 [![Join the chat at https://gitter.im/toxuin/Griswold](https://badges.gitter.im/toxuin/Griswold.svg)](https://gitter.im/toxuin/Griswold?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Bukkit Plugin: NPCs now can repair and enchant your stuff! – Without any commands!
@@ -28,9 +29,6 @@ Simple!
 * All major economy systems supported. If [Vault](http://dev.bukkit.org/server-mods/vault/) supports something - than it'll work with Griswold.
 
 * Lightweight!
-
-### Build Status
-[![Build Status](https://travis-ci.org/toxuin/Griswold.png)](https://travis-ci.org/toxuin/Griswold)
 
 ## Roadmap:
 
