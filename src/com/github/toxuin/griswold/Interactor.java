@@ -15,10 +15,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.io.File;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.stream.Collectors;
 
 import static com.github.toxuin.griswold.Griswold.log;
 
 public class Interactor {
+
     static double basicToolsPrice = 10.0;
     static double basicArmorPrice = 10.0;
     static double enchantmentPrice = 30.0;
@@ -162,7 +164,7 @@ public class Interactor {
 
         if (config.isList("ItemBlacklist.Repair")) {
             List<String> blacklistedItems = config.getStringList("ItemBlacklist.Repair");
-            for (String itemId: blacklistedItems) {
+            for (String itemId : blacklistedItems) {
                 Material mat = Material.getMaterial(itemId);
                 if (mat == null) {
                     log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR ItemBlacklist.Repair CONFIG: " + itemId);
@@ -200,7 +202,7 @@ public class Interactor {
     private final Set<Interaction> interactions = new HashSet<>();
 
     @SuppressWarnings("unchecked, deprecation")
-        //noinspection Duplicates
+    //noinspection Duplicates
     public void interact(Player player, Repairer repairman) {
         final ItemStack item = (Griswold.apiVersion.getMajor() >= 1 && Griswold.apiVersion.getMinor() >= 9)
                 ? player.getInventory().getItemInMainHand()
@@ -228,7 +230,8 @@ public class Interactor {
             return;
         }
 
-        Interaction interaction = new Interaction(player.getUniqueId(), repairman.getEntity(), item, item.getDurability(), System.currentTimeMillis());
+        Interaction interaction = new Interaction(player.getUniqueId(), repairman.getEntity(), item,
+                item.getDurability(), System.currentTimeMillis());
 
         // INTERACTS SECOND TIME
         for (Interaction inter : interactions) {
@@ -236,9 +239,9 @@ public class Interactor {
 
             if (item.getDurability() != 0 && (
                     repairman.getType().equals(RepairerType.ARMOR) ||
-                            repairman.getType().equals(RepairerType.TOOLS) ||
-                            repairman.getType().equals(RepairerType.BOTH) ||
-                            repairman.getType().equals(RepairerType.ALL)
+                    repairman.getType().equals(RepairerType.TOOLS) ||
+                    repairman.getType().equals(RepairerType.BOTH) ||
+                    repairman.getType().equals(RepairerType.ALL)
             )) {
                 EconomyResponse r;
                 if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
@@ -251,7 +254,8 @@ public class Interactor {
                     r = Griswold.economy.withdrawPlayer(player, price);
                     if (!r.transactionSuccess()) {
                         inter.valid = false; // INVALIDATE INTERACTION
-                        player.sendMessage(String.format(Lang.name_format, repairman.getName()) + ChatColor.RED + Lang.chat_error);
+                        player.sendMessage(
+                                String.format(Lang.name_format, repairman.getName()) + ChatColor.RED + Lang.chat_error);
                         return;
                     }
                 }
@@ -260,24 +264,24 @@ public class Interactor {
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_done);
                 return;
 
-            } else if (!(enableEnchants && item.getDurability() == 0 && (repairman.getType().equals(RepairerType.ENCHANT) || repairman.getType().equals(RepairerType.ALL)))) {
+            } else if (!(enableEnchants && item.getDurability() == 0
+                         && (repairman.getType().equals(RepairerType.ENCHANT)
+                             || repairman.getType().equals(RepairerType.ALL)))) {
                 inter.valid = false; // INVALIDATE INTERACTION
-                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + ChatColor.RED + Lang.chat_error);
+                player.sendMessage(
+                        String.format(Lang.name_format, repairman.getName()) + ChatColor.RED + Lang.chat_error);
                 return;
             }
 
             // ENCHANTMENTS
             price = addEnchantmentPrice;
-            EconomyResponse r = null;
-            if (Griswold.economy != null && Griswold.economy.getBalance(player) < price) {
-                return;
-            }
-
-            if (Griswold.economy != null) r = Griswold.economy.withdrawPlayer(player, price);
-            if (Griswold.economy != null && r.transactionSuccess()) {
-                inter.valid = false; // INVALIDATE INTERACTION
-                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_poor);
-                return;
+            if (Griswold.economy != null) {
+                if (Griswold.economy.getBalance(player) < price) return;
+                if (!Griswold.economy.withdrawPlayer(player, price).transactionSuccess()) {
+                    inter.valid = false; // INVALIDATE INTERACTION
+                    player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_poor);
+                    return;
+                }
             }
 
             if (clearEnchantments) item.getEnchantments().forEach((enchantToDel, integer) ->
@@ -317,7 +321,9 @@ public class Interactor {
 
         if (item.getDurability() != 0) {
             // NEEDS REPAIR
-            if (!checkCanRepair(player, repairman, item) || repairBlacklist.contains(item.getType()) || repairman.getType().equals(RepairerType.ENCHANT)) {
+            if (!checkCanRepair(player, repairman, item)
+                || repairBlacklist.contains(item.getType())
+                || repairman.getType().equals(RepairerType.ENCHANT)) {
                 // CANNOT REPAIR
                 player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_needs_repair);
                 return;
@@ -325,17 +331,20 @@ public class Interactor {
 
             // CAN REPAIR
             interactions.add(interaction);
-            if (Griswold.economy != null)
+            if (Griswold.economy != null) {
                 player.sendMessage(String.format(ChatColor.GOLD + "<" + repairman.getName() + "> " + ChatColor.WHITE +
-                        Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
-            else player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_free);
+                                                 Lang.chat_cost, price, Griswold.economy.currencyNamePlural()));
+            } else {
+                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_free);
+            }
             player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_agreed);
         } else {
             // NEEDS ENCHANT
             if (!enableEnchants || notEnchantable.contains(item.getType()) || enchantBlacklist.contains(item.getType())
-                    || (!(repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
+                || (!(repairableTools.contains(item.getType()) || repairableArmor.contains(item.getType())))) {
                 // UNKNOWN ITEM
-                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_noenchant); // NO REPAIR NEEDED, CAN NOT ENCHANT
+                player.sendMessage(String.format(Lang.name_format, repairman.getName()) +
+                                   Lang.chat_noenchant); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
             }
 
@@ -343,14 +352,15 @@ public class Interactor {
             price = addEnchantmentPrice;
             if (!repairman.getType().equals(RepairerType.ENCHANT) && !repairman.getType().equals(RepairerType.ALL)) {
                 // CANNOT ENCHANT
-                player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
+                player.sendMessage(String.format(Lang.name_format, repairman.getName()) +
+                                   Lang.chat_norepair); // NO REPAIR NEEDED, CAN NOT ENCHANT
                 return;
             }
             // CAN ENCHANT
             interactions.add(interaction);
             if (Griswold.economy != null)
                 player.sendMessage(String.format(String.format(Lang.name_format, repairman.getName()) +
-                        Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
+                                                 Lang.chat_enchant_cost, price, Griswold.economy.currencyNamePlural()));
             else player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_enchant_free);
             player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_agreed);
         }
@@ -406,11 +416,10 @@ public class Interactor {
     }
 
     private void applyRandomEnchantment(ItemStack item, boolean isBook) {
-        List<Enchantment> candidates = new ArrayList<>();
-
-        Arrays.asList(Enchantment.values()).forEach((ench) -> { // I guess collections are overrated in bukkit
-            if (ench.canEnchantItem(item) || isBook) candidates.add(ench);
-        });
+        // I guess collections are overrated in bukkit
+        final List<Enchantment> candidates = Arrays.stream(Enchantment.values())
+                .filter(ench -> ench.canEnchantItem(item) || isBook)
+                .collect(Collectors.toList());
 
         item.getEnchantments().keySet().forEach((applied) ->
                 candidates.removeIf((candidate) -> candidate.conflictsWith(applied)));
