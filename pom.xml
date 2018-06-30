@@ -93,7 +93,7 @@
                                     <groupId>com.github.toxuin</groupId>
                                     <artifactId>griswold</artifactId>
                                     <overWrite>true</overWrite>
-                                    <version>${version}</version>
+                                    <version>${project.version}</version>
                                     <outputDirectory>${basedir}/../TESTSERVER/plugins/</outputDirectory>
                                     <destFileName>Griswold.jar</destFileName>
                                 </artifactItem>
@@ -106,6 +106,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.0</version>
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
