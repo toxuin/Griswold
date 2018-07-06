@@ -46,8 +46,7 @@ public class EventListener implements Listener {
             return;
         }
 
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
+        for (Repairer rep : npcChunks.keySet()) {
             if (!event.getRightClicked().equals(rep.getEntity())) continue;
             plugin.interactor.interact(event.getPlayer(), rep);
             event.setCancelled(true);
@@ -58,13 +57,11 @@ public class EventListener implements Listener {
     @EventHandler
     public void onZombieTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Zombie)) return;
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
+        for (Repairer rep : npcChunks.keySet()) {
             if (!rep.getEntity().equals(event.getTarget())) continue;
             event.setCancelled(true);
             return;
         }
-
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

@@ -26,12 +26,12 @@ public class Interaction {
 
     public boolean equals(Interaction inter) {
         int delta = (int) (time - inter.time);
-        return ((inter.item.equals(item)) &&
-                (inter.valid) &&
-                (inter.damage == damage) &&
-                (inter.player.equals(player)) &&
-                (inter.repairman.equals(repairman)) &&
-                (delta < Griswold.timeout));
+        return ((inter.item.equals(item))
+                && (inter.valid)
+                && (inter.damage == damage)
+                && (inter.player.equals(player))
+                && (inter.repairman.equals(repairman))
+                && (delta < Griswold.timeout));
     }
 
     @Override
