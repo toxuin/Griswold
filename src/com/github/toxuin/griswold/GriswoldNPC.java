@@ -20,6 +20,7 @@ import java.util.Random;
 import java.util.Set;
 
 public class GriswoldNPC extends Repairer {
+
     private Entity entity;
     private Random rnd = new Random();
     private boolean spawned;
@@ -54,8 +55,10 @@ public class GriswoldNPC extends Repairer {
             list.clear();
 
             Method setGoal = pathfinderGoalSelector.getMethod("a", int.class, pathfinderGoal);
-            Constructor<?> lookAtPlayerConstructor = pathfinderGoalLookAtPlayer.getConstructor(entityInsentient, Class.class, float.class, float.class);
-            Constructor<?> randomLookAroundConstructor = pathfinderGoalRandomLookaround.getConstructor(entityInsentient);
+            Constructor<?> lookAtPlayerConstructor =
+                    pathfinderGoalLookAtPlayer.getConstructor(entityInsentient, Class.class, float.class, float.class);
+            Constructor<?> randomLookAroundConstructor =
+                    pathfinderGoalRandomLookaround.getConstructor(entityInsentient);
 
             setGoal.invoke(goals, 1, lookAtPlayerConstructor.newInstance(villager, entityHuman, 12.0F, 1.0F));
             setGoal.invoke(goals, 2, randomLookAroundConstructor.newInstance(villager));
@@ -68,12 +71,15 @@ public class GriswoldNPC extends Repairer {
     @SuppressWarnings("unchecked")
     public void haggle() {
         if (craftEntity == null) return;
-        if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") && craftEntity.isInstance(this.entity)) {
+        if (this.sound != null && !this.sound.isEmpty() && !this.sound.equals("mute") &&
+            craftEntity.isInstance(this.entity)) {
             try {
                 Sound snd = Sound.valueOf(sound);
-                this.entity.getWorld().playSound(entity.getLocation(), snd, 1.2f, 1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
+                this.entity.getWorld().playSound(entity.getLocation(), snd, 1.2f,
+                        1.6F + (this.rnd.nextFloat() - this.rnd.nextFloat()) * 0.4F);
             } catch (IllegalArgumentException e) {
-                Griswold.log.info("NPC " + this.getName() + " has invalid sound " + sound + "! Disabling sound for it...");
+                Griswold.log.info("NPC " + this.getName() + " has invalid sound "
+                                  + sound + "! Disabling sound for it...");
                 sound = null;
             }
         }
@@ -111,31 +117,33 @@ public class GriswoldNPC extends Repairer {
         this.overwriteAI();
 
         // FILTER DUPLICATES
-        if (Griswold.findDuplicates)
-            Arrays.asList(getLocation().getChunk().getEntities()).forEach((doppelganger) -> {
-                if (this.entityClass == null) return; // YOU'RE WEIRD
-                if (!(doppelganger.getLocation().distance(getLocation()) <= Griswold.duplicateFinderRadius)) return;
-                Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
-                if (craftVillagerClass == null) {
-                    Griswold.log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
-                    return;
-                }
-                if (!craftVillagerClass.isInstance(doppelganger)) return; // are you even villager?
-                if (this.entity.equals(doppelganger)) return; // prevent suiciding
-                if (doppelganger.getName().equals(this.name)) doppelganger.remove(); // 100% DUPLICATE
-            });
+        if (Griswold.findDuplicates) {
+            if (this.entityClass == null) return; // YOU'RE WEIRD
+            Class craftVillagerClass = ClassProxy.getClass("entity.CraftVillager");
+            if (craftVillagerClass == null) {
+                Griswold.log.severe("ERROR: CANNOT FIND CLASS CraftVillager");
+                return;
+            }
+
+            Arrays.stream(getLocation().getChunk().getEntities())
+                    .filter(doppelganger ->
+                            doppelganger.getLocation().distance(getLocation()) <= Griswold.duplicateFinderRadius)
+                    .filter(craftVillagerClass::isInstance) // are you even villager?
+                    .filter(doppelganger -> !this.entity.equals(doppelganger)) // prevent suiciding
+                    .filter(doppelganger -> doppelganger.getName().equals(this.name)) // 100% DUPLICATE
+                    .forEach(Entity::remove);
+        }
 
         if (Griswold.debug) {
-            Griswold.log.info(String.format(Lang.repairman_spawn, this.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
+            Griswold.log.info(String
+                    .format(Lang.repairman_spawn, this.entity.getEntityId(), loc.getX(), loc.getY(), loc.getZ()));
         }
         setSpawned(true);
     }
 
     void despawn() {
         if (!this.isSpawned()) return;
-        Griswold.npcChunks.keySet().forEach((rep) -> {
-            if (rep.equals(this)) rep.getEntity().remove();
-        });
+        Griswold.npcChunks.keySet().stream().filter(rep -> rep.equals(this)).forEach(rep -> rep.getEntity().remove());
         setSpawned(false);
     }
 

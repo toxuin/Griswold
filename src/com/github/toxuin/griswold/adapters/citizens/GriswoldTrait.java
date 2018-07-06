@@ -11,9 +11,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 
 public abstract class GriswoldTrait extends Trait {
+
     private Griswold griswold;
     private final Interactor interactor;
-    
+
     @Persist private double cost = 1d;
 
     public GriswoldTrait(String name) {

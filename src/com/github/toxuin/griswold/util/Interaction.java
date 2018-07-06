@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.UUID;
 
 public class Interaction {
+
     private final UUID player;
     private final Entity repairman;
     private final ItemStack item;
