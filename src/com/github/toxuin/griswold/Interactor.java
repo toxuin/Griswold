@@ -276,8 +276,8 @@ public class Interactor {
             // ENCHANTMENTS
             price = addEnchantmentPrice;
             if (Griswold.economy != null) {
-                if (Griswold.economy.getBalance(player) < price) return;
-                if (!Griswold.economy.withdrawPlayer(player, price).transactionSuccess()) {
+                if (Griswold.economy.getBalance(player) < price ||
+                    !Griswold.economy.withdrawPlayer(player, price).transactionSuccess()) {
                     inter.valid = false; // INVALIDATE INTERACTION
                     player.sendMessage(String.format(Lang.name_format, repairman.getName()) + Lang.chat_poor);
                     return;
