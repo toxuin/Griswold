@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 public class Griswold extends JavaPlugin implements Listener {
+
     public static final String PLUGIN_NAME = "Griswold";
     static File directory;
     static boolean debug = false;
@@ -52,21 +53,23 @@ public class Griswold extends JavaPlugin implements Listener {
         directory = this.getDataFolder();
         PluginDescriptionFile pdfFile = this.getDescription();
         version = Double.parseDouble(pdfFile.getVersion());
-        apiVersion = new ApiVersion(this.getServer().getBukkitVersion(), Bukkit.getServer().getClass().getPackage().getName());
+        apiVersion = new ApiVersion(this.getServer().getBukkitVersion(),
+                Bukkit.getServer().getClass().getPackage().getName());
 
         if (!apiVersion.isValid()) {
             log.severe("UNKNOWN SERVER API VERSION: " + this.getServer().getBukkitVersion());
             log.severe("PLUGIN WORK WILL BE UNSTABLE");
             log.severe("PLEASE REPORT THIS TO THE DEVELOPERS AT http://dev.bukkit.org/bukkit-plugins/griswold/");
             log.severe("TELL HIM YOU SAW THIS:"
-                    + " MAJOR: " + apiVersion.getMajor()
-                    + " MINOR: " + apiVersion.getMinor()
-                    + " RELEASE: " + apiVersion.getRelease()
-                    + " BUILD: " + apiVersion.getBuild());
+                       + " MAJOR: " + apiVersion.getMajor()
+                       + " MINOR: " + apiVersion.getMinor()
+                       + " RELEASE: " + apiVersion.getRelease()
+                       + " BUILD: " + apiVersion.getBuild());
         }
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
-        if (ClassProxy.getClass("entity.CraftVillager") == null || ClassProxy.getClass("EnchantmentInstance") == null) {
+        if (ClassProxy.getClass("entity.CraftVillager") == null
+            || ClassProxy.getClass("EnchantmentInstance") == null) {
             log.severe("PLUGIN NOT LOADED!!!");
             log.severe("ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
             log.severe("GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
@@ -172,17 +175,17 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void removeRepairman(String name) {
-        if (config.isConfigurationSection("repairmen." + name)) {
-            config.set("repairmen." + name, null);
-            try {
-                config.save(configFile);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        } else {
+        if (!config.isConfigurationSection("repairmen." + name)) {
             log.info(Lang.error_remove);
             return;
         }
+        config.set("repairmen." + name, null);
+        try {
+            config.save(configFile);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         reloadPlugin();
     }
 
@@ -214,13 +217,9 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void setSound(String name, String sound) {
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
-            if (rep.getName().equals(name)) {
-                rep.setSound(sound);
-                return;
-            }
-        }
+        npcChunks.keySet().stream()
+                .filter(rep -> rep.getName().equals(name))
+                .forEach(rep -> rep.setSound(sound));
     }
 
     Map<GriswoldNPC, Pair> getNpcChunks() {
@@ -228,7 +227,6 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     private void readConfig() {
-
         Lang.createLangFile();
 
         configFile = new File(directory, "config.yml");
@@ -269,7 +267,8 @@ public class Griswold extends JavaPlugin implements Listener {
             if (config.isConfigurationSection("repairmen")) {
                 Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
                 for (String repairman : repairmen) {
-                    Location loc = new Location(this.getServer().getWorld(config.getString("repairmen." + repairman + ".world")),
+                    Location loc = new Location(
+                            this.getServer().getWorld(config.getString("repairmen." + repairman + ".world")),
                             config.getDouble("repairmen." + repairman + ".X"),
                             config.getDouble("repairmen." + repairman + ".Y"),
                             config.getDouble("repairmen." + repairman + ".Z"));
@@ -394,7 +393,8 @@ public class Griswold extends JavaPlugin implements Listener {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
-        RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
+        RegisteredServiceProvider<Economy> economyProvider =
+                getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
         if (economyProvider != null) {
             economy = economyProvider.getProvider();
         }

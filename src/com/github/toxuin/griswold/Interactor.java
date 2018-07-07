@@ -192,7 +192,7 @@ public class Interactor {
     private boolean isInteger(String number) {
         if (number == null) return false;
         try {
-            int i = Integer.parseInt(number);
+            Integer.parseInt(number);
         } catch (NumberFormatException e) {
             return false;
         }

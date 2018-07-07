@@ -2,7 +2,10 @@ package com.github.toxuin.griswold.util;
 
 import com.github.toxuin.griswold.Griswold;
 
+import java.util.Arrays;
+
 public enum RepairerType {
+
     TOOLS, ARMOR, BOTH, ENCHANT, ALL;
 
     public static RepairerType fromString(String type) {
@@ -14,8 +17,6 @@ public enum RepairerType {
     }
 
     public static boolean present(String type) {
-        for (RepairerType t : RepairerType.values())
-            if (t.toString().equalsIgnoreCase(type)) return true;
-        return false;
+        return Arrays.stream(RepairerType.values()).anyMatch(t -> t.toString().equalsIgnoreCase(type));
     }
 }

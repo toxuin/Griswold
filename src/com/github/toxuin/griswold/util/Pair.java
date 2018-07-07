@@ -1,8 +1,9 @@
 package com.github.toxuin.griswold.util;
 
 public class Pair {
-    private int x = 0;
-    private int z = 0;
+
+    private int x;
+    private int z;
 
     public Pair(int x, int z) {
         this.x = x;
