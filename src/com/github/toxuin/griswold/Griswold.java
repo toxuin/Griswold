@@ -23,6 +23,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 public class Griswold extends JavaPlugin implements Listener {
 
@@ -188,12 +189,11 @@ public class Griswold extends JavaPlugin implements Listener {
     }
 
     void listRepairmen(CommandSender sender) {
-        StringBuilder result = new StringBuilder();
-        npcChunks.keySet().forEach(rep -> result.append(rep.getName()).append(", "));
-        if (!result.toString().equals("")) {
-            sender.sendMessage(ChatColor.GREEN + Lang.repairman_list);
-            sender.sendMessage(result.toString());
-        }
+        final String result = npcChunks.keySet().stream()
+                .map(Repairer::getName).collect(Collectors.joining(", "));
+        if (result.isEmpty()) return;
+        sender.sendMessage(ChatColor.GREEN + Lang.repairman_list);
+        sender.sendMessage(result);
     }
 
     void despawnAll() {
