@@ -2,6 +2,7 @@ package com.github.toxuin.griswold;
 
 import com.github.toxuin.griswold.Metrics.Graph;
 import com.github.toxuin.griswold.adapters.citizens.CitizensAdapter;
+import com.github.toxuin.griswold.exceptions.RepairmanExistsException;
 import com.github.toxuin.griswold.util.Pair;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
@@ -136,24 +137,21 @@ public class Griswold extends JavaPlugin implements Listener {
         readConfig();
     }
 
-    void createRepairman(String name, Location loc) {
+    void createRepairman(String name, Location loc) throws RepairmanExistsException {
         createRepairman(name, loc, "all", "1");
     }
 
-    void createRepairman(String name, Location loc, String type) {
+    void createRepairman(String name, Location loc, String type) throws RepairmanExistsException {
         createRepairman(name, loc, type, "1");
     }
 
-    void createRepairman(String name, Location loc, String type, String cost) {
+    void createRepairman(String name, Location loc, String type, String cost) throws RepairmanExistsException {
         boolean found = false;
         Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
             if (rep.getName().equalsIgnoreCase(name)) found = true;
         }
-        if (found) {
-            log.info(String.format(Lang.repairman_exists, name)); // TODO: report to user???
-            return;
-        }
+        if (found) throw new RepairmanExistsException();
 
         config.set("repairmen." + name + ".world", loc.getWorld().getName());
         config.set("repairmen." + name + ".X", loc.getX());
