@@ -12,7 +12,8 @@ import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.event.world.ChunkUnloadEvent;
 
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class EventListener implements Listener {
 
@@ -27,13 +28,13 @@ public class EventListener implements Listener {
     // MAKE THEM INVINCIBLE
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEntityDamage(EntityDamageEvent event) {
-        if (npcChunks.isEmpty()) return;
-        Set<GriswoldNPC> npcs = npcChunks.keySet();
-        for (Repairer rep : npcs) {
-            if (!event.getEntity().equals(rep.getEntity())) continue;
+        final Optional<Map.Entry<GriswoldNPC, Pair>> any = npcChunks.entrySet().stream()
+                .filter(e -> e.getKey().getEntity().equals(event.getEntity()))
+                .findAny();
+
+        if (any.isPresent()) {
             event.setDamage(0d);
             event.setCancelled(true);
-            return;
         }
     }
 
@@ -45,55 +46,51 @@ public class EventListener implements Listener {
             || !event.getPlayer().hasPermission("griswold.enchant")) {
             return;
         }
-
-        for (Repairer rep : npcChunks.keySet()) {
-            if (!event.getRightClicked().equals(rep.getEntity())) continue;
-            plugin.interactor.interact(event.getPlayer(), rep);
-            event.setCancelled(true);
-        }
+        npcChunks.entrySet().stream()
+                .filter(e -> e.getKey().getEntity().equals(event.getRightClicked()))
+                .map(Map.Entry::getKey).collect(Collectors.toList())
+                .forEach(npc -> {
+                    plugin.interactor.interact(event.getPlayer(), npc);
+                    event.setCancelled(true);
+                });
     }
 
     // NO ZOMBIE NO CRY
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onZombieTarget(EntityTargetLivingEntityEvent event) {
         if (!(event.getEntity() instanceof Zombie)) return;
-        for (Repairer rep : npcChunks.keySet()) {
-            if (!rep.getEntity().equals(event.getTarget())) continue;
-            event.setCancelled(true);
-            return;
-        }
+
+        final Optional<Map.Entry<GriswoldNPC, Pair>> any = npcChunks.entrySet().stream()
+                .filter(e -> e.getKey().getEntity().equals(event.getTarget()))
+                .findAny();
+
+        if (any.isPresent()) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChunkLoad(ChunkLoadEvent event) {
-        if (npcChunks.isEmpty()) return;
         Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (!pair.equals(coords)) continue;
-            for (GriswoldNPC rep : npcChunks.keySet()) {
-                if (!npcChunks.get(rep).equals(coords)) continue;
-                rep.spawn();
-                if (Griswold.debug)
-                    Griswold.log.info("SPAWNED NPC " + rep.getName() + ", HIS CHUNK LOADED");
-            }
-        }
+        npcChunks.entrySet().stream()
+                .filter(e -> e.getValue().equals(coords))
+                .map(Map.Entry::getKey).collect(Collectors.toList())
+                .forEach(npc -> {
+                    npc.spawn();
+                    if (Griswold.debug)
+                        Griswold.log.info("SPAWNED NPC " + npc.getName() + ", HIS CHUNK LOADED");
+                });
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onChunkUnload(ChunkUnloadEvent event) {
-        if (npcChunks.isEmpty()) return;
         Pair coords = new Pair(event.getChunk().getX(), event.getChunk().getZ());
-
-        for (Pair pair : npcChunks.values()) {
-            if (!pair.equals(coords)) continue;
-            for (GriswoldNPC rep : npcChunks.keySet()) {
-                if (!npcChunks.get(rep).equals(coords)) continue;
-                rep.despawn();
-                if (Griswold.debug)
-                    Griswold.log.info("DESPAWNED NPC " + rep.getName() + ", HIS CHUNK GOT UNLOADED");
-            }
-        }
+        npcChunks.entrySet().stream()
+                .filter(e -> e.getValue().equals(coords))
+                .map(Map.Entry::getKey).collect(Collectors.toList())
+                .forEach(npc -> {
+                    npc.despawn();
+                    if (Griswold.debug)
+                        Griswold.log.info("DESPAWNED NPC " + npc.getName() + ", HIS CHUNK GOT UNLOADED");
+                });
     }
 
 }

@@ -14,10 +14,7 @@ import org.bukkit.entity.Villager;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Random;
-import java.util.Set;
+import java.util.*;
 
 public class GriswoldNPC extends Repairer {
 
@@ -188,5 +185,19 @@ public class GriswoldNPC extends Repairer {
         double cost = config.getDouble("repairmen." + name + ".cost");
 
         return new GriswoldNPC(name, loc, sound, type, cost);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        GriswoldNPC that = (GriswoldNPC) o;
+        return Objects.equals(entity, that.entity);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), entity);
     }
 }

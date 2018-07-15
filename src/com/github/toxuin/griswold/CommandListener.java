@@ -1,5 +1,6 @@
 package com.github.toxuin.griswold;
 
+import com.github.toxuin.griswold.exceptions.RepairmanExistsException;
 import com.github.toxuin.griswold.util.RepairerType;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -41,25 +42,32 @@ public class CommandListener implements CommandExecutor, TabCompleter {
             }
 
             Player player = (Player) sender; // check performed in can() method
-            Location location = player.getLocation().toVector().add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
+            Location location = player.getLocation().toVector()
+                    .add(player.getLocation().getDirection().multiply(3)).toLocation(player.getWorld());
             location.setY(Math.round(player.getLocation().getY()));
-            if (args.length < 3) {
-                plugin.createRepairman(args[1], location);
-            } else if (args.length < 4) {
-                if (!RepairerType.present(args[2])) {
-                    player.sendMessage(Lang.chat_type_error);
-                    return true;
+            try {
+                if (args.length < 3) {
+                    plugin.createRepairman(args[1], location);
+                } else if (args.length < 4) {
+                    if (!RepairerType.present(args[2])) {
+                        player.sendMessage(Lang.chat_type_error);
+                        return true;
+                    }
+                    plugin.createRepairman(args[1], location, args[2]);
+                } else {
+                    if (!RepairerType.present(args[2])) {
+                        player.sendMessage(Lang.chat_type_error);
+                        return true;
+                    }
+                    plugin.createRepairman(args[1], location, args[2], args[3]);
                 }
-                plugin.createRepairman(args[1], location, args[2]);
-            } else {
-                if (!RepairerType.present(args[2])) {
-                    player.sendMessage(Lang.chat_type_error);
-                    return true;
-                }
-                plugin.createRepairman(args[1], location, args[2], args[3]);
+                player.sendMessage(Lang.new_created);
+                return true;
+            } catch (RepairmanExistsException e) {
+                player.sendMessage(String.format(Lang.repairman_exists, args[1]));
+                return true;
             }
-            player.sendMessage(Lang.new_created);
-            return true;
+
         }
 
         // REMOVE COMMAND
