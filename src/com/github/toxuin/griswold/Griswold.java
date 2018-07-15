@@ -1,10 +1,10 @@
 package com.github.toxuin.griswold;
 
-import com.github.toxuin.griswold.Metrics.Graph;
 import com.github.toxuin.griswold.adapters.citizens.CitizensAdapter;
 import com.github.toxuin.griswold.exceptions.RepairmanExistsException;
 import com.github.toxuin.griswold.util.Pair;
 import net.milkbowl.vault.economy.Economy;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -18,10 +18,10 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
@@ -92,35 +92,25 @@ public class Griswold extends JavaPlugin implements Listener {
             reloadPlugin();
             if (!setupEconomy()) log.info(Lang.economy_not_found);
             if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin(); // this is fucking gold
+
+            Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
+            if (citizens != null && citizens.isEnabled()) {
+                citizensAdapter = new CitizensAdapter();
+                log.info("Registered Griswold traits with Citizens");
+            }
+
+            try {
+                final Metrics metrics = new Metrics(this);
+
+                metrics.addCustomChart(new Metrics.SimplePie("using_citizens2",
+                        () -> citizensAdapter != null ? "Yes" : "No"));
+                metrics.addCustomChart(new Metrics.SimplePie("npc_count",
+                        () -> String.valueOf(npcChunks.keySet().size())));
+                if (debug) log.info("bStats metrics initialized successfully.");
+            } catch (Exception e) {
+                if (debug) log.log(Level.WARNING, "Failed to submit metrics to bStats", e);
+            }
         }, 20);
-
-        Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
-        if (citizens != null && citizens.isEnabled()) {
-            citizensAdapter = new CitizensAdapter();
-            log.info("Registered Griswold traits with Citizens");
-        }
-
-        try {
-            Metrics metrics = new Metrics(this);
-            Graph citizensGraph = metrics.createGraph("Using Citizens2");
-            citizensGraph.addPlotter(new Metrics.Plotter() {
-                @Override
-                public int getValue() {
-                    return citizensAdapter == null ? 0 : 1;
-                }
-            });
-
-            Graph numberOfNpcGraph = metrics.createGraph("Number of NPCs");
-            numberOfNpcGraph.addPlotter(new Metrics.Plotter("Total") {
-                @Override
-                public int getValue() {
-                    return npcChunks.keySet().size();
-                }
-            });
-            metrics.start();
-        } catch (IOException e) {
-            if (debug) log.info("ERROR: failed to submit stats to MCStats");
-        }
 
         log.info("Enabled! Version: " + version + " on api version " + apiVersion);
     }
