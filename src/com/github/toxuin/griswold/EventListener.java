@@ -49,7 +49,7 @@ public class EventListener implements Listener {
         npcChunks.entrySet().stream()
                 .filter(e -> e.getKey().getEntity().equals(event.getRightClicked()))
                 .map(Map.Entry::getKey).collect(Collectors.toList())
-                .forEach(npc -> { // TODO: -> findAny? is that possible?
+                .forEach(npc -> {
                     plugin.interactor.interact(event.getPlayer(), npc);
                     event.setCancelled(true);
                 });

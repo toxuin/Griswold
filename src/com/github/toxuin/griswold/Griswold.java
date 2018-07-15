@@ -191,9 +191,8 @@ public class Griswold extends JavaPlugin implements Listener {
     void listRepairmen(CommandSender sender) {
         final String result = npcChunks.keySet().stream()
                 .map(Repairer::getName).collect(Collectors.joining(", "));
-        if (result.isEmpty()) return;
         sender.sendMessage(ChatColor.GREEN + Lang.repairman_list);
-        sender.sendMessage(result);
+        sender.sendMessage(result.isEmpty() ? "[]" : result);
     }
 
     void despawnAll() {
