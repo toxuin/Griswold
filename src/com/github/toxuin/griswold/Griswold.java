@@ -88,16 +88,18 @@ public class Griswold extends JavaPlugin implements Listener {
 
         interactor = new Interactor();
 
-        this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
-            reloadPlugin();
-            if (!setupEconomy()) log.info(Lang.economy_not_found);
-            if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin(); // this is fucking gold
+        reloadPlugin();
+        if (!setupEconomy()) log.info(Lang.economy_not_found);
+        if (Lang.chat_agreed.startsWith("ERROR:")) reloadPlugin(); // this is fucking gold
 
-            Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
-            if (citizens != null && citizens.isEnabled()) {
-                citizensAdapter = new CitizensAdapter();
-                log.info("Registered Griswold traits with Citizens");
-            }
+        Plugin citizens = getServer().getPluginManager().getPlugin("Citizens");
+        if (citizens != null && citizens.isEnabled()) {
+            citizensAdapter = new CitizensAdapter();
+            log.info("Registered Griswold traits with Citizens");
+        }
+
+        this.getServer().getScheduler().scheduleSyncDelayedTask(this, () -> {
+            loadNPCs();
 
             try {
                 final Metrics metrics = new Metrics(this);
@@ -159,8 +161,7 @@ public class Griswold extends JavaPlugin implements Listener {
             e.printStackTrace();
         }
 
-        GriswoldNPC meGusta = new GriswoldNPC(name, loc, Repairer.getDefaultSound(), type, Double.parseDouble(cost));
-        meGusta.spawn();
+        new GriswoldNPC(name, loc, Repairer.getDefaultSound(), type, Double.parseDouble(cost)).spawn();
     }
 
     void removeRepairman(String name) {
@@ -219,8 +220,6 @@ public class Griswold extends JavaPlugin implements Listener {
         configFile = new File(directory, "config.yml");
         config = YamlConfiguration.loadConfiguration(configFile);
 
-        npcChunks.clear();
-
         if (configFile.exists()) {
             debug = config.getBoolean("Debug");
             timeout = config.getInt("Timeout");
@@ -251,29 +250,7 @@ public class Griswold extends JavaPlugin implements Listener {
 
             if (interactor != null) interactor.loadConfigItems();
 
-            if (config.isConfigurationSection("repairmen")) {
-                Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
-                for (String repairman : repairmen) {
-                    Location loc = new Location(
-                            this.getServer().getWorld(config.getString("repairmen." + repairman + ".world")),
-                            config.getDouble("repairmen." + repairman + ".X"),
-                            config.getDouble("repairmen." + repairman + ".Y"),
-                            config.getDouble("repairmen." + repairman + ".Z"));
-                    String sound = config.getString("repairmen." + repairman + ".sound");
-                    String type = config.getString("repairmen." + repairman + ".type");
-                    double cost = config.getDouble("repairmen." + repairman + ".cost");
-
-                    GriswoldNPC squidward = new GriswoldNPC(repairman, loc, sound, type, cost);
-
-                    squidward.loadChunk();
-                    squidward.spawn();
-                }
-            }
             log.info(Lang.config_loaded);
-
-            if (debug) {
-                log.info(String.format(Lang.debug_loaded, npcChunks.keySet().size()));
-            }
         } else {
             config.set("Timeout", 5000);
             config.set("Language", "en_US");
@@ -374,6 +351,32 @@ public class Griswold extends JavaPlugin implements Listener {
                 e.printStackTrace();
             }
         }
+    }
+
+    private void loadNPCs() {
+        if (!configFile.exists()) return;
+        npcChunks.clear();
+        if (!config.isConfigurationSection("repairmen")) return;
+
+        Set<String> repairmen = config.getConfigurationSection("repairmen").getKeys(false);
+        for (String repairman : repairmen) {
+            final String key = "repairmen." + repairman;
+            Location loc = new Location(
+                    this.getServer().getWorld(config.getString(key + ".world")),
+                    config.getDouble(key + ".X"),
+                    config.getDouble(key + ".Y"),
+                    config.getDouble(key + ".Z"));
+            String sound = config.getString(key + ".sound");
+            String type = config.getString(key + ".type");
+            double cost = config.getDouble(key + ".cost");
+
+            GriswoldNPC squidward = new GriswoldNPC(repairman, loc, sound, type, cost);
+
+            squidward.loadChunk();
+            squidward.spawn();
+        }
+
+        if (debug) log.info(String.format(Lang.debug_loaded, npcChunks.keySet().size()));
     }
 
     private boolean setupEconomy() {

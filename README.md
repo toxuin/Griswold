@@ -182,8 +182,8 @@ You can copy-paste this snippet to the end of your config.
 * [Plugin page on spigotmc.org](http://spigotmc.org/resources/griswold.49036/)
 * [Russian discussion and support](http://rubukkit.org/threads/15343/)
 * Feel free to suggest something or report bugs in Issues
-* Your pull-requests are always welcome!
+* Your pull requests are always welcome!
 
 ## Stats:
 
-![Griswold stats](http://mcstats.org/signature/griswold.png)
+[Stats are available here](https://bstats.org/plugin/bukkit/Griswold)
