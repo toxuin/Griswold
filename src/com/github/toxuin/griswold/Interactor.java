@@ -47,31 +47,31 @@ public class Interactor {
         repairableTools.add(Material.IRON_PICKAXE);
         repairableTools.add(Material.IRON_SWORD);
         repairableTools.add(Material.IRON_HOE);
-        repairableTools.add(Material.IRON_SPADE);              // IRON TOOLS
+        repairableTools.add(Material.IRON_SHOVEL);              // IRON TOOLS
 
-        repairableTools.add(Material.WOOD_AXE);
-        repairableTools.add(Material.WOOD_PICKAXE);
-        repairableTools.add(Material.WOOD_SWORD);
-        repairableTools.add(Material.WOOD_HOE);
-        repairableTools.add(Material.WOOD_SPADE);              // WOODEN TOOLS
+        repairableTools.add(Material.WOODEN_AXE);
+        repairableTools.add(Material.WOODEN_PICKAXE);
+        repairableTools.add(Material.WOODEN_SWORD);
+        repairableTools.add(Material.WOODEN_HOE);
+        repairableTools.add(Material.WOODEN_SHOVEL);              // WOODEN TOOLS
 
         repairableTools.add(Material.STONE_AXE);
         repairableTools.add(Material.STONE_PICKAXE);
         repairableTools.add(Material.STONE_SWORD);
         repairableTools.add(Material.STONE_HOE);
-        repairableTools.add(Material.STONE_SPADE);             // STONE TOOLS
+        repairableTools.add(Material.STONE_SHOVEL);             // STONE TOOLS
 
         repairableTools.add(Material.DIAMOND_AXE);
         repairableTools.add(Material.DIAMOND_PICKAXE);
         repairableTools.add(Material.DIAMOND_SWORD);
         repairableTools.add(Material.DIAMOND_HOE);
-        repairableTools.add(Material.DIAMOND_SPADE);           // DIAMOND TOOLS
+        repairableTools.add(Material.DIAMOND_SHOVEL);           // DIAMOND TOOLS
 
-        repairableTools.add(Material.GOLD_AXE);
-        repairableTools.add(Material.GOLD_PICKAXE);
-        repairableTools.add(Material.GOLD_SWORD);
-        repairableTools.add(Material.GOLD_HOE);
-        repairableTools.add(Material.GOLD_SPADE);               // GOLDEN TOOLS
+        repairableTools.add(Material.GOLDEN_AXE);
+        repairableTools.add(Material.GOLDEN_PICKAXE);
+        repairableTools.add(Material.GOLDEN_SWORD);
+        repairableTools.add(Material.GOLDEN_HOE);
+        repairableTools.add(Material.GOLDEN_SHOVEL);               // GOLDEN TOOLS
 
         repairableTools.add(Material.BOW);                      // BOW
 
@@ -101,10 +101,10 @@ public class Interactor {
         repairableArmor.add(Material.IRON_HELMET);
         repairableArmor.add(Material.IRON_LEGGINGS);
 
-        repairableArmor.add(Material.GOLD_BOOTS);
-        repairableArmor.add(Material.GOLD_CHESTPLATE);
-        repairableArmor.add(Material.GOLD_HELMET);
-        repairableArmor.add(Material.GOLD_LEGGINGS);
+        repairableArmor.add(Material.GOLDEN_BOOTS);
+        repairableArmor.add(Material.GOLDEN_CHESTPLATE);
+        repairableArmor.add(Material.GOLDEN_HELMET);
+        repairableArmor.add(Material.GOLDEN_LEGGINGS);
 
         repairableArmor.add(Material.DIAMOND_BOOTS);
         repairableArmor.add(Material.DIAMOND_CHESTPLATE);
@@ -129,17 +129,12 @@ public class Interactor {
         if (config.isConfigurationSection("CustomItems.Tools")) {
             Set<String> tools = config.getConfigurationSection("CustomItems.Tools").getKeys(false);
             for (String itemId : tools) {
-                Material mat;
-                if (isInteger(itemId)) {  // IS ITEM ID
-                    mat = Material.getMaterial(Integer.parseInt(itemId));
-                } else { // IS ITEM NAME
-                    mat = Material.getMaterial(itemId);
-                }
-                if (mat == null) {
+                Material material = Material.getMaterial(itemId);
+                if (material == null) {
                     log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Tools CONFIG: " + itemId);
                     continue;
                 }
-                repairableTools.add(mat); // BY NAME
+                repairableTools.add(material); // BY NAME
             }
             log.info("Added " + tools.size() + " custom tools from config file");
         }
@@ -147,12 +142,7 @@ public class Interactor {
         if (config.isConfigurationSection("CustomItems.Armor")) {
             Set<String> armor = config.getConfigurationSection("CustomItems.Armor").getKeys(false);
             for (String itemId : armor) {
-                Material mat;
-                if (isInteger(itemId)) {  // IS ITEM ID
-                    mat = Material.getMaterial(Integer.parseInt(itemId));
-                } else { // IS ITEM NAME
-                    mat = Material.getMaterial(itemId);
-                }
+                Material mat = Material.getMaterial(itemId);
                 if (mat == null) {
                     log.severe("WARNING: YOU HAVE A BAD ITEM ID IN YOUR CustomTools.Armor CONFIG: " + itemId);
                     continue;
