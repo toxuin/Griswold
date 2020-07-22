@@ -1,7 +1,5 @@
 package com.github.toxuin.griswold;
 
-import com.sun.istack.internal.NotNull;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -15,7 +13,6 @@ class ClassProxy {
     // THERE ARE PEOPLE WHO HATE YOU.
 
     // RELATIVE TO net.minecraft.server.vX_X_RX.
-    @NotNull
     static Class<?> getClass(String className) {
         // class name changed after 1.7
         if (className.equals("EnchantmentInstance")
