@@ -70,8 +70,8 @@ public class Griswold extends JavaPlugin implements Listener {
         }
 
         // CHECK IF USING THE WRONG PLUGIN VERSION
-        if (ClassProxy.getClass("entity.CraftVillager") == null
-            || ClassProxy.getClass("EnchantmentInstance") == null) {
+        if (!ClassProxy.classExists("entity.CraftVillager")
+            || !ClassProxy.classExists("EnchantmentInstance")) {
             log.severe("PLUGIN NOT LOADED!!!");
             log.severe("ERROR: YOU ARE USING THE WRONG VERSION OF THIS PLUGIN.");
             log.severe("GO TO http://dev.bukkit.org/bukkit-plugins/griswold/");
@@ -142,7 +142,10 @@ public class Griswold extends JavaPlugin implements Listener {
         boolean found = false;
         Set<GriswoldNPC> npcs = npcChunks.keySet();
         for (Repairer rep : npcs) {
-            if (rep.getName().equalsIgnoreCase(name)) found = true;
+            if (rep.getName().equalsIgnoreCase(name)) {
+                found = true;
+                break;
+            }
         }
         if (found) throw new RepairmanExistsException();
 

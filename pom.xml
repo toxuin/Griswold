@@ -10,7 +10,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <VaultVersion>1.7</VaultVersion>
-        <BukkitVersion>1.12.2-R0.1-SNAPSHOT</BukkitVersion>
+        <BukkitVersion>1.14.3-SNAPSHOT</BukkitVersion>
         <CitizensApiVersion>2.0.16-SNAPSHOT</CitizensApiVersion>
     </properties>
 

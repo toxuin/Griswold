@@ -4,6 +4,7 @@ version: ${project.version}
 author: toxuin
 description: ${project.description}
 load: POSTWORLD
+api-version: '1.13'
 
 commands:
   blacksmith:
