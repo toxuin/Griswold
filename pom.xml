@@ -14,6 +14,17 @@
         <CitizensApiVersion>2.0.16-SNAPSHOT</CitizensApiVersion>
     </properties>
 
+    <distributionManagement>
+        <repository>
+<!--            <uniqueVersion>false</uniqueVersion>-->
+            <id>github</id>
+            <name>Github releases</name>
+            <url>https://maven.pkg.github.com/toxuin/Griswold</url>
+            <layout>default</layout>
+        </repository>
+    </distributionManagement>
+
+
     <repositories>
         <repository>
             <id>spigot-repo</id>
